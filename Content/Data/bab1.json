@@ -576,22 +576,21 @@
   "minigames": [
     {
       "id": "dapur", "title": "Dapur PPR: Menyusup",
-      "help": "WASD/panah: bergerak. Ambil bukti (kuning), hindari pandangan penjaga (merah), keluar lewat pintu hijau. Semak/rak (hijau tua) menyembunyikanmu.",
+      "help": "Ambil bukti di kotak kuning (E). Senter satpam = pandangan mereka; sembunyi di balik rak. Keluar lewat pintu (lantai hijau).",
       "win": "step Dapur 2; set bawa_bukti 1; suara 5; notifbaik Kamu keluar lewat pintu samping. Bawa buktinya pulang. Hindari SPN!",
       "lose": "diawasi 20; notifburuk Penjaga melihatmu kabur. Coba lagi nanti.",
       "loot": ["foto_dapur", "nota_anggaran", "daftar_korban"],
+      "room": "Minigame.DapurPPR",
       "grid": [
-        "#################",
-        "#P..#.....C....B#",
-        "#...#.G.........#",
-        "#.C.#...###..C..#",
-        "#.......#B#.....#",
-        "#.C.....#.#..H..#",
-        "####.####.###...#",
-        "#...G......C....#",
-        "#.C......#####..#",
-        "#X.....C.....B.C#",
-        "#################"
+        "B..C..B",
+        ".C...C.",
+        ".C...C.",
+        "G......",
+        "##.#.##",
+        "......G",
+        ".C.B.C.",
+        "...P...",
+        "...X..."
       ]
     },
     {

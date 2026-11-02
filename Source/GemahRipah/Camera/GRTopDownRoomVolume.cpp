@@ -83,3 +83,20 @@ void AGRTopDownRoomVolume::HandleEndOverlap(UPrimitiveComponent* OverlappedCompo
 	}
 	OnPlayerExited(Pawn);
 }
+
+void AGRTopDownRoomVolume::SetView(const FVector& Offset, const FRotator& Rotation, bool bFollow)
+{
+	CameraOffsetFromCenter = Offset;
+	bFollowPlayer = bFollow;
+	RoomCamera->SetWorldRotation(Rotation);
+	const APawn* Player = ActivePlayer.Get();
+	RoomCamera->SetWorldLocation((bFollow && Player ? Player->GetActorLocation() : GetActorLocation()) + Offset);
+	SetActorTickEnabled(bFollow && Player);
+}
+
+void AGRTopDownRoomVolume::GetView(FVector& OutOffset, FRotator& OutRotation, bool& bOutFollow) const
+{
+	OutOffset = CameraOffsetFromCenter;
+	OutRotation = RoomCamera->GetComponentRotation();
+	bOutFollow = bFollowPlayer;
+}

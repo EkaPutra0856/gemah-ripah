@@ -1,4 +1,5 @@
 #include "Story/GRStoryDirector.h"
+#include "World/GRStealthLevel.h"
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryUtil.h"
 #include "Player/GRCharacter.h"
@@ -417,7 +418,11 @@ void AGRStoryDirector::ProcessRequests()
 			const FGRMinigameDef* Def = GetStory()->FindMinigame(Arg);
 			if (Def && Def->Grid.Num() > 0)
 			{
-				UGRStealthScreen::Open(UI, Arg);
+				// Played in the real room when the map has it; the board screen is the fallback.
+				if (!AGRStealthLevel::Start(GetWorld(), Arg))
+				{
+					UGRStealthScreen::Open(UI, Arg);
+				}
 			}
 			else
 			{

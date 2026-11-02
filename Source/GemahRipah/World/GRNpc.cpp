@@ -195,7 +195,7 @@ void AGRNpc::Tick(float DeltaSeconds)
 		TickVision(DeltaSeconds, Player);
 		// Flashlights only after dark.
 		const UGRClockSubsystem* Clock = GetGameInstance()->GetSubsystem<UGRClockSubsystem>();
-		Flashlight->SetVisibility(Clock && Clock->IsNight());
+		Flashlight->SetVisibility(bStealthGuard || (Clock && Clock->IsNight()));
 	}
 	TickBarks(DeltaSeconds, Player);
 
@@ -302,8 +302,67 @@ void AGRNpc::TickMovement(float DeltaSeconds, const APawn* Player)
 	}
 }
 
+void AGRNpc::SetStealthGuard(float Range, float HalfAngle)
+{
+	bStealthGuard = true;
+	GuardRange = Range;
+	GuardHalfAngle = HalfAngle;
+	// The flashlight cone shows exactly what the guard can see.
+	Flashlight->SetAttenuationRadius(Range);
+	Flashlight->SetOuterConeAngle(HalfAngle);
+	Flashlight->SetInnerConeAngle(FMath::Max(HalfAngle - 6.f, 1.f));
+	Flashlight->SetIntensity(2500.f);
+	Flashlight->SetVisibility(true);
+}
+
+void AGRNpc::ReturnHome()
+{
+	SetActorLocationAndRotation(Home, FRotator(0.f, HomeYaw, 0.f), false, nullptr, ETeleportType::ResetPhysics);
+	GetCharacterMovement()->StopMovementImmediately();
+	PatrolIndex = 0;
+	bHasTarget = false;
+	WaitTime = 0.f;
+	TalkPause = 0.f;
+	bSeesPlayer = false;
+	bChasing = false;
+}
+
+void AGRNpc::TickStealthVision(APawn* Player)
+{
+	const bool bWasSeeing = bSeesPlayer;
+	bSeesPlayer = false;
+	if (Player && !Player->IsHidden())
+	{
+		const FVector Eye = GetActorLocation() + FVector(0.f, 0.f, 60.f);
+		const FVector To = Player->GetActorLocation() - Eye;
+		const float Dist = To.Size2D();
+		const float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(GetActorForwardVector(), To.GetSafeNormal2D())));
+		if (Dist < GuardRange && (Angle < GuardHalfAngle || Dist < 150.f))
+		{
+			FHitResult Hit;
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(GRGuardVision), false, this);
+			bSeesPlayer = !GetWorld()->LineTraceSingleByChannel(Hit, Eye, Player->GetActorLocation(), ECC_Visibility, Params) || Hit.GetActor() == Player;
+		}
+	}
+	if (bSeesPlayer)
+	{
+		LastSpottedTime = GetWorld()->GetTimeSeconds();
+		if (!bWasSeeing)
+		{
+			Say(TEXT("Hm? Siapa di situ?"), 2.f);
+		}
+		// Stop and stare (TickMovement turns toward the player during a pause).
+		TalkPause = FMath::Max(TalkPause, 0.5f);
+	}
+}
+
 void AGRNpc::TickVision(float DeltaSeconds, APawn* Player)
 {
+	if (bStealthGuard)
+	{
+		TickStealthVision(Player);
+		return;
+	}
 	const UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
 	bool bSees = false;
 	if (Player && !Player->IsHidden())

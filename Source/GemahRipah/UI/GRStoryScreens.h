@@ -243,6 +243,25 @@ private:
 	UPROPERTY() TObjectPtr<UVerticalBox> EndBox;
 };
 
+/** Caught in the real-map stealth level: try again or slip away without evidence. */
+UCLASS()
+class GEMAHRIPAH_API UGRStealthCaughtScreen : public UGRScreenWidget
+{
+	GENERATED_BODY()
+
+public:
+	UGRStealthCaughtScreen(const FObjectInitializer& ObjectInitializer);
+	static bool Open(class UGRUISubsystem* UI, class AGRStealthLevel* Level);
+
+protected:
+	virtual void BuildScreen(UOverlay* Root) override;
+	virtual void HandleBack() override {}
+
+private:
+	static TWeakObjectPtr<AGRStealthLevel> PendingLevel;
+	TWeakObjectPtr<AGRStealthLevel> Level;
+};
+
 /** End of chapter summary. */
 UCLASS()
 class GEMAHRIPAH_API UGRChapterEndScreen : public UGRScreenWidget

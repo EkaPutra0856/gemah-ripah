@@ -35,6 +35,12 @@ public:
 	bool IsSpn() const { return bSpn; }
 	void Say(const FString& Text, float Duration = 4.f);
 
+	/** Guard inside a stealth level: shorter, narrower sight; no Diawasi, no chase, stops and stares instead. */
+	void SetStealthGuard(float Range, float HalfAngle);
+	bool SeesPlayer() const { return bSeesPlayer; }
+	/** Back to the spawn point and the start of the patrol. */
+	void ReturnHome();
+
 	/** World time when any SPN last saw the player while suspicious (HUD warning). */
 	static double LastSpottedTime;
 
@@ -55,6 +61,7 @@ public:
 private:
 	void TickMovement(float DeltaSeconds, const APawn* Player);
 	void TickVision(float DeltaSeconds, APawn* Player);
+	void TickStealthVision(APawn* Player);
 	void TickBarks(float DeltaSeconds, const APawn* Player);
 	void PickWanderTarget();
 
@@ -76,4 +83,8 @@ private:
 	float TalkPause = 0.f;
 	bool bSpn = false;
 	bool bChasing = false;
+	bool bStealthGuard = false;
+	bool bSeesPlayer = false;
+	float GuardRange = 0.f;
+	float GuardHalfAngle = 0.f;
 };

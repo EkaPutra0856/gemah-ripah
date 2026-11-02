@@ -1,4 +1,5 @@
 #include "UI/GRHUDWidget.h"
+#include "World/GRStealthLevel.h"
 #include "UI/GRStoryScreens.h"
 #include "UI/GRUISubsystem.h"
 #include "Story/GRStorySubsystem.h"
@@ -279,7 +280,21 @@ void UGRHUDWidget::RefreshClock()
 		ObjectiveText->SetVisibility(Objective.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 	}
 	const bool bSpotted = GetWorld() && GetWorld()->GetTimeSeconds() - AGRNpc::LastSpottedTime < 1.0;
-	AlertText->SetVisibility(bSpotted ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (const AGRStealthLevel* Stealth = AGRStealthLevel::GetActive(GetWorld()))
+	{
+		// Inside the stealth level the alert line becomes the evidence and suspicion meter.
+		const int32 Percent = FMath::RoundToInt(Stealth->GetSuspicion());
+		AlertText->SetText(FText::FromString(FString::Printf(TEXT("MENYUSUP  |  Bukti %d/%d  |  Kecurigaan %d%%%s"),
+			Stealth->GetTaken(), Stealth->GetTotal(), Percent, bSpotted ? TEXT("  - TERLIHAT!") : TEXT(""))));
+		AlertText->SetColorAndOpacity(Percent > 0 ? GRStyle::ColorDanger : GRStyle::ColorAccent);
+		AlertText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	else
+	{
+		AlertText->SetText(LOCTEXT("Spotted", "SPN MELIHATMU! Menjauh dari pandangan."));
+		AlertText->SetColorAndOpacity(GRStyle::ColorDanger);
+		AlertText->SetVisibility(bSpotted ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
 
 	// Cutscenes get the whole screen.
 	const ULocalPlayer* LP = GetOwningLocalPlayer();

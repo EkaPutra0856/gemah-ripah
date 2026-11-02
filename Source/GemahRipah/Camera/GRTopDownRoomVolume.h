@@ -39,6 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Minigame", meta = (Categories = "Minigame"))
 	FGameplayTag MinigameId;
 
+	/** Camera offset (from the room center, or from the player when following), rotation and follow mode. */
+	void SetView(const FVector& Offset, const FRotator& Rotation, bool bFollow);
+	void GetView(FVector& OutOffset, FRotator& OutRotation, bool& bOutFollow) const;
+
 protected:
 	virtual void BeginPlay() override;
 

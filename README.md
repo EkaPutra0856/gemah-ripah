@@ -27,7 +27,7 @@ Target saat ini: *vertical slice* Bab 1 "Asap dan Piring".
 | `Data/` | `GRDataSubsystem`: membaca JSON di `Content/Data/` (aturan, tips loading, kredit) |
 | `Player/` | `GRCharacter` (kamera orang ketiga ala Genshin, lari, zoom), `GRInteractionComponent` |
 | `Interaction/` | Interface `GRInteractable` dan `GRInteractableActor` (interaksi berbasis data untuk prototipe) |
-| `World/` | `GRNpc` (warga dan petugas SPN: jalan-jalan, patroli, celetukan, pandangan senter), `GRStoryProp` (benda atau zona dari data), `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
+| `World/` | `GRNpc` (warga dan petugas SPN: jalan-jalan, patroli, celetukan, pandangan senter), `GRStealthLevel` (minigame menyusup di ruangan asli: rak, bukti, satpam dari grid JSON), `GRStoryProp` (benda atau zona dari data), `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
 | `Story/` | Sistem cerita berbasis data: `GRStoryTypes` (struktur `bab1.json`), `GRStorySubsystem` (variabel, syarat, aksi, quest, energi, order ojol, kotak pesan, dompet), `GRStoryDirector` (memunculkan NPC/prop/zona, lalu lintas, event, membuka dialog/cutscene/minigame) |
 | `Camera/` | `GRTopDownRoomVolume`: kamera berpindah ke top-down saat pemain masuk ruangan |
 | `Systems/` | Subsystem yang bertahan antar-map: status (uang, Suara, Diawasi), aturan ("Pengumuman Pemerintah"), progres (flag cerita, kota), save (otomatis + 3 slot), alur game (game baru, lanjut, menu), notifikasi |
@@ -108,7 +108,7 @@ Alur singkat (3 hari):
 
 1. Hari 1 pagi: ngobrol dengan Ibu, ambil motor, antar order pertama, beli beras.
 2. Dinda keracunan menu PPR. Bayu ke Puskesmas, Kelurahan (SKTM), sekolah, dan bertemu Bu Ratna.
-3. Hari 2 malam: menyusup ke Dapur PPR (minigame menyusup) dan mengambil bukti.
+3. Hari 2 malam: menyusup ke Dapur PPR dan mengambil bukti. Minigame dimainkan di ruangan dapur asli dengan kamera atas: grid `minigames.dapur.grid` jadi rak, sekat, kotak bukti, dan satpam bersenter. Kena senter terlalu lama = ketahuan (coba lagi atau kabur).
 4. Hari 3: unggah bukti di Warnet Jaya (minigame warnet). Jam malam dan razia SPN berlaku.
 5. Cutscene SPN, interogasi, rapat warga, lalu layar akhir bab.
 

@@ -28,7 +28,7 @@ public:
 	FText GetFocusedPrompt() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaksi")
-	float Radius = 180.f;
+	float Radius = 200.f;
 
 	UPROPERTY(BlueprintAssignable, Category = "Interaksi")
 	FGROnInteractFocusChanged OnFocusChanged;

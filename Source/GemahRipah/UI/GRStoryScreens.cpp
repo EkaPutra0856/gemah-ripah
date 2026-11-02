@@ -1,4 +1,5 @@
 #include "UI/GRStoryScreens.h"
+#include "World/GRStealthLevel.h"
 #include "UI/GRMenuButton.h"
 #include "UI/GRUIStyle.h"
 #include "UI/GRUISubsystem.h"
@@ -871,6 +872,50 @@ void UGRChapterEndScreen::BuildScreen(UOverlay* Root)
 	AddButton(Box, LOCTEXT("EndMenu", "Kembali ke menu utama"), [this]()
 	{
 		GetGameInstance()->GetSubsystem<UGRGameFlowSubsystem>()->ReturnToMainMenu();
+	});
+}
+
+TWeakObjectPtr<AGRStealthLevel> UGRStealthCaughtScreen::PendingLevel;
+
+UGRStealthCaughtScreen::UGRStealthCaughtScreen(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	bPausesGame = true;
+	bCanClose = false;
+}
+
+bool UGRStealthCaughtScreen::Open(UGRUISubsystem* UI, AGRStealthLevel* InLevel)
+{
+	if (!UI)
+	{
+		return false;
+	}
+	PendingLevel = InLevel;
+	return UI->PushScreen<UGRStealthCaughtScreen>() != nullptr;
+}
+
+void UGRStealthCaughtScreen::BuildScreen(UOverlay* Root)
+{
+	Level = PendingLevel;
+	UVerticalBox* Box = MakeCenteredPanel(Root, LOCTEXT("CaughtTitle", "Ketahuan penjaga dapur!"), 560.f);
+	Box->AddChildToVerticalBox(Wrapped(GRStyle::MakeText(WidgetTree, LOCTEXT("CaughtBody", "Senter satpam menyorot wajahmu. Ulangi dari pintu belakang, atau kabur tanpa membawa apa-apa."), 17, GRStyle::ColorText)))->SetPadding(FMargin(0.f, 0.f, 0.f, 12.f));
+	AddButton(Box, LOCTEXT("CaughtRetry", "Coba lagi"), [this]()
+	{
+		TWeakObjectPtr<AGRStealthLevel> Target = Level;
+		Close();
+		if (Target.IsValid())
+		{
+			Target->Retry();
+		}
+	});
+	AddButton(Box, LOCTEXT("CaughtGiveUp", "Kabur tanpa bukti"), [this]()
+	{
+		TWeakObjectPtr<AGRStealthLevel> Target = Level;
+		Close();
+		if (Target.IsValid())
+		{
+			Target->GiveUp();
+		}
 	});
 }
 

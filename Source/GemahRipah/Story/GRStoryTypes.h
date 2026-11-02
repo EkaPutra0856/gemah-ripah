@@ -239,6 +239,8 @@ struct FGRMinigameDef
 	UPROPERTY() FString Win;
 	UPROPERTY() FString Lose;
 	/** Stealth layout: # wall, . floor, P player, G guard (patrols along its row), H guard (column), B evidence, X exit, C cover. */
+	/** Stealth: top-down room in the map to build the grid in (MinigameId tag of the room volume). */
+	UPROPERTY() FString Room;
 	UPROPERTY() TArray<FString> Grid;
 	UPROPERTY() TArray<FString> Loot;
 	UPROPERTY() TArray<FGRPostOption> Options;
