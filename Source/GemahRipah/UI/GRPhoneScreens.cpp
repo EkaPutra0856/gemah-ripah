@@ -463,7 +463,7 @@ void UGRWarnetScreen::Rebuild()
 
 	Line(FString::Printf(TEXT("Perkiraan jangkauan: %d   |   Risiko: %d"), Viral, Risk), 18, GRStyle::ColorText, true);
 	const bool bReady = Headline != INDEX_NONE && Tone != INDEX_NONE && Evidence.Num() > 0;
-	UGRMenuButton* Post = AddButton(Body, LOCTEXT("WarnetPost", "Unggah ke Kicau"), [this, bReady]() { if (bReady) { Submit(); } });
+	UGRMenuButton* Post = AddButton(Body, Def->Submit.IsEmpty() ? LOCTEXT("WarnetPost", "Unggah ke Kicau") : FText::FromString(Def->Submit), [this, bReady]() { if (bReady) { Submit(); } });
 	Post->SetDanger(!bReady);
 	AddButton(Body, LOCTEXT("WarnetCancel", "Batal, belum siap"), [this]() { Close(); });
 

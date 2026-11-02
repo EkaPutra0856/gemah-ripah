@@ -580,7 +580,7 @@
       "win": "step Dapur 2; set bawa_bukti 1; suara 5; notifbaik Kamu keluar lewat pintu samping. Bawa buktinya pulang. Hindari SPN!",
       "lose": "diawasi 20; notifburuk Penjaga melihatmu kabur. Coba lagi nanti.",
       "loot": ["foto_dapur", "nota_anggaran", "daftar_korban"],
-      "room": "Minigame.DapurPPR",
+      "room": "Minigame.DapurPPR", "guard": "Satpam Dapur",
       "grid": [
         "B..C..B",
         ".C...C.",

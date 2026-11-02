@@ -50,6 +50,23 @@ bool AGRStealthLevel::Start(UWorld* World, const FString& MinigameId)
 	}
 	if (!Room)
 	{
+		// Rooms without a minigame tag are found by a story spawn that stands inside them.
+		if (const FGRSpawnDef* Spot = Story->FindSpawn(Def->Room); Spot && Spot->Pos.Num() >= 2)
+		{
+			for (TActorIterator<AGRTopDownRoomVolume> It(World); It; ++It)
+			{
+				const FVector Local = It->GetActorTransform().InverseTransformPosition(FVector(Spot->Pos[0], Spot->Pos[1], It->GetActorLocation().Z));
+				const FVector Extent = It->Trigger->GetUnscaledBoxExtent();
+				if (FMath::Abs(Local.X) <= Extent.X && FMath::Abs(Local.Y) <= Extent.Y)
+				{
+					Room = *It;
+					break;
+				}
+			}
+		}
+	}
+	if (!Room)
+	{
 		return false;
 	}
 	AGRStealthLevel* Level = World->SpawnActor<AGRStealthLevel>(AGRStealthLevel::StaticClass(), Room->GetActorTransform());
@@ -195,7 +212,7 @@ bool AGRStealthLevel::Build(AGRTopDownRoomVolume* Room)
 				FGRSpawnDef GuardDef;
 				GuardDef.Id = FString::Printf(TEXT("stealth_guard_%d"), Guards.Num());
 				GuardDef.Kind = TEXT("spn");
-				GuardDef.Name = TEXT("Satpam Dapur");
+				GuardDef.Name = Def->Guard.IsEmpty() ? TEXT("Satpam") : Def->Guard;
 				GuardDef.Color = TEXT("#22305A");
 				GuardDef.Yaw = Ch == 'G' ? 90.f : 180.f;
 				GuardDef.Patrol = { static_cast<float>(PB.X), static_cast<float>(PB.Y), static_cast<float>(PA.X), static_cast<float>(PA.Y) };

@@ -2149,6 +2149,7 @@
   {
    "id": "pamflet",
    "title": "Warnet Jaya: Desain Pamflet",
+   "submit": "Cetak pamflet",
    "help": "Pilih judul, lampirkan bukti, dan tentukan nada pamflet. Makin berani, makin banyak yang datang, makin cepat SPN mencari pencetaknya.",
    "win": "step Pamflet 2; item pamflet 3; set bawa_pamflet 1; jika viral>=100 ? suara 10; jika risiko>=50 ? diawasi 10; notifbaik Pamflet dicetak Mas Joko. Tempel di 3 tempat!",
    "options": [

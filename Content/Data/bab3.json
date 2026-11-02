@@ -1,0 +1,2267 @@
+{
+ "title": "Bab 3: Pasal Karet",
+ "start": "cutscene pembuka",
+ "onCaught": "cutscene ditangkap",
+ "onFaint": "notifburuk Bayu pingsan karena lelah dan asap.; uang -20000 Biaya klinik; tidur",
+ "onMorning": "",
+ "suspicious": "bawa_koran || jam_malam && hour>=21 || jam_malam && hour<4",
+ "items": [
+  {
+   "id": "beras",
+   "name": "Beras 2 kg",
+   "desc": "Untuk makan keluarga sehari."
+  },
+  {
+   "id": "obat",
+   "name": "Obat Dinda",
+   "desc": "Obat mual dan vitamin dari apotek pasar."
+  },
+  {
+   "id": "masker",
+   "name": "Masker N95 (KW)",
+   "desc": "Selama punya satu, napas lebih lega dan lelah karena asap berkurang."
+  },
+  {
+   "id": "nasi_bungkus",
+   "name": "Nasi bungkus",
+   "desc": "Nasi, tempe, sambal. Menambah energi.",
+   "use": "energi 40; notif Kenyang. Energi bertambah."
+  },
+  {
+   "id": "kopi",
+   "name": "Kopi sachet",
+   "desc": "Tiga ribu rupiah semangat.",
+   "use": "energi 18; notif Melek lagi."
+  },
+  {
+   "id": "foto_lab",
+   "name": "Foto hasil lab Puskesmas",
+   "desc": "Hasil lab 23 siswa: bakteri E. coli tinggi. Ada stempel RAHASIA.",
+   "bukti": true
+  },
+  {
+   "id": "foto_dapur",
+   "name": "Foto dapur PPR",
+   "desc": "Ayam berbelatung di kotak bertuliskan 'Higienis 100%'.",
+   "bukti": true
+  },
+  {
+   "id": "nota_anggaran",
+   "name": "Nota anggaran PPR",
+   "desc": "Di atas kertas Rp15.000 per porsi. Belanja nyata Rp6.200.",
+   "bukti": true
+  },
+  {
+   "id": "daftar_korban",
+   "name": "Daftar siswa sakit",
+   "desc": "23 nama siswa yang dirawat, dengan catatan tangan: 'jangan bocor'.",
+   "bukti": true
+  },
+  {
+   "id": "rekaman_pungli",
+   "name": "Rekaman pungli kelurahan",
+   "desc": "Suara Pak Darmo: 'Gratis itu kalau prosesnya dua minggu.'",
+   "bukti": true
+  },
+  {
+   "id": "petisi",
+   "name": "Petisi warga",
+   "desc": "Tanda tangan warga yang menolak menu PPR basi.",
+   "bukti": true
+  },
+  {
+   "id": "kunci_kel",
+   "name": "Kunci cadangan Kelurahan",
+   "desc": "Dititipkan ke Pos Ronda supaya aman. Dari siapa, tidak jelas."
+  },
+  {
+   "id": "laporan_palsu",
+   "name": "Laporan warga No. 47",
+   "desc": "Laporan atas Rudi. Pelapor: Sukirman, RT 05. RT 05 itu pemakaman umum.",
+   "bukti": true
+  },
+  {
+   "id": "memo_target",
+   "name": "Memo target laporan",
+   "desc": "'Target bulan ini: 50 laporan pasal penghinaan. Kelurahan terbaik dapat studi banding.'",
+   "bukti": true
+  },
+  {
+   "id": "daftar_pantau",
+   "name": "Daftar pantauan warga",
+   "desc": "112 nama. Nomor 3: Bayu. Nomor 4: Ibu. Nomor 5: Dinda, 9 tahun.",
+   "bukti": true
+  },
+  {
+   "id": "rekaman_tawar",
+   "name": "Rekaman 'biaya penangguhan'",
+   "desc": "Suara Komandan Wiryo menyebut 'uang administrasi' dua juta rupiah.",
+   "bukti": true
+  },
+  {
+   "id": "koran",
+   "name": "Kabar Gang edisi 1",
+   "desc": "Koran stensilan, tintanya masih basah. Bawa diam-diam."
+  },
+  {
+   "id": "pemancar",
+   "name": "Pemancar rakitan",
+   "desc": "Radio tape bekas, antena jemuran, dan doa. Jangkauannya sekelurahan kalau tidak hujan."
+  }
+ ],
+ "shop": [
+  {
+   "item": "beras",
+   "place": "pasar",
+   "price": 15000,
+   "priceStepPerDay": 2500
+  },
+  {
+   "item": "obat",
+   "place": "pasar",
+   "price": 25000,
+   "priceStepPerDay": 0
+  },
+  {
+   "item": "masker",
+   "place": "pasar",
+   "price": 10000,
+   "priceStepPerDay": 4000
+  },
+  {
+   "item": "nasi_bungkus",
+   "place": "pasar",
+   "price": 12000,
+   "priceStepPerDay": 1000
+  },
+  {
+   "item": "kopi",
+   "place": "warung",
+   "price": 5000,
+   "priceStepPerDay": 1000
+  },
+  {
+   "item": "nasi_bungkus",
+   "place": "warung",
+   "price": 13000,
+   "priceStepPerDay": 1000
+  },
+  {
+   "item": "masker",
+   "place": "warung",
+   "price": 12000,
+   "priceStepPerDay": 4000
+  }
+ ],
+ "quests": [
+  {
+   "id": "Lapor",
+   "title": "Siapa yang Melapor?",
+   "desc": "Rudi ditahan dengan pasal baru. Katanya ada laporan warga. Warga yang mana?",
+   "steps": [
+    "Temui Sari di Pos Ronda.",
+    "Jenguk Rudi di sel titipan Pos SPN.",
+    "Minta kunci cadangan Kelurahan ke Pak RT di Pos Ronda.",
+    "Masuk diam-diam ke arsip Kantor Kelurahan setelah pukul 19.00.",
+    "Bawa dokumennya ke Sari di Pos Ronda."
+   ],
+   "targets": [
+    "sari",
+    "rudi_sel",
+    "pak_rt",
+    "pintu_kel",
+    "sari"
+   ]
+  },
+  {
+   "id": "Koran",
+   "title": "Kabar Gang",
+   "desc": "Kicau dipantau, media besar tiarap. Saatnya cara lama: kertas dan tinta.",
+   "steps": [
+    "Temui Pak Harso di Ruko Blok A. Katanya dia punya mesin stensil.",
+    "Susun Kabar Gang edisi pertama di mesin stensil.",
+    "Bagikan Kabar Gang ({bagi}/3): Bu Tini di pasar, Mas Joko di warnet, Bu Yati di Pos Ronda. Hindari SPN!"
+   ],
+   "targets": [
+    "harso",
+    "stensil",
+    "tini"
+   ]
+  },
+  {
+   "id": "Radio",
+   "title": "Radio Gang 107,7",
+   "desc": "Kertas bisa disita. Suara di udara lebih susah ditangkap.",
+   "steps": [
+    "Ambil pemancar rakitan dari Mas Joko di warnet.",
+    "Pasang antena di Pos Ronda dan mulai siaran setelah pukul 19.00.",
+    "SPN melacak sinyal! Pulang ke rumah."
+   ],
+   "targets": [
+    "joko",
+    "antena",
+    "rumah"
+   ]
+  }
+ ],
+ "speakers": [
+  {
+   "id": "bayu",
+   "name": "Bayu",
+   "role": "Bayu, ojol",
+   "color": "#5FD3C8"
+  },
+  {
+   "id": "ibu",
+   "name": "Bu Sri",
+   "role": "Ibu Bayu",
+   "color": "#C77DBA"
+  },
+  {
+   "id": "dinda",
+   "name": "Dinda",
+   "role": "Adik Bayu",
+   "color": "#F2C14E"
+  },
+  {
+   "id": "rudi",
+   "name": "Rudi",
+   "role": "Teman ojol",
+   "color": "#7FB069"
+  },
+  {
+   "id": "darmo",
+   "name": "Pak Darmo",
+   "role": "Pegawai kelurahan",
+   "color": "#E9C46A"
+  },
+  {
+   "id": "dokter",
+   "name": "dr. Lestari",
+   "role": "Dokter Puskesmas",
+   "color": "#9AD1D4"
+  },
+  {
+   "id": "kepsek",
+   "name": "Pak Hartono",
+   "role": "Kepala sekolah",
+   "color": "#B5838D"
+  },
+  {
+   "id": "ratna",
+   "name": "Bu Ratna",
+   "role": "Guru honorer",
+   "color": "#F4A261"
+  },
+  {
+   "id": "tini",
+   "name": "Bu Tini",
+   "role": "Pedagang beras",
+   "color": "#E76F51"
+  },
+  {
+   "id": "wiryo",
+   "name": "Komandan Wiryo",
+   "role": "SPN",
+   "color": "#6C8EBF"
+  },
+  {
+   "id": "intel",
+   "name": "Pria Berkemeja",
+   "role": "Tidak menyebut nama",
+   "color": "#8D99AE"
+  },
+  {
+   "id": "spn",
+   "name": "Petugas SPN",
+   "role": "SPN",
+   "color": "#6C8EBF"
+  },
+  {
+   "id": "rt",
+   "name": "Pak RT Darto",
+   "role": "Ketua RT",
+   "color": "#D4A373"
+  },
+  {
+   "id": "warga",
+   "name": "Pak Udin",
+   "role": "Warga",
+   "color": "#A8DADC"
+  },
+  {
+   "id": "joko",
+   "name": "Mas Joko",
+   "role": "Penjaga warnet",
+   "color": "#90BE6D"
+  },
+  {
+   "id": "sari",
+   "name": "Sari",
+   "role": "Mahasiswi, relawan LBH",
+   "color": "#F28482"
+  },
+  {
+   "id": "yati",
+   "name": "Bu Yati",
+   "role": "Warga, penjual gorengan",
+   "color": "#E5989B"
+  },
+  {
+   "id": "harso",
+   "name": "Pak Harso",
+   "role": "Mantan wartawan, tukang fotokopi",
+   "color": "#B5838D"
+  },
+  {
+   "id": "hakim",
+   "name": "Hakim",
+   "role": "Pengadilan Negeri Sentosa",
+   "color": "#ADB5BD"
+  }
+ ],
+ "dialogs": [
+  {
+   "id": "dokter_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "dokter",
+     "text": "Puskesmas penuh. Kalau tidak darurat, pakai masker dan banyak minum air.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "darmo_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "darmo",
+     "text": "Pelayanan sudah tutup. Eh, buka. Tergantung.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "kepsek_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "kepsek",
+     "text": "Sekolah kami sekolah Adiwiyata. Asap pun kami anggap kabut pendidikan.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "warga_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "viral>=1",
+     "speaker": "warga",
+     "text": "Bay! Unggahanmu sampai ke grup WA keluarga saya. Yang biasanya cuma kirim stiker selamat pagi.",
+     "next": "end"
+    },
+    {
+     "speaker": "warga",
+     "text": "Asapnya parah, Bay. Tapi di TV katanya baik. Mungkin TV saya yang rusak.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "sari_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "sari",
+     "text": "Hafalkan nomor LBH: 0812-SENTOSA. Kalau ditangkap, diam dan sebut nomor itu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "sari_kabar",
+   "style": "chat",
+   "nodes": [
+    {
+     "speaker": "sari",
+     "text": "Bayu, ini Sari. Rudi dijemput tadi malam di pangkalan ojol. Lolos waktu aksi, tapi namanya sudah dicatat.",
+     "if": "rudi_dijemput",
+     "next": "lanjut"
+    },
+    {
+     "speaker": "sari",
+     "text": "Bayu, ini Sari. Status Rudi naik: dari 'diamankan' jadi tersangka. Pasal baru, disahkan kemarin sore."
+    },
+    {
+     "speaker": "sari",
+     "text": "Temui aku di Pos Ronda. Jangan bahas lewat chat. Chat ini mungkin juga sedang membaca kita.",
+     "id": "lanjut",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "sari_b3",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "sari",
+     "text": "Kamu dapat sesuatu dari kelurahan? Tunjukkan.",
+     "if": "q.Lapor==5 && item.laporan_palsu>=1 || q.Lapor==5 && item.memo_target>=1 || q.Lapor==5 && item.daftar_pantau>=1",
+     "next": "bukti"
+    },
+    {
+     "speaker": "sari",
+     "text": "Bay, sini. Duduk dulu. Ini serius.",
+     "if": "q.Lapor==1",
+     "next": "brief"
+    },
+    {
+     "speaker": "sari",
+     "text": "Masih kosong tanganmu? Arsipnya di Kantor Kelurahan, Bay. Malam, setelah jam tujuh.",
+     "if": "q.Lapor==5",
+     "next": "end"
+    },
+    {
+     "speaker": "sari",
+     "text": "Hafalkan nomor LBH: 0812-SENTOSA. Kalau ditangkap, diam dan sebut nomor itu.",
+     "next": "end"
+    },
+    {
+     "speaker": "sari",
+     "text": "Rudi dijerat Pasal Penghinaan Pejabat. Pasal baru, disahkan dalam sebelas menit. Isinya karet: bisa melar ke mana saja.",
+     "id": "brief"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Melar sampai ke tukang ojek yang fotokopi pamflet?",
+     "choices": [
+      {
+       "text": "Pamflet itu desainku. Harusnya aku yang ditahan.",
+       "do": "suara 2",
+       "next": "salah"
+      },
+      {
+       "text": "Apa yang bisa kita lakukan?",
+       "next": "laporan"
+      }
+     ]
+    },
+    {
+     "speaker": "sari",
+     "text": "Jangan. Itu yang mereka mau: kamu menyerahkan diri, lalu semua takut. Pasal ini tidak butuh pelaku, cuma butuh contoh.",
+     "id": "salah"
+    },
+    {
+     "speaker": "sari",
+     "text": "Penyidik bilang kasus ini berawal dari 'laporan warga'. Kita harus tahu siapa pelapornya. Kalau laporannya cacat, penahanannya bisa digugat.",
+     "id": "laporan"
+    },
+    {
+     "speaker": "sari",
+     "text": "Jenguk Rudi di sel titipan Pos SPN. Jam besuk sampai sore. Tanya apa yang dia lihat waktu diperiksa.",
+     "do": "step Lapor 2; notif Jenguk Rudi di Pos SPN.",
+     "next": "end"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Laporan nomor 47. Pelapornya Sukirman, RT 05.",
+     "id": "bukti",
+     "if": "item.laporan_palsu>=1",
+     "do": "set bukti_lapor 1",
+     "next": "bukti2"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Laporan aslinya tidak ketemu. Tapi ada ini.",
+     "next": "bukti2"
+    },
+    {
+     "speaker": "sari",
+     "text": "RT 05 itu pemakaman umum, Bay. Pelapornya sudah wafat dua tahun lalu. Produktif sekali almarhum.",
+     "id": "bukti2",
+     "if": "item.laporan_palsu>=1"
+    },
+    {
+     "speaker": "sari",
+     "text": "Memo target laporan? Lima puluh laporan sebulan? Jadi pasal karet ini ada kuotanya.",
+     "if": "item.memo_target>=1",
+     "do": "set bukti_target 1"
+    },
+    {
+     "speaker": "sari",
+     "text": "Daftar pantauan... namamu nomor tiga. Ibumu nomor empat. Dinda nomor lima. Sembilan tahun, Bay. Masuk daftar pantauan.",
+     "if": "item.daftar_pantau>=1",
+     "do": "set bukti_pantau 1; suara 5"
+    },
+    {
+     "speaker": "sari",
+     "text": "Ini cukup untuk praperadilan. Sidangnya dua hari lagi. Tapi hakim juga manusia. Manusia yang membaca koran."
+    },
+    {
+     "speaker": "sari",
+     "text": "Media besar tidak akan memuat ini. Kicau dipantau. Kita butuh cara lama. Pak Harso di Ruko Blok A, dulu wartawan. Dia punya mesin stensil.",
+     "do": "done Lapor; quest Koran; notif Temui Pak Harso di Ruko Blok A.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "rudi_sel",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "rudi",
+     "text": "Bay, makasih sudah jenguk. Bilang ke Ibu, aku makan teratur. Teratur basi.",
+     "if": "q.Lapor>=3",
+     "next": "end"
+    },
+    {
+     "speaker": "rudi",
+     "text": "Bayuuu. Selamat datang di hotel bintang lima. Bintangnya kelihatan dari lubang plafon."
+    },
+    {
+     "speaker": "bayu",
+     "text": "Rud... maaf. Pamflet itu desainku.",
+     "choices": [
+      {
+       "text": "Kamu ditahan gara-gara aku.",
+       "next": "maaf"
+      },
+      {
+       "text": "Kamu baik-baik saja? Mereka apa-apakan kamu?",
+       "next": "baik"
+      }
+     ]
+    },
+    {
+     "speaker": "rudi",
+     "text": "Hush. Yang salah bukan desainmu. Yang salah yang merasa dihina sama selembar fotokopi.",
+     "id": "maaf",
+     "next": "periksa"
+    },
+    {
+     "speaker": "rudi",
+     "text": "Cuma ditanya-tanya. Delapan jam. Pertanyaannya sama terus: 'Siapa yang menyuruh?' Kujawab: perut.",
+     "id": "baik"
+    },
+    {
+     "speaker": "rudi",
+     "text": "Waktu diperiksa, penyidiknya baca dari map hijau. Ada stempel Kelurahan Sentosa. Laporan nomor 47, katanya.",
+     "id": "periksa"
+    },
+    {
+     "speaker": "rudi",
+     "text": "Empat puluh tujuh, Bay. Bulan baru tanggal tiga! Rajin banget warga kita melapor."
+    },
+    {
+     "speaker": "bayu",
+     "text": "Map hijau berstempel kelurahan. Laporannya dibuat di sana.",
+     "do": "step Lapor 3; notif Laporan itu dari Kelurahan. Pak RT pegang kunci cadangannya.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "wiryo_b3",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "wiryo",
+     "text": "Jam besuk sudah selesai, Saudara. Kecuali jam besuk khusus.",
+     "if": "ev.tawar_wiryo",
+     "next": "end"
+    },
+    {
+     "speaker": "wiryo",
+     "text": "Saudara Bayu. Datang menjenguk teman, atau datang menyerahkan diri? Dua-duanya kami layani."
+    },
+    {
+     "speaker": "wiryo",
+     "text": "Saya orang yang mengerti. Penangguhan penahanan bisa diurus. Ada biaya administrasinya. Dua juta. Tanpa kuitansi, biar ramah lingkungan.",
+     "choices": [
+      {
+       "text": "(Nyalakan perekam di saku.) Dua juta, Komandan? Untuk apa saja?",
+       "do": "set ev.tawar_wiryo 1",
+       "next": "rekam"
+      },
+      {
+       "text": "Teman saya tidak bersalah. Tidak ada yang perlu dibayar.",
+       "do": "set ev.tawar_wiryo 1; suara 3",
+       "next": "tolak"
+      }
+     ]
+    },
+    {
+     "speaker": "wiryo",
+     "text": "Untuk administrasi. Administrasi itu luas, Saudara. Seluas pasalnya.",
+     "id": "rekam",
+     "do": "item rekaman_tawar 1",
+     "next": "end"
+    },
+    {
+     "speaker": "wiryo",
+     "text": "Tidak bersalah itu nanti diputuskan hakim. Sampai hakimnya sempat.",
+     "id": "tolak",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "rt_kunci",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "rt",
+     "text": "Kunci sudah di kamu, Bay. Jangan bilang dari saya. Bilang saja kuncinya jatuh dari langit.",
+     "if": "item.kunci_kel>=1",
+     "next": "end"
+    },
+    {
+     "speaker": "rt",
+     "text": "Rudi ditahan, ya. Anak baik. Utangnya ke warung saya juga baik, rutin bertambah."
+    },
+    {
+     "speaker": "bayu",
+     "text": "Pak, laporan atas Rudi dibuat di kelurahan. Saya perlu masuk ke arsipnya.",
+     "choices": [
+      {
+       "text": "Pak RT pasti punya kunci cadangan. Pos ronda kan yang jaga kampung.",
+       "next": "kunci"
+      },
+      {
+       "text": "Saya masuk lewat jendela saja, Pak.",
+       "next": "jendela"
+      }
+     ]
+    },
+    {
+     "speaker": "rt",
+     "text": "Jendela kelurahan dipasangi teralis. Anggaran teralisnya lebih besar dari anggaran posyandu.",
+     "id": "jendela"
+    },
+    {
+     "speaker": "rt",
+     "text": "Kunci cadangan kantor kelurahan dititipkan ke pos ronda. Biar aman, katanya. Aman dari siapa, saya tidak pernah tanya.",
+     "id": "kunci"
+    },
+    {
+     "speaker": "rt",
+     "text": "Hansip kelurahan ganti shift jam tujuh malam. Dua orang. Senternya terang, matanya ngantuk. Lemari arsip di pojok, warnanya kuning.",
+     "do": "item kunci_kel 1; step Lapor 4; notifbaik Masuk ke arsip Kelurahan setelah pukul 19.00.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "darmo_b3",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "darmo",
+     "text": "Mas Bayu! Mau melapor? Bulan ini ada promo: satu laporan dapat kalender. Lima laporan dapat kalender dan senyum Pak Lurah.",
+     "if": "q.Lapor>=2",
+     "next": "end"
+    },
+    {
+     "speaker": "darmo",
+     "text": "Pelayanan SKTM tutup. Loket pelaporan warga buka 24 jam. Prioritas, Mas.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "harso_koran",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "harso",
+     "text": "Kabar Gang sudah dicetak? Bagikan. Koran yang tidak dibaca cuma jadi bungkus gorengan. Koran yang dibaca juga, tapi setelahnya.",
+     "if": "q.Koran>=3",
+     "next": "end"
+    },
+    {
+     "speaker": "harso",
+     "text": "Mesinnya sudah panas, Nak. Silakan susun di situ.",
+     "if": "q.Koran==2",
+     "next": "end"
+    },
+    {
+     "speaker": "harso",
+     "text": "Fotokopi? Jilid? Laminating ijazah? Ijazah yang asli, ya. Yang palsu langsung ke kantor dewan.",
+     "if": "q.Koran!=1",
+     "next": "end"
+    },
+    {
+     "speaker": "harso",
+     "text": "Kamu yang bikin pamflet piring kosong itu? Desainnya jelek. Isinya bagus. Kebalikan dari baliho."
+    },
+    {
+     "speaker": "bayu",
+     "text": "Pak Harso, saya punya dokumen dari kelurahan. Tidak ada media yang mau memuat.",
+     "choices": [
+      {
+       "text": "Kata Sari, Bapak dulu wartawan.",
+       "next": "dulu"
+      },
+      {
+       "text": "Bapak punya mesin stensil?",
+       "next": "mesin"
+      }
+     ]
+    },
+    {
+     "speaker": "harso",
+     "text": "Dulu. Sebelum koran saya dibredel karena memuat foto jalan berlubang. Lubangnya masih ada sampai sekarang. Korannya yang hilang.",
+     "id": "dulu"
+    },
+    {
+     "speaker": "harso",
+     "text": "Mesin stensil ini umurnya lebih tua dari Pak Wali. Tidak butuh internet, tidak bisa diblokir, tidak punya akun untuk dibekukan.",
+     "id": "mesin"
+    },
+    {
+     "speaker": "harso",
+     "text": "Susun beritanya di sana. Pilih judul yang jujur dan nada yang berani. Lima puluh eksemplar dulu, tinta tidak gratis.",
+     "do": "step Koran 2; notif Susun Kabar Gang di mesin stensil.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "tini_b3",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "tini",
+     "text": "Kabar Gang laris, Mas. Ibu-ibu baca sambil antre timbangan. Beras?",
+     "if": "bagi.tini",
+     "do": "toko pasar",
+     "next": "end"
+    },
+    {
+     "speaker": "tini",
+     "text": "Mas Bayu! Bawa apa itu? Koran? Zaman sekarang masih ada koran?",
+     "if": "q.Koran==3 && item.koran>=1",
+     "choices": [
+      {
+       "text": "Kabar Gang, Bu. Isinya laporan palsu atas Rudi.",
+       "do": "item koran -1; set bagi.tini 1; add bagi 1",
+       "next": "terima"
+      },
+      {
+       "text": "Beras saja, Bu.",
+       "do": "toko pasar",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "speaker": "tini",
+     "text": "Beras, Mas? Harga naik lagi. Katanya karena asap. Asap kok bisa makan beras.",
+     "do": "toko pasar",
+     "next": "end"
+    },
+    {
+     "speaker": "tini",
+     "text": "Saya taruh di bawah timbangan. Siapa yang beli sekilo, dapat kabar sekilo juga.",
+     "id": "terima",
+     "do": "notifbaik Kabar Gang sampai ke pedagang pasar.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "joko_b3",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "joko",
+     "text": "Bro, pemancarnya hati-hati. Jangan dicolok ke stopkontak dekat dispenser.",
+     "if": "q.Radio>=2",
+     "next": "end"
+    },
+    {
+     "speaker": "joko",
+     "text": "Sudah baca Kabar Gang, bro? Aku foto, kutempel di semua layar. Sebagai wallpaper. Wallpaper tidak melanggar pasal.",
+     "if": "q.Radio==1",
+     "next": "radio"
+    },
+    {
+     "speaker": "joko",
+     "text": "Koran stensil? Retro! Taruh di meja kasir, biar pelanggan baca sambil nunggu loading.",
+     "if": "q.Koran==3 && item.koran>=1 && !bagi.joko",
+     "do": "item koran -1; set bagi.joko 1; add bagi 1; notifbaik Kabar Gang sampai ke Warnet Jaya.",
+     "next": "end"
+    },
+    {
+     "speaker": "joko",
+     "text": "Sejam lima ribu. Sekarang semua dipantau, katanya. Jadi tolong browsing yang sopan.",
+     "next": "end"
+    },
+    {
+     "speaker": "joko",
+     "text": "Kertas bisa disita, bro. Tapi gelombang radio? SPN mau sita udara?",
+     "id": "radio"
+    },
+    {
+     "speaker": "joko",
+     "text": "Ini pemancar FM rakitan. Radio tape bekas, antena jemuran, dan doa. Pasang di Pos Ronda, paling tinggi di kampung. Frekuensi 107,7.",
+     "do": "item pemancar 1; step Radio 2; notifbaik Pasang pemancar di Pos Ronda.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "yati_b3",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "yati",
+     "text": "Kabar Gang saya pakai bungkus gorengan, Mas. Tapi bungkus yang dibaca dulu.",
+     "if": "bagi.yati",
+     "next": "end"
+    },
+    {
+     "speaker": "yati",
+     "text": "Gorengan, Mas? Itu bawa apa?",
+     "if": "q.Koran==3 && item.koran>=1",
+     "choices": [
+      {
+       "text": "Kabar Gang, Bu. Bagikan ke pembeli, ya.",
+       "do": "item koran -1; set bagi.yati 1; add bagi 1",
+       "next": "terima"
+      },
+      {
+       "text": "Dua, Bu.",
+       "do": "uang -1000 Gorengan; energi 5",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "speaker": "yati",
+     "text": "Gorengan, gorengan! Harga lama, ukuran baru!",
+     "choices": [
+      {
+       "text": "Dua, Bu.",
+       "do": "uang -1000 Gorengan; energi 5",
+       "next": "end"
+      },
+      {
+       "text": "Nanti saja, Bu.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "speaker": "yati",
+     "text": "Siap. Tiap pembeli dapat satu lembar. Kalau ada yang tanya, bilang itu menu.",
+     "id": "terima",
+     "do": "notifbaik Kabar Gang sampai ke warga Pos Ronda.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "ibu_rumah",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "ibu",
+     "text": "Ibu dengar radio tadi malam. Suaranya mirip kamu. Ibu bilang ke tetangga: bukan, anak saya lagi tidur.",
+     "if": "q.Radio>=3",
+     "next": "end"
+    },
+    {
+     "speaker": "ibu",
+     "text": "Koran apa itu, Bay? Ibu baca dulu... Masya Allah, nama Dinda ada di daftar pantauan?",
+     "if": "q.Koran==3 && bukti_pantau",
+     "next": "end"
+    },
+    {
+     "speaker": "ibu",
+     "text": "Ibunya Rudi tadi ke sini. Nangis. Ibu kasih beras sekilo. Cuma itu yang Ibu punya, Bay.",
+     "if": "q.Lapor<=2",
+     "next": "end"
+    },
+    {
+     "speaker": "ibu",
+     "text": "Hati-hati bicara di luar, Bay. Sekarang kritik itu seperti asap. Tidak kelihatan, tapi bisa bikin sesak.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "piket",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "spn",
+     "text": "Jam besuk sampai sore. Barang bawaan diperiksa. Rasa simpati juga.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "dinda_rumah",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "dinda",
+     "text": "Kak, di sekolah ada lomba baru: lomba menulis surat terima kasih untuk Pak Wali. Hadiahnya tidak diperiksa.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "siaran",
+   "style": "vn",
+   "meter": "pendengar",
+   "meterLabel": "Pendengar Radio Gang 107,7",
+   "nodes": [
+    {
+     "speaker": "",
+     "text": "Lampu Pos Ronda dimatikan. Satu-satunya cahaya: lampu merah kecil di pemancar Mas Joko.",
+     "do": "set pendengar 10; aksi Aksi.Bicara.Media"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Selamat malam, warga Sentosa. Ini Radio Gang, 107,7. Radio tanpa izin, karena kantor izinnya tutup sejak ada pasal baru.",
+     "choices": [
+      {
+       "text": "Malam ini kita bacakan Kabar Gang edisi pertama.",
+       "do": "add pendengar 15",
+       "next": "telepon"
+      },
+      {
+       "text": "Sebelum berita, satu lagu. Lagu kebangsaan. Biar tidak ada yang berani membubarkan.",
+       "do": "add pendengar 20; suara 3",
+       "next": "telepon"
+      }
+     ]
+    },
+    {
+     "speaker": "rt",
+     "text": "Ini Darto, Pos Ronda. Eh, saya di sebelahmu. Ya sudah, sekalian. Bapak-bapak, ronda malam ini sambil dengar radio!",
+     "id": "telepon",
+     "do": "add pendengar 10"
+    },
+    {
+     "speaker": "tini",
+     "text": "Halo, Radio Gang? Ini lapak sayur. Ibu-ibu pasar dengar semua. Bebaskan Rudi! Tomat lagi murah!",
+     "if": "bagi.tini",
+     "do": "add pendengar 15"
+    },
+    {
+     "speaker": "ratna",
+     "text": "Saya guru. Jangan sebut nama. Murid saya tanya, pasal karet itu apa. Saya jawab: pasal yang bisa melar sampai ke rumah kita.",
+     "if": "guru_dilindungi",
+     "do": "add pendengar 10"
+    },
+    {
+     "speaker": "intel",
+     "text": "Halo? Saya... warga biasa. Sangat biasa. Mau tanya, studionya di mana, ya? Alamat lengkap, RT, RW. Mau kirim... bunga.",
+     "choices": [
+      {
+       "text": "Studio kami di hati rakyat, Pak. Bunganya titip di hati juga.",
+       "do": "add pendengar 10; suara 3",
+       "next": "isi"
+      },
+      {
+       "text": "Di Pos Ronda RT 03, Pak. Eh.",
+       "do": "add pendengar -5; diawasi 15; set bocor 1",
+       "next": "isi"
+      }
+     ]
+    },
+    {
+     "speaker": "bayu",
+     "text": "Rudi, tukang ojek, 27 tahun, ditahan karena laporan warga nomor 47.",
+     "id": "isi",
+     "choices": [
+      {
+       "text": "Pelapornya Sukirman, RT 05. RT 05 itu pemakaman. Almarhum produktif sekali.",
+       "do": "add pendengar 20; set siar_bukti 1",
+       "next": "lanjut"
+      },
+      {
+       "text": "Kelurahan punya target 50 laporan sebulan. Laporan itu bukan suara warga, tapi kuota.",
+       "do": "add pendengar 15; set siar_target 1",
+       "next": "lanjut"
+      },
+      {
+       "text": "Besok sidang praperadilan Rudi. Datang. Duduk. Lihat. Menonton sidang itu belum dilarang.",
+       "do": "add pendengar 15; set ajak_sidang 1",
+       "next": "lanjut"
+      }
+     ]
+    },
+    {
+     "speaker": "sari",
+     "text": "Bayu, ini Sari, lewat telepon. Ada lima ratus pesan masuk ke LBH sejak siaran dimulai. Lanjutkan.",
+     "id": "lanjut",
+     "if": "pendengar>=50",
+     "do": "suara 5"
+    },
+    {
+     "speaker": "joko",
+     "text": "Bay! Ada mobil SPN keliling bawa antena besar! Mereka lacak sinyal! Matikan, matikan!",
+     "do": "diawasi 10"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Warga Sentosa, Radio Gang pamit dulu. Pemancarnya boleh dimatikan. Pendengarnya jangan.",
+     "do": "step Radio 3; set razia 1; notifburuk SPN melacak sinyal. Pulang ke rumah lewat gang!",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "rudi_bebas",
+   "style": "chat",
+   "nodes": [
+    {
+     "speaker": "rudi",
+     "text": "BAYUUU. Aku di luar! Hakim bilang laporannya cacat. Pelapor fiktif. Penahanan tidak sah!"
+    },
+    {
+     "speaker": "rudi",
+     "text": "Pertama yang kulakukan: cari order. Kedua: cari kamu. Traktir es teh. Kamu yang bayar.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "rudi_tangguh",
+   "style": "chat",
+   "nodes": [
+    {
+     "speaker": "sari",
+     "text": "Bayu, hakim menolak praperadilan. Rudi ditangguhkan penahanannya, tapi tetap tersangka. Wajib lapor tiap Senin dan Kamis."
+    },
+    {
+     "speaker": "rudi",
+     "text": "Yang penting tidur di kasur, Bay. Kasurku tidak punya pasal.",
+     "next": "end"
+    }
+   ]
+  }
+ ],
+ "spawns": [
+  {
+   "id": "rumah",
+   "kind": "zone",
+   "name": "Rumah Bayu",
+   "pos": [
+    -9000,
+    -9000
+   ],
+   "radius": 650
+  },
+  {
+   "id": "motor_halaman",
+   "kind": "prop",
+   "name": "Motor Bayu",
+   "pos": [
+    -7700,
+    -8400
+   ],
+   "yaw": 0,
+   "size": [
+    180,
+    50,
+    90
+   ],
+   "color": "#2E8B57",
+   "if": "!punya_motor",
+   "prompt": "Ambil motor",
+   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor."
+  },
+  {
+   "id": "warung_ronda",
+   "kind": "prop",
+   "name": "Warung Kopi Pos Ronda",
+   "pos": [
+    -6000,
+    -12000
+   ],
+   "size": [
+    220,
+    120,
+    100
+   ],
+   "color": "#8B5A2B",
+   "prompt": "Belanja di warung",
+   "do": "toko warung"
+  },
+  {
+   "id": "lapak_tini",
+   "kind": "prop",
+   "name": "Lapak Bu Tini",
+   "pos": [
+    -9850,
+    13450
+   ],
+   "size": [
+    150,
+    260,
+    90
+   ],
+   "color": "#C08552",
+   "prompt": "Belanja",
+   "do": "toko pasar"
+  },
+  {
+   "id": "pembeli1",
+   "kind": "npc",
+   "name": "Pembeli",
+   "pos": [
+    -10500,
+    12000
+   ],
+   "wander": 500,
+   "color": "#999999",
+   "barks": [
+    "Cabai naik, bawang naik, gaji nggak naik.",
+    "Minyak goreng sekarang dijual per sendok?"
+   ]
+  },
+  {
+   "id": "pembeli2",
+   "kind": "npc",
+   "name": "Pembeli",
+   "pos": [
+    -11500,
+    14500
+   ],
+   "wander": 500,
+   "color": "#BBBBBB",
+   "barks": [
+    "Katanya inflasi terkendali. Yang terkendali dompet saya."
+   ]
+  },
+  {
+   "id": "papan_kelurahan",
+   "kind": "prop",
+   "name": "Papan Pengumuman",
+   "pos": [
+    7950,
+    -9600
+   ],
+   "size": [
+    30,
+    220,
+    160
+   ],
+   "color": "#F1FAEE",
+   "prompt": "Baca papan",
+   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)"
+  },
+  {
+   "id": "dokter_umum",
+   "kind": "npc",
+   "name": "dr. Lestari",
+   "pos": [
+    7900,
+    22300
+   ],
+   "yaw": 180,
+   "if": "",
+   "dialog": "dokter_umum",
+   "color": "#9AD1D4",
+   "barks": [
+    "Antrean nomor 47!",
+    "Pakai masker, Bu, Pak."
+   ]
+  },
+  {
+   "id": "pasien1",
+   "kind": "npc",
+   "name": "Orang tua murid",
+   "pos": [
+    7700,
+    21000
+   ],
+   "if": "q.Piring>=1",
+   "wander": 200,
+   "color": "#999999",
+   "barks": [
+    "Anak saya juga makan PPR...",
+    "Katanya kurang sarapan. Anak saya sarapan!"
+   ]
+  },
+  {
+   "id": "kepsek_umum",
+   "kind": "npc",
+   "name": "Pak Hartono (Kepsek)",
+   "pos": [
+    9150,
+    12600
+   ],
+   "yaw": 180,
+   "if": "",
+   "dialog": "kepsek_umum",
+   "color": "#B5838D",
+   "barks": [
+    "Prestasi sekolah kami: nol kasus. Nol dilaporkan."
+   ]
+  },
+  {
+   "id": "murid",
+   "kind": "npc",
+   "name": "Murid SD",
+   "pos": [
+    9000,
+    13800
+   ],
+   "wander": 300,
+   "color": "#E0FBFC",
+   "barks": [
+    "Menu besok katanya ayam lagi...",
+    "Aku bawa bekal dari rumah aja."
+   ]
+  },
+  {
+   "id": "pc_warnet_umum",
+   "kind": "prop",
+   "name": "PC Nomor 7",
+   "pos": [
+    -2850,
+    6200
+   ],
+   "size": [
+    60,
+    100,
+    110
+   ],
+   "color": "#3A6EA5",
+   "if": "",
+   "prompt": "Main warnet",
+   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol."
+  },
+  {
+   "id": "spn_p1",
+   "kind": "spn",
+   "name": "Petugas SPN",
+   "pos": [
+    700,
+    -12000
+   ],
+   "patrol": [
+    700,
+    -15000,
+    700,
+    15000
+   ],
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_p2",
+   "kind": "spn",
+   "name": "Petugas SPN",
+   "pos": [
+    -12000,
+    -700
+   ],
+   "patrol": [
+    -15000,
+    -700,
+    15000,
+    -700
+   ],
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_p3",
+   "kind": "spn",
+   "name": "Petugas SPN",
+   "pos": [
+    12000,
+    17600
+   ],
+   "if": "",
+   "patrol": [
+    9000,
+    17600,
+    19000,
+    17600
+   ],
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_r1",
+   "kind": "spn",
+   "name": "Razia SPN",
+   "pos": [
+    1400,
+    -1500
+   ],
+   "yaw": -45,
+   "if": "razia && hour>=19 || razia && hour<5",
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_r2",
+   "kind": "spn",
+   "name": "Razia SPN",
+   "pos": [
+    -1400,
+    1500
+   ],
+   "yaw": 135,
+   "if": "razia && hour>=19 || razia && hour<5",
+   "color": "#22305A"
+  },
+  {
+   "id": "op_pasar",
+   "kind": "zone",
+   "name": "Gerbang Pasar Sentosa",
+   "pos": [
+    -8800,
+    13000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_ruko",
+   "kind": "zone",
+   "name": "Ruko Sentosa Blok A",
+   "pos": [
+    1700,
+    -9000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_sekolah",
+   "kind": "zone",
+   "name": "Depan SDN Sentosa 1",
+   "pos": [
+    9000,
+    11000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_tugu",
+   "kind": "zone",
+   "name": "Tugu Gemah Ripah",
+   "pos": [
+    1700,
+    2500
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_dewan",
+   "kind": "zone",
+   "name": "Gerbang Gedung Dewan",
+   "pos": [
+    36400,
+    1500
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_kelurahan",
+   "kind": "zone",
+   "name": "Kantor Kelurahan",
+   "pos": [
+    7300,
+    -9000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_puskesmas",
+   "kind": "zone",
+   "name": "Puskesmas Sentosa",
+   "pos": [
+    7700,
+    21000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_warnet",
+   "kind": "zone",
+   "name": "Warnet Jaya",
+   "pos": [
+    -1700,
+    6700
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_gang",
+   "kind": "zone",
+   "name": "Gang Melati",
+   "pos": [
+    -1700,
+    -16500
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_perum",
+   "kind": "zone",
+   "name": "Perumahan Sentosa Indah",
+   "pos": [
+    1700,
+    21000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "ibu_rumah",
+   "kind": "npc",
+   "name": "Ibu",
+   "pos": [
+    -9150,
+    -8700
+   ],
+   "dialog": "ibu_rumah",
+   "color": "#C77DBA"
+  },
+  {
+   "id": "dinda_rumah",
+   "kind": "npc",
+   "name": "Dinda",
+   "pos": [
+    -8850,
+    -9350
+   ],
+   "dialog": "dinda_rumah",
+   "color": "#F2C14E"
+  },
+  {
+   "id": "z_pulang_radio",
+   "kind": "zone",
+   "name": "Rumah Bayu",
+   "pos": [
+    -9000,
+    -9000
+   ],
+   "radius": 700,
+   "if": "q.Radio==3",
+   "do": "done Radio; jika pendengar>=50 && bukti_lapor ? set rudi_bebas 1; jika pendengar>=70 && bukti_target ? set rudi_bebas 1; cutscene penutup"
+  },
+  {
+   "id": "sari",
+   "kind": "npc",
+   "name": "Sari (LBH)",
+   "pos": [
+    -5000,
+    -12650
+   ],
+   "yaw": 135,
+   "dialog": "sari_b3",
+   "color": "#F28482",
+   "marker": "!",
+   "markerColor": "#F2C94C",
+   "if": "q.Lapor==1 || q.Lapor==5"
+  },
+  {
+   "id": "sari_santai",
+   "kind": "npc",
+   "name": "Sari (LBH)",
+   "pos": [
+    -5000,
+    -12650
+   ],
+   "yaw": 135,
+   "dialog": "sari_umum",
+   "color": "#F28482",
+   "if": "q.Lapor!=1 && q.Lapor!=5"
+  },
+  {
+   "id": "pak_rt",
+   "kind": "npc",
+   "name": "Pak RT Darto",
+   "pos": [
+    -5650,
+    -12300
+   ],
+   "color": "#D4A373",
+   "dialog": "rt_kunci",
+   "if": "q.Lapor==3",
+   "marker": "!",
+   "markerColor": "#F2C94C"
+  },
+  {
+   "id": "pak_rt_umum",
+   "kind": "npc",
+   "name": "Pak RT Darto",
+   "pos": [
+    -5650,
+    -12300
+   ],
+   "color": "#D4A373",
+   "dialog": "warga_umum",
+   "if": "q.Lapor!=3",
+   "barks": [
+    "Ronda malam ini sambil dengar radio. Radio apa? Ya radio."
+   ]
+  },
+  {
+   "id": "udin",
+   "kind": "npc",
+   "name": "Pak Udin",
+   "pos": [
+    -5650,
+    -11700
+   ],
+   "wander": 200,
+   "dialog": "warga_umum",
+   "color": "#A8DADC",
+   "barks": [
+    "Rudi itu dulu antar obat saya gratis.",
+    "Pasal karet. Karet gelang saya juga melar, tidak saya pakai buat nangkap orang."
+   ]
+  },
+  {
+   "id": "yati",
+   "kind": "npc",
+   "name": "Bu Yati",
+   "pos": [
+    -6350,
+    -11750
+   ],
+   "wander": 150,
+   "dialog": "yati_b3",
+   "color": "#E5989B",
+   "barks": [
+    "Gorengan, gorengan! Harga lama, ukuran baru!"
+   ]
+  },
+  {
+   "id": "tini",
+   "kind": "npc",
+   "name": "Bu Tini (Beras)",
+   "pos": [
+    -9600,
+    13000
+   ],
+   "dialog": "tini_b3",
+   "color": "#E76F51",
+   "barks": [
+    "Beras! Harga hari ini, besok beda lagi!"
+   ]
+  },
+  {
+   "id": "joko",
+   "kind": "npc",
+   "name": "Mas Joko (Warnet)",
+   "pos": [
+    -2250,
+    6650
+   ],
+   "yaw": 180,
+   "dialog": "joko_b3",
+   "color": "#90BE6D"
+  },
+  {
+   "id": "darmo",
+   "kind": "npc",
+   "name": "Pak Darmo (Kelurahan)",
+   "pos": [
+    8950,
+    -9000
+   ],
+   "yaw": 180,
+   "dialog": "darmo_b3",
+   "color": "#E9C46A",
+   "if": "hour>=7 && hour<17",
+   "barks": [
+    "Loket laporan warga buka 24 jam. Loket lain menyesuaikan."
+   ]
+  },
+  {
+   "id": "kel_dalam",
+   "kind": "zone",
+   "name": "Ruang Arsip Kelurahan",
+   "pos": [
+    8500,
+    -9000
+   ],
+   "radius": 10
+  },
+  {
+   "id": "pintu_kel",
+   "kind": "prop",
+   "name": "Pintu samping Kelurahan",
+   "pos": [
+    7650,
+    -8550
+   ],
+   "size": [
+    40,
+    160,
+    230
+   ],
+   "color": "#6B4F2A",
+   "if": "q.Lapor==4 && hour>=19",
+   "prompt": "Masuk diam-diam (kunci cadangan)",
+   "do": "minigame arsip"
+  },
+  {
+   "id": "pintu_kel_siang",
+   "kind": "prop",
+   "name": "Pintu samping Kelurahan",
+   "pos": [
+    7650,
+    -8550
+   ],
+   "size": [
+    40,
+    160,
+    230
+   ],
+   "color": "#6B4F2A",
+   "if": "q.Lapor==4 && hour<19",
+   "prompt": "Periksa pintu",
+   "do": "notif Kantor masih ramai. Hansip ganti shift pukul 19.00. Datang lagi nanti."
+  },
+  {
+   "id": "wiryo",
+   "kind": "npc",
+   "name": "Komandan Wiryo (SPN)",
+   "pos": [
+    5850,
+    -4500
+   ],
+   "dialog": "wiryo_b3",
+   "color": "#6C8EBF",
+   "barks": [
+    "Kritik boleh. Asal tidak terdengar."
+   ]
+  },
+  {
+   "id": "rudi_sel",
+   "kind": "npc",
+   "name": "Rudi (Tahanan)",
+   "pos": [
+    6500,
+    -3850
+   ],
+   "yaw": 90,
+   "dialog": "rudi_sel",
+   "color": "#7FB069",
+   "if": "q.Lapor==2",
+   "marker": "!",
+   "markerColor": "#F2C94C"
+  },
+  {
+   "id": "rudi_sel_diam",
+   "kind": "npc",
+   "name": "Rudi (Tahanan)",
+   "pos": [
+    6500,
+    -3850
+   ],
+   "yaw": 90,
+   "dialog": "rudi_sel",
+   "color": "#7FB069",
+   "if": "q.Lapor!=2 && q.Radio<3",
+   "barks": [
+    "Bay, kalau ketemu Ibu, bilang aku sehat."
+   ]
+  },
+  {
+   "id": "jeruji_kiri",
+   "kind": "prop",
+   "name": "Jeruji sel titipan",
+   "pos": [
+    6230,
+    -3850
+   ],
+   "size": [
+    30,
+    340,
+    240
+   ],
+   "color": "#4A4E57"
+  },
+  {
+   "id": "jeruji_kanan",
+   "kind": "prop",
+   "name": "Jeruji sel titipan",
+   "pos": [
+    6770,
+    -3850
+   ],
+   "size": [
+    30,
+    340,
+    240
+   ],
+   "color": "#4A4E57"
+  },
+  {
+   "id": "spn_jaga",
+   "kind": "npc",
+   "name": "Petugas Piket",
+   "pos": [
+    6050,
+    -3700
+   ],
+   "yaw": 0,
+   "dialog": "piket",
+   "color": "#22305A",
+   "barks": [
+    "Jam besuk sampai sore. Senyum dibatasi."
+   ]
+  },
+  {
+   "id": "harso",
+   "kind": "npc",
+   "name": "Pak Harso (Fotokopi)",
+   "pos": [
+    2300,
+    -9300
+   ],
+   "yaw": 90,
+   "dialog": "harso_koran",
+   "color": "#B5838D",
+   "barks": [
+    "Fotokopi, jilid, laminating!",
+    "Dulu saya mencetak berita. Sekarang mencetak brosur pinjol."
+   ]
+  },
+  {
+   "id": "stensil",
+   "kind": "prop",
+   "name": "Mesin Stensil Pak Harso",
+   "pos": [
+    2300,
+    -8900
+   ],
+   "size": [
+    120,
+    80,
+    100
+   ],
+   "color": "#3D405B",
+   "if": "q.Koran==2",
+   "prompt": "Susun Kabar Gang",
+   "do": "minigame koran"
+  },
+  {
+   "id": "stensil_diam",
+   "kind": "prop",
+   "name": "Mesin Stensil Pak Harso",
+   "pos": [
+    2300,
+    -8900
+   ],
+   "size": [
+    120,
+    80,
+    100
+   ],
+   "color": "#3D405B",
+   "if": "q.Koran!=2",
+   "prompt": "Lihat mesin",
+   "do": "notif Mesin stensil tua. Bau tintanya seperti tahun-tahun yang dilarang diingat."
+  },
+  {
+   "id": "antena",
+   "kind": "prop",
+   "name": "Tiang Antena (Jemuran)",
+   "pos": [
+    -5450,
+    -12750
+   ],
+   "size": [
+    30,
+    30,
+    480
+   ],
+   "color": "#9A8C98",
+   "if": "q.Radio==2 && hour>=19",
+   "prompt": "Mulai siaran Radio Gang",
+   "do": "dialog siaran"
+  },
+  {
+   "id": "antena_siang",
+   "kind": "prop",
+   "name": "Tiang Antena (Jemuran)",
+   "pos": [
+    -5450,
+    -12750
+   ],
+   "size": [
+    30,
+    30,
+    480
+   ],
+   "color": "#9A8C98",
+   "if": "q.Radio==2 && hour<19",
+   "prompt": "Pasang antena",
+   "do": "notif Antena terpasang. Siaran paling aman setelah pukul 19.00, saat warga sudah di rumah."
+  }
+ ],
+ "orders": [
+  {
+   "id": "o_nasi",
+   "title": "Nasi Padang 2 bungkus",
+   "customer": "Mbak Rina (bintang 4,9)",
+   "from": "op_pasar",
+   "to": "op_ruko",
+   "fare": 18000,
+   "time": 75
+  },
+  {
+   "id": "o_paket",
+   "title": "Paket skincare",
+   "customer": "Kak Lala",
+   "from": "op_tugu",
+   "to": "op_perum",
+   "fare": 16000,
+   "time": 60
+  },
+  {
+   "id": "o_dokumen",
+   "title": "Map dokumen 'SANGAT RAHASIA'",
+   "customer": "Staf Kelurahan",
+   "from": "op_kelurahan",
+   "to": "op_dewan",
+   "fare": 25000,
+   "time": 70
+  },
+  {
+   "id": "o_kopi",
+   "title": "Es kopi 10 gelas (rapat dewan)",
+   "customer": "Ajudan Dewan (tip: 0)",
+   "from": "op_ruko",
+   "to": "op_dewan",
+   "fare": 40000,
+   "time": 80,
+   "if": "day>=2"
+  },
+  {
+   "id": "o_masker",
+   "title": "Masker 1 dus untuk murid",
+   "customer": "Bu Guru Ratna",
+   "from": "op_pasar",
+   "to": "op_sekolah",
+   "fare": 20000,
+   "time": 90,
+   "if": "day>=2"
+  },
+  {
+   "id": "o_obat",
+   "title": "Obat batuk",
+   "customer": "Pak Yusuf (lansia)",
+   "from": "op_puskesmas",
+   "to": "op_gang",
+   "fare": 15000,
+   "time": 90
+  },
+  {
+   "id": "o_galon",
+   "title": "Galon air 2 buah",
+   "customer": "Mas Joko",
+   "from": "op_gang",
+   "to": "op_warnet",
+   "fare": 14000,
+   "time": 70
+  }
+ ],
+ "events": [
+  {
+   "id": "e_arsip_malam",
+   "if": "q.Lapor==4 && hour>=19 && !ev.hint_arsip",
+   "do": "set ev.hint_arsip 1; notif Sudah lewat pukul 19.00. Hansip kelurahan ganti shift. Ke Kantor Kelurahan!"
+  },
+  {
+   "id": "e_bagi_selesai",
+   "if": "q.Koran==3 && bagi>=3",
+   "do": "done Koran; quest Radio; set bawa_koran 0; notifbaik Kabar Gang sudah beredar. Mas Joko minta kamu mampir ke warnet."
+  },
+  {
+   "id": "e_bawa_koran",
+   "if": "q.Koran==3 && item.koran>=1 && !bawa_koran",
+   "do": "set bawa_koran 1"
+  },
+  {
+   "id": "e_radio_malam",
+   "if": "q.Radio==2 && hour>=19 && !ev.hint_radio",
+   "do": "set ev.hint_radio 1; notif Malam sudah turun. Saatnya siaran dari Pos Ronda."
+  },
+  {
+   "id": "e_capek",
+   "if": "energi<30",
+   "do": "notif Energi tinggal sedikit. Makan, minum kopi, atau tidur."
+  }
+ ],
+ "cutscenes": [
+  {
+   "id": "pembuka",
+   "steps": [
+    {
+     "t": 0.05,
+     "fade": 1
+    },
+    {
+     "t": 5,
+     "cam": [
+      33000,
+      -500,
+      1400,
+      -10,
+      20
+     ],
+     "cam2": [
+      34500,
+      800,
+      1300,
+      -8,
+      10
+     ],
+     "fade": 0,
+     "title": "BAB 3: PASAL KARET",
+     "text": "Tiga hari setelah aksi piring kosong. Fotonya masih beredar. Begitu pula daftar nama orang-orang di dalamnya."
+    },
+    {
+     "t": 5.5,
+     "cam": [
+      30000,
+      -6000,
+      1500,
+      -6,
+      23
+     ],
+     "cam2": [
+      33000,
+      -3000,
+      1800,
+      -5,
+      15
+     ],
+     "text": "Dewan mengesahkan pasal baru dalam rapat sebelas menit: Penghinaan Pejabat. Kritik tetap boleh, asal tidak terasa."
+    },
+    {
+     "t": 5,
+     "cam": [
+      5000,
+      -2800,
+      700,
+      -14,
+      -40
+     ],
+     "cam2": [
+      5400,
+      -3200,
+      650,
+      -14,
+      -46
+     ],
+     "text": "Di sel titipan Pos SPN, Rudi menjadi tersangka pertama. Tuduhannya: memperbanyak pamflet yang merendahkan martabat."
+    },
+    {
+     "t": 1,
+     "fade": 1
+    }
+   ],
+   "end": "teleport rumah; umumkan Aturan.PasalKaretKritik; jika !rudi_ditangkap ? set rudi_dijemput 1; set rudi_ditangkap 1; set bagi 0; quest Lapor; pesan sari_kabar; notif Bab 3 dimulai. J: jurnal | Tab: ponsel"
+  },
+  {
+   "id": "ditangkap",
+   "steps": [
+    {
+     "t": 0.6,
+     "fade": 1
+    },
+    {
+     "t": 4.5,
+     "cam": [
+      5000,
+      -5200,
+      600,
+      -10,
+      40
+     ],
+     "cam2": [
+      5400,
+      -5000,
+      550,
+      -10,
+      45
+     ],
+     "fade": 0,
+     "text": "Bayu dibawa ke Pos SPN, satu lorong dengan sel Rudi. Isi tasnya diperiksa lembar demi lembar. Ditahan semalam, lalu dilepas dengan 'pembinaan'."
+    },
+    {
+     "t": 1,
+     "fade": 1
+    }
+   ],
+   "end": "diawasi -40; uang -50000 Denda pembinaan; jika item.koran>=1 ? step Koran 2; jika item.koran>=1 ? notifburuk Kabar Gang disita. Cetak ulang di mesin stensil Pak Harso.; jika item.koran>=1 ? item koran -9; set bawa_koran 0; tidur"
+  },
+  {
+   "id": "penutup",
+   "steps": [
+    {
+     "t": 0.8,
+     "fade": 1
+    },
+    {
+     "t": 5,
+     "cam": [
+      5000,
+      -2800,
+      700,
+      -14,
+      -40
+     ],
+     "cam2": [
+      5400,
+      -3200,
+      650,
+      -14,
+      -46
+     ],
+     "fade": 0,
+     "text": "Dua hari kemudian, sidang praperadilan Rudi. Bangku pengunjung penuh. Banyak yang membawa radio kecil, padahal tidak ada siaran."
+    },
+    {
+     "t": 5.5,
+     "cam": [
+      -4800,
+      -11000,
+      700,
+      -15,
+      -128
+     ],
+     "cam2": [
+      -5200,
+      -11500,
+      650,
+      -15,
+      -122
+     ],
+     "text": "Hakim membaca berkas: laporan warga nomor 47, atas nama Sukirman. Seseorang di belakang berteriak, 'Sukirman sudah wafat!' Ruang sidang tertawa. Hakim tidak."
+    },
+    {
+     "t": 5,
+     "cam": [
+      -9600,
+      14500,
+      900,
+      -14,
+      -100
+     ],
+     "cam2": [
+      -9300,
+      13800,
+      850,
+      -14,
+      -95
+     ],
+     "text": "Sementara itu, di Pasar Sentosa, petugas berompi oranye memasang patok. Tidak ada yang tahu untuk apa. Belum."
+    },
+    {
+     "t": 3.5,
+     "fade": 1,
+     "title": "BAB 3 SELESAI",
+     "text": "Pasal Karet"
+    }
+   ],
+   "end": "jika rudi_bebas ? pesan rudi_bebas; jika !rudi_bebas ? pesan rudi_tangguh; selesai"
+  }
+ ],
+ "kicau": [
+  {
+   "id": "k3_1",
+   "author": "Humas Kota Sentosa",
+   "handle": "HumasSentosa",
+   "official": true,
+   "likes": 64,
+   "text": "Pasal Penghinaan Pejabat resmi berlaku. Kritik tetap ditampung lewat kotak saran di lantai 9. Lift sedang perbaikan. #SentosaSantun"
+  },
+  {
+   "id": "k3_2",
+   "author": "Sari",
+   "handle": "sari_lbh",
+   "likes": 7200,
+   "text": "Rudi, ojol, 27 tahun, ditahan karena memperbanyak pamflet. Pelapornya 'warga'. Warganya siapa? #BebaskanRudi"
+  },
+  {
+   "id": "k3_3",
+   "author": "Cinta Sentosa 88",
+   "handle": "cinta_sentosa_88",
+   "likes": 12,
+   "text": "Warga yang baik tidak perlu mengkritik. Cukup bersyukur dan isi survei kepuasan. Link di bio. Hadiah pulsa."
+  },
+  {
+   "id": "k3_4",
+   "if": "q.Koran>=3",
+   "author": "Info Sentosa",
+   "handle": "infosentosa",
+   "likes": 4300,
+   "text": "Beredar koran stensilan 'Kabar Gang'. Tidak ada di Kicau, tidak bisa diblokir, bisa dipakai bungkus gorengan."
+  },
+  {
+   "id": "k3_5",
+   "if": "q.Radio>=3",
+   "author": "Radio Gang 107,7",
+   "handle": "radiogang",
+   "likes": 11800,
+   "text": "Terima kasih yang sudah mendengarkan. Pemancar istirahat dulu. Pendengarnya jangan."
+  }
+ ],
+ "berita": [
+  {
+   "id": "b3_1",
+   "source": "Sentosa Pos",
+   "title": "Dewan Sahkan Pasal Penghinaan Pejabat dalam 11 Menit",
+   "body": "Rapat paripurna dihadiri 9 dari 50 anggota. Menurut Sekretariat, sisanya hadir secara batin."
+  },
+  {
+   "id": "b3_2",
+   "source": "Gemah TV",
+   "title": "Kelurahan Sentosa Raih Penghargaan 'Paling Rajin Melapor'",
+   "body": "Sebanyak 47 laporan warga diterima bulan ini. Bulan ini baru berjalan tiga hari."
+  },
+  {
+   "id": "b3_3",
+   "if": "q.Radio>=3",
+   "source": "Sentosa Pos",
+   "title": "SPN Sita Antena Jemuran di Tiga RT",
+   "body": "Petugas menyebut antena jemuran 'berpotensi memancarkan keresahan'. Warga kini menjemur pakaian di dalam rumah."
+  },
+  {
+   "id": "b3_4",
+   "if": "q.Radio>=2",
+   "source": "Gemah TV",
+   "title": "Pemkot Umumkan Proyek Mercusuar: Menara Gemilang di Lahan Pasar Sentosa",
+   "body": "Pedagang akan direlokasi ke lokasi yang 'lebih strategis'. Lokasinya sedang dicari."
+  }
+ ],
+ "needs": [
+  {
+   "item": "beras",
+   "if": "day>=2",
+   "ok": "notif Ibu memasak nasi. Keluarga sarapan.",
+   "fail": "notifburuk Beras habis. Keluarga sarapan air teh. Energimu berkurang.; energi -30; suara -2"
+  }
+ ],
+ "barks": [
+  {
+   "text": "Ssst. Jangan bahas pejabat di sini. Bahas cuaca saja. Eh, cuaca juga jangan, nanti asapnya tersinggung."
+  },
+  {
+   "text": "Rudi ditahan? Rudi yang ojol? Yang suka antar obat gratis?"
+  },
+  {
+   "if": "q.Koran>=3",
+   "text": "Sudah baca Kabar Gang? Saya simpan di bawah bantal."
+  },
+  {
+   "if": "q.Radio>=3",
+   "text": "Semalam ada radio aneh. Frekuensinya 107,7. Saya cuma dengar sebentar. Dua jam."
+  }
+ ],
+ "minigames": [
+  {
+   "id": "arsip",
+   "title": "Arsip Kelurahan: Menyusup",
+   "help": "Ambil dokumen di lemari kuning (E). Senter hansip = pandangan mereka, sembunyi di balik lemari. Keluar lewat pintu (lantai hijau).",
+   "win": "step Lapor 5; suara 5; notifbaik Kamu keluar lewat pintu samping. Bawa dokumennya ke Sari di Pos Ronda.",
+   "lose": "diawasi 20; notifburuk Hansip berteriak MALING. Kamu kabur lewat got. Coba lagi nanti.",
+   "guard": "Hansip Kelurahan",
+   "room": "kel_dalam",
+   "loot": [
+    "memo_target",
+    "daftar_pantau",
+    "laporan_palsu"
+   ],
+   "grid": [
+    "B..C.C..B",
+    ".C.....C.",
+    "G........",
+    "##.#.#.##",
+    "........G",
+    ".C..B..C.",
+    "....PX..."
+   ]
+  },
+  {
+   "id": "koran",
+   "title": "Mesin Stensil: Kabar Gang Edisi 1",
+   "submit": "Cetak 50 eksemplar",
+   "help": "Pilih judul, lampirkan dokumen, dan tentukan nada. Makin tajam, makin banyak yang membaca, makin cepat SPN mencari percetakannya.",
+   "win": "step Koran 3; item koran 3; set bawa_koran 1; jika viral>=90 ? suara 10; jika risiko>=50 ? diawasi 10; notifbaik 50 eksemplar Kabar Gang tercetak. Bagikan ke 3 orang!",
+   "options": [
+    {
+     "group": "judul",
+     "text": "LAPORAN NOMOR 47: Ditulis di Kelurahan, Ditandatangani Almarhum",
+     "viral": 45,
+     "risk": 30
+    },
+    {
+     "group": "judul",
+     "text": "Rudi Bukan Penjahat. Dia Tukang Ojek yang Membaca.",
+     "viral": 35,
+     "risk": 10
+    },
+    {
+     "group": "judul",
+     "text": "Kelurahan Kejar Target: 50 Laporan Sebulan, Bonus Kalender",
+     "viral": 40,
+     "risk": 20
+    },
+    {
+     "group": "nada",
+     "text": "Dokumen dan data, tanpa kata sifat",
+     "viral": 20,
+     "risk": 5
+    },
+    {
+     "group": "nada",
+     "text": "Pantun satir di setiap halaman",
+     "viral": 40,
+     "risk": 15
+    },
+    {
+     "group": "nada",
+     "text": "Nama dan jabatan semua yang terlibat",
+     "viral": 45,
+     "risk": 40
+    }
+   ]
+  }
+ ],
+ "ending": [
+  {
+   "if": "rudi_bebas",
+   "text": "Praperadilan dikabulkan. Rudi bebas karena pelapornya ternyata sudah wafat.",
+   "else": "Rudi ditangguhkan, tapi tetap tersangka. Pasal karet tidak gampang putus."
+  },
+  {
+   "if": "bukti_pantau",
+   "text": "Daftar pantauan kelurahan terbongkar. Warga tahu nama mereka dicatat, termasuk anak-anak.",
+   "else": "Daftar pantauan masih tersimpan di lemari kuning. Entah ada nama siapa saja."
+  },
+  {
+   "if": "pendengar>=60",
+   "text": "Radio Gang didengar ratusan rumah. Suara warga kini punya frekuensi sendiri.",
+   "else": "Radio Gang hanya didengar sedikit orang. Tapi sinyal pertama selalu yang paling lemah."
+  },
+  {
+   "if": "item.rekaman_tawar>=1",
+   "text": "Rekaman 'biaya penangguhan' Komandan Wiryo tersimpan aman di ponselmu.",
+   "else": "Tawaran 'biaya administrasi' Wiryo menguap tanpa bukti."
+  },
+  {
+   "text": "Di Pasar Sentosa, patok-patok oranye mulai bermunculan. Proyek Mercusuar sudah menunggu.",
+   "color": "#9B6BD6"
+  }
+ ]
+}

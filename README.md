@@ -2,7 +2,7 @@
 
 Game open world satir di Unreal Engine 5.8. Pemain adalah Bayu, pengemudi ojol di Kota Sentosa, Republik Gemah Ripah (negara fiktif), yang mengejar keadilan dan kebebasan.
 
-Bab yang bisa dimainkan: Bab 1 "Asap dan Piring" dan Bab 2 "Turun ke Jalan". Bab 3 sampai 5 sudah ada di Peta Bab sebagai "segera hadir".
+Bab yang bisa dimainkan: Bab 1 "Asap dan Piring", Bab 2 "Turun ke Jalan", dan Bab 3 "Pasal Karet". Bab 4 dan 5 sudah ada di Peta Bab sebagai "segera hadir".
 
 ## Kebutuhan
 
@@ -130,6 +130,16 @@ Kalau Diawasi mencapai 100 atau SPN melihat Bayu saat mencurigakan terlalu lama,
 
 Isi di `Content/Data/bab2.json`. Larangan Berkumpul berlaku. Bayu menggalang dukungan warga (Pak Udin, Bu Yati, Bu Tini, Mas Joko, Rudi, Bu Ratna bila dilindungi di Bab 1), mendesain pamflet di warnet, menempelnya di tiga tempat sambil menghindari SPN, lalu memimpin aksi piring kosong dari Tugu ke Gedung Dewan. Negosiasi dengan Komandan Wiryo punya meter ketegangan; hasilnya audit PPR atau pembubaran paksa.
 
+## Bab 3 "Pasal Karet"
+
+Isi di `Content/Data/bab3.json`. Pasal Penghinaan Pejabat berlaku dan Rudi ditahan (dari Bab 2, atau dijemput di awal Bab 3).
+
+1. Siapa yang Melapor: Sari (LBH) di Pos Ronda, jenguk Rudi di sel titipan Pos SPN (Wiryo menawarkan "biaya penangguhan" yang bisa direkam), kunci cadangan dari Pak RT, lalu menyusup ke arsip Kantor Kelurahan setelah pukul 19.00. Minigame `arsip` memakai ruangan kelurahan asli dengan hansip bersenter. Dokumennya: laporan warga No. 47, memo target laporan, daftar pantauan warga.
+2. Kabar Gang: Pak Harso (mantan wartawan) di Ruko Blok A, menyusun koran stensilan di mesin stensil (minigame `koran`), lalu membagikannya ke Bu Tini, Mas Joko, dan Bu Yati. Membawa koran = dicurigai SPN; kalau tertangkap, korannya disita dan harus dicetak ulang.
+3. Radio Gang 107,7: pemancar rakitan dari Mas Joko, antena di Pos Ronda, siaran malam dengan meter pendengar. Pulang sebelum SPN menemukan sinyal.
+
+Hasil: Rudi bebas lewat praperadilan bila pendengar cukup dan laporan palsunya terbongkar; kalau tidak, ia hanya ditangguhkan. Penutup memberi petunjuk Bab 4 (patok proyek di Pasar Sentosa).
+
 ### Bahasa cerita
 
 Syarat (`if`, `suspicious`): gabungan `&&`, `||`, `!`, dan perbandingan `>= <= == != > <`.
@@ -148,6 +158,8 @@ Aksi (`do`, `end`, `win`, `lose`), dipisah `;`:
 | Dunia | `umumkan Aturan.X`, `aksi Aksi.X`, `jam 19.5`, `order o_nasi`, `batalorder` |
 | Layar | `dialog id`, `cutscene id`, `minigame id`, `toko pasar`, `ponsel`, `selesai` |
 | Lain | `teleport spawn_id`, `tidur`, `simpan`, `jika syarat ? aksi` |
+
+Minigame stealth: `room` berisi tag `MinigameId` volume ruangan, atau id spawn yang berdiri di dalam ruangan (contoh `kel_dalam`). `guard` = nama penjaga. Minigame unggah/cetak: `submit` = label tombol terbit.
 
 Bagian file: `ending`, `start`, `onCaught`, `onFaint`, `onMorning`, `suspicious`, `items`, `shop`, `quests`, `speakers`, `dialogs` (gaya `vn`, `3d`, `chat`), `spawns` (`npc`, `spn`, `prop`, `zone`), `events`, `cutscenes`, `orders`, `kicau`, `berita`, `needs`, `barks`, `minigames`.
 
