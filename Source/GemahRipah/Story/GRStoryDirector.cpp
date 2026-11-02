@@ -439,6 +439,8 @@ void AGRStoryDirector::ProcessRequests()
 		}
 		else if (Request.Kind == TEXT("selesai"))
 		{
+			GetStory()->CompleteChapter();
+			GetGameInstance()->GetSubsystem<UGRSaveSubsystem>()->Autosave();
 			UI->PushScreen<UGRChapterEndScreen>();
 		}
 		else if (Request.Kind == TEXT("teleport"))

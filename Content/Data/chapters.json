@@ -1,0 +1,19 @@
+{
+  "chapters": [
+    { "id": "bab1", "number": 1, "file": "bab1.json", "title": "Asap dan Piring", "subtitle": "Dinda keracunan menu Program Piring Rakyat.",
+      "summary": "Tiga hari di Kota Sentosa. Bayu mencari tahu dari mana makanan basi itu datang, menyusup ke Dapur PPR, lalu mengunggah buktinya.",
+      "icon": "bab1", "color": "#E8A33A", "pos": [0.16, 0.66], "place": "Kampung Gang" },
+    { "id": "bab2", "number": 2, "file": "bab2.json", "title": "Turun ke Jalan", "subtitle": "Unggahan viral. Kini warga harus berani berkumpul.",
+      "summary": "Larangan Berkumpul berlaku. Bayu menggalang warga, membuat pamflet, dan memimpin aksi damai ke Gedung Dewan.",
+      "icon": "bab2", "color": "#E24E3C", "pos": [0.38, 0.36], "place": "Pusat Pemerintahan" },
+    { "id": "bab3", "number": 3, "file": "", "title": "Pasal Karet", "subtitle": "Satu kicauan, satu pasal, satu teman hilang.",
+      "summary": "Rudi ditangkap karena meneruskan pamflet. Bayu belajar bicara tanpa tertangkap: koran stensilan dan radio warga.",
+      "icon": "bab3", "color": "#5AB4EB", "pos": [0.58, 0.68], "place": "Pelabuhan Lama" },
+    { "id": "bab4", "number": 4, "file": "", "title": "Proyek Mercusuar", "subtitle": "Pasar Sentosa mau digusur demi menara kebanggaan.",
+      "summary": "Ekskavator datang sebelum sosialisasi. Bu Tini dan pedagang pasar bertahan, Bayu mencari siapa yang untung.",
+      "icon": "bab4", "color": "#9B6BD6", "pos": [0.74, 0.3], "place": "Kota Gemilang" },
+    { "id": "bab5", "number": 5, "file": "", "title": "Suara Rakyat", "subtitle": "Pemilu tinggal seminggu. Hasilnya sudah dicetak.",
+      "summary": "Akhir perjalanan Bayu: semua yang ia kumpulkan menentukan apakah warga Gemah Ripah masih punya suara.",
+      "icon": "bab5", "color": "#6EC878", "pos": [0.88, 0.7], "place": "Ibu Kota" }
+  ]
+}

@@ -199,6 +199,28 @@ void UGRCheatManager::GRMenu()
 	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRGameFlowSubsystem>()->ReturnToMainMenu(); }
 }
 
+void UGRCheatManager::GRBab(const FString& ChapterId)
+{
+	UGameInstance* GI = GetGI();
+	if (!GI)
+	{
+		return;
+	}
+	UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>();
+	for (const FGRChapterDef& Chapter : Story->GetChapters())
+	{
+		if (Chapter.Id == ChapterId)
+		{
+			break;
+		}
+		Story->SetChapterDone(Chapter.Id);
+	}
+	if (!GI->GetSubsystem<UGRGameFlowSubsystem>()->StartChapter(ChapterId))
+	{
+		Print(FString::Printf(TEXT("Bab tidak bisa dimulai: %s"), *ChapterId));
+	}
+}
+
 void UGRCheatManager::GRNotif(const FString& Message)
 {
 	if (UGameInstance* GI = GetGI())

@@ -30,8 +30,59 @@ void UGRStorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UGRStorySubsystem::Reload()
 {
-	UGRDataSubsystem::LoadJsonFile(TEXT("bab1.json"), Data);
-	UE_LOG(LogGRStory, Log, TEXT("bab1.json: %d dialog, %d quest, %d spawn, %d event"), Data.Dialogs.Num(), Data.Quests.Num(), Data.Spawns.Num(), Data.Events.Num());
+	Chapters = FGRChapterList();
+	UGRDataSubsystem::LoadJsonFile(TEXT("chapters.json"), Chapters);
+	if (!FindChapter(ChapterId))
+	{
+		ChapterId = Chapters.Chapters.Num() > 0 ? Chapters.Chapters[0].Id : FString();
+	}
+	const FGRChapterDef* Chapter = FindChapter(ChapterId);
+	const FString File = Chapter && !Chapter->File.IsEmpty() ? Chapter->File : FString(TEXT("bab1.json"));
+	Data = FGRStoryFile();
+	UGRDataSubsystem::LoadJsonFile(File, Data);
+	UE_LOG(LogGRStory, Log, TEXT("%s: %d dialog, %d quest, %d spawn, %d event"), *File, Data.Dialogs.Num(), Data.Quests.Num(), Data.Spawns.Num(), Data.Events.Num());
+}
+
+const FGRChapterDef* UGRStorySubsystem::FindChapter(const FString& Id) const
+{
+	return Id.IsEmpty() ? nullptr : FindById(Chapters.Chapters, Id);
+}
+
+const FGRChapterDef* UGRStorySubsystem::GetNextChapter() const
+{
+	const int32 Index = Chapters.Chapters.IndexOfByPredicate([this](const FGRChapterDef& C) { return C.Id == ChapterId; });
+	return Chapters.Chapters.IsValidIndex(Index + 1) ? &Chapters.Chapters[Index + 1] : nullptr;
+}
+
+bool UGRStorySubsystem::IsChapterUnlocked(const FString& Id) const
+{
+	const int32 Index = Chapters.Chapters.IndexOfByPredicate([&Id](const FGRChapterDef& C) { return C.Id == Id; });
+	if (Index == INDEX_NONE || Chapters.Chapters[Index].File.IsEmpty())
+	{
+		return false;
+	}
+	return Index == 0 || IsChapterDone(Chapters.Chapters[Index - 1].Id) || IsChapterDone(Id);
+}
+
+void UGRStorySubsystem::SetChapterDone(const FString& Id)
+{
+	CompletedChapters.AddUnique(Id);
+	OnChanged.Broadcast();
+}
+
+void UGRStorySubsystem::BeginChapter(const FString& Id)
+{
+	ChapterId = Id;
+	Reload();
+	// Choices from earlier chapters stay in Vars (Bab 2 can ask "guru_dilindungi"); the rest is per chapter.
+	Vars.Remove(TEXT("bab_dimulai"));
+	QuestOrder.Reset();
+	Inbox.Reset();
+	Energi = 100.f;
+	ActiveOrder.Reset();
+	OrderStage = 0;
+	bFainting = false;
+	OnChanged.Broadcast();
 }
 
 const FGRDialogDef* UGRStorySubsystem::FindDialog(const FString& Id) const { return FindById(Data.Dialogs, Id); }
@@ -218,7 +269,7 @@ void UGRStorySubsystem::RunCommand(const FString& Command, const FString& Arg)
 		const FGRQuestDef* Quest = FindQuest(First);
 		if (Quest && Quest->Steps.IsValidIndex(Number - 1))
 		{
-			Notify(Quest->Steps[Number - 1], 0);
+			Notify(FormatText(Quest->Steps[Number - 1]), 0);
 		}
 	}
 	else if (Command == TEXT("done"))
@@ -318,10 +369,29 @@ FString UGRStorySubsystem::GetObjectiveText() const
 		const int32 Step = GetQuestStep(Active[0]->Id);
 		if (Active[0]->Steps.IsValidIndex(Step - 1))
 		{
-			return Active[0]->Steps[Step - 1];
+			return FormatText(Active[0]->Steps[Step - 1]);
 		}
 	}
 	return FString();
+}
+
+FString UGRStorySubsystem::FormatText(const FString& Text) const
+{
+	FString Out;
+	int32 From = 0;
+	while (true)
+	{
+		const int32 Open = Text.Find(TEXT("{"), ESearchCase::CaseSensitive, ESearchDir::FromStart, From);
+		const int32 Close = Open == INDEX_NONE ? INDEX_NONE : Text.Find(TEXT("}"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Open);
+		if (Close == INDEX_NONE)
+		{
+			Out += Text.Mid(From);
+			return Out;
+		}
+		Out += Text.Mid(From, Open - From);
+		Out += FString::FromInt(FMath::RoundToInt(GetValue(Text.Mid(Open + 1, Close - Open - 1))));
+		From = Close + 1;
+	}
 }
 
 FString UGRStorySubsystem::GetTargetSpawnId() const
@@ -492,6 +562,12 @@ void UGRStorySubsystem::RunMorning()
 
 void UGRStorySubsystem::ResetState()
 {
+	if (Chapters.Chapters.Num() > 0 && ChapterId != Chapters.Chapters[0].Id)
+	{
+		ChapterId = Chapters.Chapters[0].Id;
+		Reload();
+	}
+	CompletedChapters.Reset();
 	Vars.Reset();
 	QuestOrder.Reset();
 	Inbox.Reset();
@@ -518,6 +594,8 @@ void UGRStorySubsystem::WriteToSave(UGRSaveGame& Save) const
 	Save.Inbox = Inbox;
 	Save.Ledger = Ledger;
 	Save.Energi = Energi;
+	Save.ChapterId = ChapterId;
+	Save.CompletedChapters = CompletedChapters;
 }
 
 void UGRStorySubsystem::ReadFromSave(const UGRSaveGame& Save)
@@ -531,5 +609,13 @@ void UGRStorySubsystem::ReadFromSave(const UGRSaveGame& Save)
 	Inbox = Save.Inbox;
 	Ledger = Save.Ledger;
 	Energi = Save.Energi;
+	// Saves from before chapters existed are Bab 1.
+	const FString SavedChapter = Save.ChapterId.IsEmpty() ? FString(TEXT("bab1")) : Save.ChapterId;
+	if (SavedChapter != ChapterId)
+	{
+		ChapterId = SavedChapter;
+		Reload();
+	}
+	CompletedChapters = Save.CompletedChapters;
 	OnChanged.Broadcast();
 }

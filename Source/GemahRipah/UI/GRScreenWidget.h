@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/GRUIAnim.h"
 #include "GRScreenWidget.generated.h"
 
 class UOverlay;
@@ -36,8 +37,11 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	virtual void BuildScreen(UOverlay* Root) {}
+	/** Runs once, the first time the screen is shown: dim fades, panels pop in, the centered panel's rows stagger. */
+	virtual void PlayIntro();
 	virtual void HandleBack();
 
 	/** Centered panel with a title; returns the box to add rows to. */
@@ -48,4 +52,19 @@ protected:
 	/** Widget focused when the screen is shown (first button by default). */
 	UPROPERTY()
 	TObjectPtr<UWidget> DefaultFocus;
+
+	GRAnim::FPlayer Anim;
+
+	UPROPERTY()
+	TObjectPtr<UOverlay> RootOverlay;
+
+	UPROPERTY()
+	TObjectPtr<UWidget> DimWidget;
+
+	/** Rows of the panel from MakeCenteredPanel, staggered by the intro. */
+	UPROPERTY()
+	TObjectPtr<UVerticalBox> IntroList;
+
+private:
+	bool bIntroPlayed = false;
 };

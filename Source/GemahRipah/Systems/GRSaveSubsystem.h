@@ -59,6 +59,9 @@ public:
 	/** New game: zero play time, forget pending position. */
 	void ResetSession();
 
+	/** The next city load starts at the player start instead of the loaded save's position. */
+	void ClearPendingTransform() { bHasPendingTransform = false; }
+
 	/** Used by the game mode after a map load to place the player where the save left him. */
 	bool ConsumePendingPlayerTransform(FTransform& OutTransform, FRotator& OutControlRotation);
 

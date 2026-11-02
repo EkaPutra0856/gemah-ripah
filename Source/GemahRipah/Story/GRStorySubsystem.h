@@ -52,6 +52,8 @@ public:
 	TArray<const FGRQuestDef*> GetActiveQuests() const;
 	TArray<const FGRQuestDef*> GetDoneQuests() const;
 	FString GetObjectiveText() const;
+	/** Replaces "{var}" with the variable's value, e.g. "dukungan {dukungan}/3". */
+	FString FormatText(const FString& Text) const;
 	/** Spawn id the tracked marker should point at (active order first, then the tracked quest). */
 	FString GetTargetSpawnId() const;
 	int32 GetItemCount(const FString& ItemId) const { return GetVar(TEXT("item.") + ItemId); }
@@ -83,6 +85,20 @@ public:
 	/** Morning routine after sleeping: OnMorning actions and family needs. */
 	void RunMorning();
 
+	// Chapters (chapters.json). Vars, money and rules carry over; quests, inbox and the clock start fresh.
+	const TArray<FGRChapterDef>& GetChapters() const { return Chapters.Chapters; }
+	const FGRChapterDef* FindChapter(const FString& Id) const;
+	const FGRChapterDef* GetCurrentChapter() const { return FindChapter(ChapterId); }
+	const FGRChapterDef* GetNextChapter() const;
+	const FString& GetChapterId() const { return ChapterId; }
+	bool IsChapterDone(const FString& Id) const { return CompletedChapters.Contains(Id); }
+	/** Written, and the first chapter or the one before it is done. */
+	bool IsChapterUnlocked(const FString& Id) const;
+	void CompleteChapter() { SetChapterDone(ChapterId); }
+	void SetChapterDone(const FString& Id);
+	/** Switches the story data to another chapter; the caller reloads the city map to respawn everything. */
+	void BeginChapter(const FString& Id);
+
 	void ResetState();
 	void StartChapter();
 	void WriteToSave(UGRSaveGame& Save) const;
@@ -98,6 +114,9 @@ private:
 	void Notify(const FString& Text, uint8 Type) const;
 
 	FGRStoryFile Data;
+	FGRChapterList Chapters;
+	FString ChapterId;
+	TArray<FString> CompletedChapters;
 	TMap<FString, int32> Vars;
 	TArray<FString> QuestOrder;
 	TArray<FString> Inbox;

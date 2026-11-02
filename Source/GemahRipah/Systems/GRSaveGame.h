@@ -12,7 +12,7 @@ class GEMAHRIPAH_API UGRSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	static constexpr int32 CurrentVersion = 4;
+	static constexpr int32 CurrentVersion = 5;
 
 	UPROPERTY()
 	int32 SaveVersion = CurrentVersion;
@@ -70,6 +70,13 @@ public:
 
 	UPROPERTY()
 	TArray<FString> QuestOrder;
+
+	// Chapter (version 5+)
+	UPROPERTY()
+	FString ChapterId;
+
+	UPROPERTY()
+	TArray<FString> CompletedChapters;
 
 	UPROPERTY()
 	TArray<FString> Inbox;

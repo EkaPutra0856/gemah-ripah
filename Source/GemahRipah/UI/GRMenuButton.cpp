@@ -2,21 +2,38 @@
 #include "UI/GRUIStyle.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
+#include "Components/Border.h"
 #include "Components/ButtonSlot.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
+#include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
+#include "Engine/Texture2D.h"
 
 void UGRMenuButton::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
 	Button = WidgetTree->ConstructWidget<UButton>();
-	Text = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 20);
-	Button->SetContent(Text);
-	if (UButtonSlot* ButtonSlot = Cast<UButtonSlot>(Text->Slot))
+	Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+	Button->SetContent(Row);
+	if (UButtonSlot* ButtonSlot = Cast<UButtonSlot>(Row->Slot))
 	{
-		ButtonSlot->SetPadding(FMargin(20.f, 10.f));
-		ButtonSlot->SetHorizontalAlignment(HAlign_Left);
+		ButtonSlot->SetPadding(FMargin(14.f, 10.f, 20.f, 10.f));
+		ButtonSlot->SetHorizontalAlignment(HAlign_Fill);
 	}
+	// Accent bar on the left; grows in when the button gets focus.
+	USizeBox* BarSize = WidgetTree->ConstructWidget<USizeBox>();
+	BarSize->SetWidthOverride(4.f);
+	Bar = WidgetTree->ConstructWidget<UBorder>();
+	Bar->SetBrush(GRStyle::RoundedBrush(FLinearColor::White, 2.f));
+	BarSize->SetContent(Bar);
+	UHorizontalBoxSlot* BarSlot = Row->AddChildToHorizontalBox(BarSize);
+	BarSlot->SetVerticalAlignment(VAlign_Fill);
+	BarSlot->SetPadding(FMargin(0.f, 2.f, 10.f, 2.f));
+	Text = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 20);
+	Row->AddChildToHorizontalBox(Text)->SetVerticalAlignment(VAlign_Center);
 	WidgetTree->RootWidget = Button;
 
 	Button->OnClicked.AddDynamic(this, &UGRMenuButton::HandleClicked);
@@ -27,6 +44,36 @@ void UGRMenuButton::NativeOnInitialized()
 void UGRMenuButton::SetLabel(const FText& Label)
 {
 	Text->SetText(Label);
+}
+
+void UGRMenuButton::SetIcon(const FString& Glyph, const FLinearColor& Color, UTexture2D* Texture)
+{
+	USizeBox* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+	IconSize->SetWidthOverride(40.f);
+	IconSize->SetHeightOverride(40.f);
+	UBorder* Icon = WidgetTree->ConstructWidget<UBorder>();
+	Icon->SetBrush(GRStyle::RoundedBrush(Color, 10.f));
+	Icon->SetHorizontalAlignment(HAlign_Center);
+	Icon->SetVerticalAlignment(VAlign_Center);
+	Icon->SetPadding(FMargin(6.f));
+	IconSize->SetContent(Icon);
+	if (Texture)
+	{
+		UImage* Image = WidgetTree->ConstructWidget<UImage>();
+		Image->SetBrushFromTexture(Texture);
+		Image->SetDesiredSizeOverride(FVector2D(28.f, 28.f));
+		Icon->SetContent(Image);
+	}
+	else
+	{
+		Icon->SetContent(GRStyle::MakeText(WidgetTree, FText::FromString(Glyph), 18, FLinearColor::White, true));
+	}
+	// InsertChildAt does not reorder the live Slate box, so re-add the label after the icon.
+	Row->RemoveChild(Text);
+	UHorizontalBoxSlot* IconSlot = Row->AddChildToHorizontalBox(IconSize);
+	IconSlot->SetVerticalAlignment(VAlign_Center);
+	IconSlot->SetPadding(FMargin(0.f, 0.f, 14.f, 0.f));
+	Row->AddChildToHorizontalBox(Text)->SetVerticalAlignment(VAlign_Center);
 }
 
 void UGRMenuButton::FocusButton()
@@ -49,6 +96,32 @@ void UGRMenuButton::NativeOnRemovedFromFocusPath(const FFocusEvent& InFocusEvent
 	Super::NativeOnRemovedFromFocusPath(InFocusEvent);
 	bFocused = false;
 	RefreshStyle();
+}
+
+void UGRMenuButton::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	if (!Button)
+	{
+		return;
+	}
+	const float Dt = FMath::Min(InDeltaTime, 1.f / 20.f);
+	Highlight = FMath::FInterpTo(Highlight, bFocused ? 1.f : 0.f, Dt, 16.f);
+	Press = FMath::FInterpTo(Press, Button->IsPressed() ? 1.f : 0.f, Dt, 30.f);
+
+	FWidgetTransform Transform;
+	const float Scale = 1.f + 0.02f * Highlight - 0.04f * Press;
+	Transform.Scale = FVector2D(Scale, Scale);
+	Button->SetRenderTransform(Transform);
+
+	Bar->SetRenderOpacity(Highlight);
+	FWidgetTransform BarTransform;
+	BarTransform.Scale = FVector2D(1.f, FMath::Max(Highlight, 0.01f));
+	Bar->SetRenderTransform(BarTransform);
+
+	FWidgetTransform TextTransform;
+	TextTransform.Translation = FVector2D(6.f * Highlight - 8.f, 0.f);
+	Text->SetRenderTransform(TextTransform);
 }
 
 void UGRMenuButton::HandleClicked()
@@ -83,4 +156,5 @@ void UGRMenuButton::RefreshStyle()
 
 	const FLinearColor TextColor = !GetIsEnabled() ? GRStyle::ColorTextDim : (bDanger ? GRStyle::ColorDanger : (bFocused ? GRStyle::ColorAccent : GRStyle::ColorText));
 	Text->SetColorAndOpacity(FSlateColor(TextColor));
+	Bar->SetBrushColor(bDanger ? GRStyle::ColorDanger : GRStyle::ColorAccent);
 }

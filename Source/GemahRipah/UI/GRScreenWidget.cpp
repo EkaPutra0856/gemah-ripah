@@ -27,11 +27,13 @@ void UGRScreenWidget::NativeOnInitialized()
 
 	UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>();
 	WidgetTree->RootWidget = Root;
+	RootOverlay = Root;
 
 	if (bDimBackground)
 	{
 		UBorder* Dim = WidgetTree->ConstructWidget<UBorder>();
 		Dim->SetBrushColor(GRStyle::ColorDim);
+		DimWidget = Dim;
 		UOverlaySlot* DimSlot = Root->AddChildToOverlay(Dim);
 		DimSlot->SetHorizontalAlignment(HAlign_Fill);
 		DimSlot->SetVerticalAlignment(VAlign_Fill);
@@ -48,6 +50,11 @@ UGRUISubsystem* UGRScreenWidget::GetUI() const
 
 void UGRScreenWidget::OnShown()
 {
+	if (!bIntroPlayed)
+	{
+		bIntroPlayed = true;
+		PlayIntro();
+	}
 	if (UGRMenuButton* Button = Cast<UGRMenuButton>(DefaultFocus))
 	{
 		Button->FocusButton();
@@ -60,6 +67,36 @@ void UGRScreenWidget::OnShown()
 	{
 		DefaultFocus->SetUserFocus(GetOwningPlayer());
 	}
+}
+
+void UGRScreenWidget::PlayIntro()
+{
+	if (!RootOverlay)
+	{
+		return;
+	}
+	for (int32 i = 0; i < RootOverlay->GetChildrenCount(); ++i)
+	{
+		UWidget* Child = RootOverlay->GetChildAt(i);
+		if (Child == DimWidget)
+		{
+			Anim.Add(GRAnim::In(Child, 0.f, FVector2D::ZeroVector, 0.2f));
+		}
+		else
+		{
+			Anim.Add(GRAnim::Pop(Child, 0.02f, 0.94f, FVector2D(0.f, 24.f), 0.32f));
+		}
+	}
+	if (IntroList)
+	{
+		Anim.Stagger(IntroList, 0.1f, 0.035f, FVector2D(-18.f, 0.f), 0.22f);
+	}
+}
+
+void UGRScreenWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	Anim.Tick(InDeltaTime);
 }
 
 void UGRScreenWidget::Close()
@@ -105,6 +142,7 @@ UVerticalBox* UGRScreenWidget::MakeCenteredPanel(UOverlay* Root, const FText& Ti
 
 	UTextBlock* TitleText = GRStyle::MakeText(WidgetTree, Title, 30, GRStyle::ColorAccent, true);
 	Box->AddChildToVerticalBox(TitleText)->SetPadding(FMargin(0.f, 0.f, 0.f, 18.f));
+	IntroList = Box;
 	return Box;
 }
 

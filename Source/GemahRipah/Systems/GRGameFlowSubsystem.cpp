@@ -55,6 +55,24 @@ bool UGRGameFlowSubsystem::LoadGame(const FString& SlotName)
 	return Progress->TravelToCity(Progress->GetCurrentCityId());
 }
 
+bool UGRGameFlowSubsystem::StartChapter(const FString& ChapterId)
+{
+	UGameInstance* GI = GetGameInstance();
+	UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>();
+	if (!Story->IsChapterUnlocked(ChapterId))
+	{
+		UE_LOG(LogGemahRipah, Warning, TEXT("Bab belum terbuka: %s"), *ChapterId);
+		return false;
+	}
+	Story->BeginChapter(ChapterId);
+	GI->GetSubsystem<UGRClockSubsystem>()->ResetState();
+	// Start where the map's player start is, not where the last chapter ended.
+	GI->GetSubsystem<UGRSaveSubsystem>()->ClearPendingTransform();
+	UGRProgressSubsystem* Progress = GI->GetSubsystem<UGRProgressSubsystem>();
+	const FName City = Progress->GetCurrentCityId().IsNone() ? GetDefault<UGRGameSettings>()->StartCityId : Progress->GetCurrentCityId();
+	return Progress->TravelToCity(City);
+}
+
 void UGRGameFlowSubsystem::ReturnToMainMenu()
 {
 	const TSoftObjectPtr<UWorld>& Menu = GetDefault<UGRGameSettings>()->MainMenuMap;

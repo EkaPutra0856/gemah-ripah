@@ -1,4 +1,5 @@
 #include "UI/GRStoryScreens.h"
+#include "UI/GRChapterScreens.h"
 #include "World/GRStealthLevel.h"
 #include "UI/GRMenuButton.h"
 #include "UI/GRUIStyle.h"
@@ -244,19 +245,27 @@ void UGRDialogScreen::ShowNode(int32 Index)
 			BubbleBox->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, FText::FromString(SpeakerName), 12, SpeakerColor, true));
 		}
 		BubbleBox->AddChildToVerticalBox(Wrapped(GRStyle::MakeText(WidgetTree, FText::FromString(FullText), 16, GRStyle::ColorText)));
-		UScrollBoxSlot* BubbleSlot = Cast<UScrollBoxSlot>(ChatList->AddChild(Bubble));
-		BubbleSlot->SetHorizontalAlignment(bMine ? HAlign_Right : HAlign_Left);
-		BubbleSlot->SetPadding(FMargin(bMine ? 50.f : 0.f, 4.f, bMine ? 0.f : 50.f, 4.f));
-		ChatList->ScrollToEnd();
+		AddBubble(Bubble, bMine);
 		Reveal = FullText.Len();
 	}
 	else
 	{
+		if (Node.Speaker != LastSpeaker)
+		{
+			// New speaker: name slides in, portrait bounces.
+			Anim.Add(GRAnim::In(NameText, 0.f, FVector2D(-16.f, 0.f), 0.2f));
+			if (Portrait)
+			{
+				Anim.Add(GRAnim::Pop(Portrait->GetParent(), 0.f, 0.88f, FVector2D(-30.f, 10.f), 0.34f));
+			}
+		}
+		LastSpeaker = Node.Speaker;
 		NameText->SetText(FText::FromString(SpeakerName));
 		NameText->SetColorAndOpacity(SpeakerColor);
 		NameText->SetVisibility(SpeakerName.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 		BodyText->SetColorAndOpacity(SpeakerName.IsEmpty() ? GRStyle::ColorTextDim : GRStyle::ColorText);
 		Reveal = 0.f;
+		RevealPause = 0.f;
 		BodyText->SetText(FText::GetEmpty());
 		if (Portrait)
 		{
@@ -299,13 +308,42 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	const bool bWasRevealing = Reveal < FullText.Len() + 0.5f;
 	if (Reveal < FullText.Len())
 	{
+		HintText->SetRenderOpacity(0.f);
+		RevealPause -= InDeltaTime;
+		if (RevealPause > 0.f)
+		{
+			return;
+		}
+		const int32 Before = FMath::FloorToInt(Reveal);
 		Reveal = FMath::Min<float>(Reveal + InDeltaTime * 55.f, FullText.Len());
+		const int32 Shown = FMath::FloorToInt(Reveal);
+		if (Shown > Before && Shown < FullText.Len())
+		{
+			// Breathe after sentences and commas, like someone actually talking.
+			const TCHAR Last = FullText[Shown - 1];
+			RevealPause = (Last == TEXT('.') || Last == TEXT('!') || Last == TEXT('?')) ? 0.22f : (Last == TEXT(',') ? 0.08f : 0.f);
+		}
 		if (BodyText)
 		{
-			BodyText->SetText(FText::FromString(FullText.Left(FMath::FloorToInt(Reveal))));
+			BodyText->SetText(FText::FromString(FullText.Left(Shown)));
+		}
+		if (PortraitGlyph)
+		{
+			// The portrait bobs while its speaker is "talking".
+			HintTime += InDeltaTime;
+			FWidgetTransform Talk;
+			Talk.Translation = FVector2D(0.f, -4.f * FMath::Abs(FMath::Sin(HintTime * 14.f)));
+			PortraitGlyph->SetRenderTransform(Talk);
 		}
 		return;
 	}
+	if (PortraitGlyph)
+	{
+		PortraitGlyph->SetRenderTransform(FWidgetTransform());
+	}
+	// Text done: the "continue" hint breathes so the player knows to press on.
+	HintTime += InDeltaTime;
+	HintText->SetRenderOpacity(0.55f + 0.45f * FMath::Sin(HintTime * 4.f));
 	if (!bWasRevealing && ChoiceBox->GetChildrenCount() > 0)
 	{
 		return;
@@ -331,18 +369,28 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 				{
 					UBorder* Bubble = GRStyle::MakePanel(WidgetTree, FLinearColor(0.12f, 0.32f, 0.2f, 1.f), FMargin(12.f, 8.f), 12.f);
 					Bubble->SetContent(Wrapped(GRStyle::MakeText(WidgetTree, FText::FromString(Copy.Text), 16, GRStyle::ColorText)));
-					UScrollBoxSlot* BubbleSlot = Cast<UScrollBoxSlot>(ChatList->AddChild(Bubble));
-					BubbleSlot->SetHorizontalAlignment(HAlign_Right);
-					BubbleSlot->SetPadding(FMargin(50.f, 4.f, 0.f, 4.f));
+					AddBubble(Bubble, true);
 				}
 				UGRStorySubsystem* S = GetStory();
 				S->Run(Copy.Do);
 				GoTo(Copy.Next, NodeIndex + 1);
 			});
 		}
+		Anim.Stagger(ChoiceBox, 0.f, 0.06f, FVector2D(0.f, 12.f), 0.22f);
 		OnShown();
 	}
 	Reveal = FullText.Len() + 1.f;
+}
+
+void UGRDialogScreen::AddBubble(UWidget* Bubble, bool bMine)
+{
+	UScrollBoxSlot* BubbleSlot = Cast<UScrollBoxSlot>(ChatList->AddChild(Bubble));
+	BubbleSlot->SetHorizontalAlignment(bMine ? HAlign_Right : HAlign_Left);
+	BubbleSlot->SetPadding(FMargin(bMine ? 50.f : 0.f, 4.f, bMine ? 0.f : 50.f, 4.f));
+	// Grow out of the corner the bubble's tail would be in.
+	Bubble->SetRenderTransformPivot(FVector2D(bMine ? 1.f : 0.f, 1.f));
+	Anim.Add(GRAnim::Pop(Bubble, 0.f, 0.6f, FVector2D(bMine ? 24.f : -24.f, 8.f), 0.3f));
+	ChatList->ScrollToEnd();
 }
 
 void UGRDialogScreen::GoTo(const FString& NodeId, int32 Fallback)
@@ -758,7 +806,7 @@ void UGRJournalScreen::ShowTab(int32 Tab)
 			for (int32 i = 0; i < FMath::Min(Step, Quest->Steps.Num()); ++i)
 			{
 				const bool bCurrent = i == Step - 1;
-				Line(FString::Printf(TEXT("%s %s"), bCurrent ? TEXT(">") : TEXT("v"), *Quest->Steps[i]), 16, bCurrent ? GRStyle::ColorText : GRStyle::ColorTextDim, bCurrent);
+				Line(FString::Printf(TEXT("%s %s"), bCurrent ? TEXT(">") : TEXT("v"), *Story->FormatText(Quest->Steps[i])), 16, bCurrent ? GRStyle::ColorText : GRStyle::ColorTextDim, bCurrent);
 			}
 		}
 		const TArray<const FGRQuestDef*> Done = Story->GetDoneQuests();
@@ -854,21 +902,52 @@ void UGRChapterEndScreen::BuildScreen(UOverlay* Root)
 {
 	UGRStorySubsystem* Story = StoryOf(this);
 	const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
-	UVerticalBox* Box = MakeCenteredPanel(Root, LOCTEXT("EndTitle", "Bab 1 Selesai: Asap dan Piring"), 820.f);
+	const FGRChapterDef* Chapter = Story->GetCurrentChapter();
+	const FText Title = Chapter ? FText::Format(LOCTEXT("EndTitleFmt", "Bab {0} Selesai: {1}"), Chapter->Number, FText::FromString(Chapter->Title))
+		: LOCTEXT("EndTitle", "Bab Selesai");
+	UVerticalBox* Box = MakeCenteredPanel(Root, Title, 820.f);
 	auto Line = [this, Box](const FString& Text, int32 Size, const FLinearColor& Color, bool bBold = false)
 	{
 		Box->AddChildToVerticalBox(Wrapped(GRStyle::MakeText(WidgetTree, FText::FromString(Text), Size, Color, bBold)))->SetPadding(FMargin(0.f, 3.f));
 	};
+	// The first line is the headline; later ones are quieter.
+	bool bFirst = true;
+	for (const FGREndingLine& Ending : Story->GetData().Ending)
+	{
+		const FString& Text = Story->Check(Ending.If) ? Ending.Text : Ending.Else;
+		if (Text.IsEmpty())
+		{
+			continue;
+		}
+		const FLinearColor Color = !Ending.Color.IsEmpty() ? GRStoryUtil::ParseColor(Ending.Color) : (bFirst ? GRStyle::ColorText : GRStyle::ColorTextDim);
+		Line(Text, bFirst ? FMath::Max(Ending.Size, 18) : Ending.Size, Color);
+		bFirst = false;
+	}
 	const int32 Suara = FMath::RoundToInt(Status->GetSuara());
-	Line(Suara >= 40 ? TEXT("Kota Sentosa mulai bersuara. Unggahanmu dibicarakan di pos ronda sampai pasar.")
-		: TEXT("Sebagian warga mendengar ceritamu. Sebagian lagi masih takut."), 18, GRStyle::ColorText);
-	Line(Story->GetVar(TEXT("guru_dilindungi")) > 0 ? TEXT("Kamu melindungi Bu Ratna. Namanya tidak pernah keluar dari mulutmu.")
-		: TEXT("Nama Bu Ratna sampai ke telinga SPN. Ia dipindahtugaskan ke pulau seberang."), 16, GRStyle::ColorTextDim);
-	Line(Story->GetVar(TEXT("pungli_lapor")) > 0 ? TEXT("Rekaman pungli kelurahan ikut tersebar.") : TEXT("Pungli di kelurahan masih berjalan seperti biasa."), 16, GRStyle::ColorTextDim);
 	Line(FString::Printf(TEXT("Suara warga %d  |  Diawasi %d  |  Uang %s  |  Order selesai %d"), Suara, FMath::RoundToInt(Status->GetDiawasi()),
 		*UGRStatusSubsystem::FormatRupiah(Status->GetUang()), Story->GetVar(TEXT("orders_done"))), 15, GRStyle::ColorAccent, true);
-	Line(TEXT("Bersambung di Bab 2: Turun ke Jalan."), 20, GRStyle::ColorAccent, true);
-	AddButton(Box, LOCTEXT("EndContinue", "Lanjut menjelajah Kota Sentosa"), [this]() { Close(); });
+
+	const FGRChapterDef* Next = Story->GetNextChapter();
+	if (Next && Story->IsChapterUnlocked(Next->Id))
+	{
+		Line(FString::Printf(TEXT("Berikutnya, Bab %d: %s. %s"), Next->Number, *Next->Title, *Next->Subtitle), 18, GRStyle::ColorAccent, true);
+		const FString NextId = Next->Id;
+		UGRMenuButton* Go = AddButton(Box, FText::Format(LOCTEXT("EndNext", "Lanjut ke Bab {0}: {1}"), Next->Number, FText::FromString(Next->Title)), [this, NextId]()
+		{
+			GetGameInstance()->GetSubsystem<UGRGameFlowSubsystem>()->StartChapter(NextId);
+		});
+		Go->SetIcon(FString(), GRStoryUtil::ParseColor(Next->Color), GRStyle::Icon(Next->Icon));
+	}
+	else if (Next)
+	{
+		Line(FString::Printf(TEXT("Bersambung di Bab %d: %s (segera hadir)."), Next->Number, *Next->Title), 18, GRStyle::ColorAccent, true);
+	}
+	const FString SelectId = Next ? Next->Id : FString();
+	AddButton(Box, LOCTEXT("EndChapters", "Lihat Peta Bab"), [this, SelectId]()
+	{
+		UGRChapterMapScreen::Open(GetUI(), SelectId);
+	});
+	AddButton(Box, LOCTEXT("EndContinue", "Lanjut menjelajah kota"), [this]() { Close(); });
 	AddButton(Box, LOCTEXT("EndMenu", "Kembali ke menu utama"), [this]()
 	{
 		GetGameInstance()->GetSubsystem<UGRGameFlowSubsystem>()->ReturnToMainMenu();

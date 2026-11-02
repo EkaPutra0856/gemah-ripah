@@ -79,6 +79,18 @@ void UGRPhoneScreen::BuildScreen(UOverlay* Root)
 	Box->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, LOCTEXT("PhoneHint", "Tab: tutup  |  Esc: kembali"), 12, GRStyle::ColorTextDim))->SetHorizontalAlignment(HAlign_Center);
 }
 
+void UGRPhoneScreen::PlayIntro()
+{
+	// The phone slides up from the pocket.
+	for (int32 i = 0; i < RootOverlay->GetChildrenCount(); ++i)
+	{
+		GRAnim::FTween Tween = GRAnim::In(RootOverlay->GetChildAt(i), 0.f, FVector2D(0.f, 620.f), 0.36f);
+		Tween.Ease = GRAnim::EEase::OutBack;
+		Tween.FromOpacity = 0.4f;
+		Anim.Add(Tween);
+	}
+}
+
 void UGRPhoneScreen::OnShown()
 {
 	ShowApp(CurrentApp);
@@ -100,7 +112,7 @@ void UGRPhoneScreen::AddCard(const FString& Header, const FString& Body, const F
 	Content->AddChildToVerticalBox(Card)->SetPadding(FMargin(0.f, 4.f));
 }
 
-void UGRPhoneScreen::ShowApp(const FString& App)
+void UGRPhoneScreen::FillApp(const FString& App)
 {
 	UGRStorySubsystem* Story = StoryFor(this);
 	const UGameInstance* GI = GetGameInstance();
@@ -120,19 +132,26 @@ void UGRPhoneScreen::ShowApp(const FString& App)
 		{
 			Unread += Story->GetVar(TEXT("baca.") + Id) == 0 ? 1 : 0;
 		}
-		const TPair<FString, FString> Apps[] = {
-			{ TEXT("ojekku"), Story->GetActiveOrder() ? TEXT("OjekKu (order aktif)") : TEXT("OjekKu") },
-			{ TEXT("pesan"), Unread > 0 ? FString::Printf(TEXT("Pesan (%d baru)"), Unread) : TEXT("Pesan") },
-			{ TEXT("kicau"), TEXT("Kicau") },
-			{ TEXT("berita"), TEXT("Berita") },
-			{ TEXT("dompet"), TEXT("Dompet") },
-			{ TEXT("galeri"), TEXT("Galeri / Kamera") },
-			{ TEXT("peta"), TEXT("Peta") },
-		};
-		for (const TPair<FString, FString>& Entry : Apps)
+		struct FApp
 		{
-			const FString Id = Entry.Key;
-			AddButton(Content, FText::FromString(Entry.Value), [this, Id]()
+			const TCHAR* Id;
+			FString Label;
+			const TCHAR* Glyph;
+			FLinearColor Color;
+		};
+		const FApp Apps[] = {
+			{ TEXT("ojekku"), Story->GetActiveOrder() ? TEXT("OjekKu (order aktif)") : TEXT("OjekKu"), TEXT("O"), FLinearColor(FColor(46, 160, 67)) },
+			{ TEXT("pesan"), Unread > 0 ? FString::Printf(TEXT("Pesan (%d baru)"), Unread) : TEXT("Pesan"), TEXT("P"), FLinearColor(FColor(52, 120, 220)) },
+			{ TEXT("kicau"), TEXT("Kicau"), TEXT("K"), FLinearColor(FColor(29, 155, 240)) },
+			{ TEXT("berita"), TEXT("Berita"), TEXT("B"), FLinearColor(FColor(200, 60, 50)) },
+			{ TEXT("dompet"), TEXT("Dompet"), TEXT("Rp"), FLinearColor(FColor(220, 150, 30)) },
+			{ TEXT("galeri"), TEXT("Galeri / Kamera"), TEXT("G"), FLinearColor(FColor(150, 80, 200)) },
+			{ TEXT("peta"), TEXT("Peta"), TEXT("M"), FLinearColor(FColor(40, 150, 140)) },
+		};
+		for (const FApp& Entry : Apps)
+		{
+			const FString Id = Entry.Id;
+			UGRMenuButton* Button = AddButton(Content, FText::FromString(Entry.Label), [this, Id]()
 			{
 				if (Id == TEXT("peta"))
 				{
@@ -142,6 +161,7 @@ void UGRPhoneScreen::ShowApp(const FString& App)
 				ShowApp(Id);
 				Super::OnShown();
 			});
+			Button->SetIcon(Entry.Glyph, Entry.Color, GRStyle::Icon(FString(TEXT("app_")) + Entry.Id));
 		}
 		return;
 	}
@@ -281,17 +301,30 @@ void UGRPhoneScreen::ShowApp(const FString& App)
 			AddLine(TEXT("Galeri kosong. Isinya foto kucing dan tangkapan layar promo kuota."), 15, GRStyle::ColorText);
 		}
 	}
+}
+
+void UGRPhoneScreen::ShowApp(const FString& App)
+{
+	FillApp(App);
+	if (App.IsEmpty())
+	{
+		// Home: icons rise into place one after another.
+		Anim.Add(GRAnim::In(AppTitle, 0.f, FVector2D(0.f, -10.f), 0.2f));
+		Anim.Stagger(Content, 0.04f, 0.035f, FVector2D(0.f, 18.f), 0.24f);
+		return;
+	}
+
+	// Apps slide in from the right, like opening a page.
+	Anim.Add(GRAnim::In(AppTitle, 0.f, FVector2D(30.f, 0.f), 0.2f));
+	Anim.Stagger(Content, 0.03f, 0.03f, FVector2D(40.f, 0.f), 0.22f);
 
 	// Inside an app, start on its first real entry rather than "< Kembali" (Esc already goes back).
-	if (!App.IsEmpty())
+	for (int32 i = 1; i < Content->GetChildrenCount(); ++i)
 	{
-		for (int32 i = 1; i < Content->GetChildrenCount(); ++i)
+		if (UGRMenuButton* Button = Cast<UGRMenuButton>(Content->GetChildAt(i)))
 		{
-			if (UGRMenuButton* Button = Cast<UGRMenuButton>(Content->GetChildAt(i)))
-			{
-				DefaultFocus = Button;
-				break;
-			}
+			DefaultFocus = Button;
+			break;
 		}
 	}
 }

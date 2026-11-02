@@ -2,7 +2,7 @@
 
 Game open world satir di Unreal Engine 5.8. Pemain adalah Bayu, pengemudi ojol di Kota Sentosa, Republik Gemah Ripah (negara fiktif), yang mengejar keadilan dan kebebasan.
 
-Target saat ini: *vertical slice* Bab 1 "Asap dan Piring".
+Bab yang bisa dimainkan: Bab 1 "Asap dan Piring" dan Bab 2 "Turun ke Jalan". Bab 3 sampai 5 sudah ada di Peta Bab sebagai "segera hadir".
 
 ## Kebutuhan
 
@@ -31,7 +31,7 @@ Target saat ini: *vertical slice* Bab 1 "Asap dan Piring".
 | `Story/` | Sistem cerita berbasis data: `GRStoryTypes` (struktur `bab1.json`), `GRStorySubsystem` (variabel, syarat, aksi, quest, energi, order ojol, kotak pesan, dompet), `GRStoryDirector` (memunculkan NPC/prop/zona, lalu lintas, event, membuka dialog/cutscene/minigame) |
 | `Camera/` | `GRTopDownRoomVolume`: kamera berpindah ke top-down saat pemain masuk ruangan |
 | `Systems/` | Subsystem yang bertahan antar-map: status (uang, Suara, Diawasi), aturan ("Pengumuman Pemerintah"), progres (flag cerita, kota), save (otomatis + 3 slot), alur game (game baru, lanjut, menu), notifikasi |
-| `UI/` | UMG dibangun di C++: tumpukan layar (`GRUISubsystem`), menu utama, jeda, simpan/muat, pengaturan, kredit, konfirmasi, HUD (`GRHUDWidget`), loading screen (Slate). Layar cerita di `GRStoryScreens` (dialog, cutscene, toko, jurnal, akhir bab) dan `GRPhoneScreens` (ponsel, minigame warnet, minigame menyusup) |
+| `UI/` | UMG dibangun di C++: tumpukan layar (`GRUISubsystem`), menu utama, jeda, simpan/muat, pengaturan, kredit, konfirmasi, HUD (`GRHUDWidget`), loading screen (Slate). Layar cerita di `GRStoryScreens` (dialog, cutscene, toko, jurnal, akhir bab), `GRPhoneScreens` (ponsel, minigame warnet, minigame menyusup) dan `GRChapterScreens` (Peta Bab). Animasi UI lewat `GRUIAnim` (tween opacity/geser/skala) |
 
 Keputusan teknis:
 
@@ -82,6 +82,7 @@ Keputusan teknis:
 | `GRCerita "aksi; aksi"` | Jalankan aksi cerita, mis. `GRCerita "quest Piring; teleport ibu_pkm"` |
 | `GRMotor` | Naik/turun motor (sama dengan F) |
 | `GRTekan W 1.5` | Tahan tombol selama 1,5 detik, untuk tes otomatis (jalan, minigame, menu) |
+| `GRBab bab2` | Lompat ke bab tertentu (bab sebelumnya dianggap selesai) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
 
 ## Map
@@ -100,6 +101,17 @@ Map *grey-box* hasil `Tools/Python/build_dev_map.py`. Isinya:
 - Titik "Ngobrol dengan warga" berupa aksi `Aksi.Kumpul`. Aksi ini melanggar aturan setelah `GRUmumkanLarangan`.
 - Ruang warnet top-down dengan PC untuk "Unggah kritik".
 
+## Bab dan Peta Bab
+
+Daftar bab ada di `Content/Data/chapters.json`: nomor, file cerita, judul, ringkasan, ikon, warna, posisi di Peta Bab. Bab dengan `file` kosong tampil sebagai "segera hadir".
+
+- Peta Bab dibuka dari menu jeda atau dari layar akhir bab. Bab berikutnya terbuka setelah bab sebelumnya selesai.
+- Pindah bab memuat ulang map kota. Uang, Suara, Diawasi, aturan, dan variabel cerita terbawa (Bab 2 bisa memeriksa `guru_dilindungi` dari Bab 1). Tugas, kotak pesan, jam, dan energi mulai baru.
+- Akhir bab: aksi `selesai` menandai bab selesai, menyimpan otomatis, lalu menampilkan baris `ending` dari file bab.
+- Teks tugas boleh memuat `{variabel}`, mis. `dukungan {dukungan}/3`.
+
+Ikon UI (aplikasi ponsel, bab, status) adalah PNG putih di `Content/Data/Icons`, digambar ulang dengan `python Tools/Python/gen_icons.py Content/Data/Icons`. Dimuat saat game berjalan, tanpa impor ke editor.
+
 ## Bab 1 "Asap dan Piring"
 
 Seluruh isi bab ada di `Content/Data/bab1.json`. Ubah teks, quest, NPC, atau minigame tanpa compile, lalu `GRReloadData`.
@@ -113,6 +125,10 @@ Alur singkat (3 hari):
 5. Cutscene SPN, interogasi, rapat warga, lalu layar akhir bab.
 
 Kalau Diawasi mencapai 100 atau SPN melihat Bayu saat mencurigakan terlalu lama, Bayu ditangkap (`onCaught`). Kalau Energi habis, Bayu pingsan (`onFaint`).
+
+## Bab 2 "Turun ke Jalan"
+
+Isi di `Content/Data/bab2.json`. Larangan Berkumpul berlaku. Bayu menggalang dukungan warga (Pak Udin, Bu Yati, Bu Tini, Mas Joko, Rudi, Bu Ratna bila dilindungi di Bab 1), mendesain pamflet di warnet, menempelnya di tiga tempat sambil menghindari SPN, lalu memimpin aksi piring kosong dari Tugu ke Gedung Dewan. Negosiasi dengan Komandan Wiryo punya meter ketegangan; hasilnya audit PPR atau pembubaran paksa.
 
 ### Bahasa cerita
 
@@ -133,7 +149,7 @@ Aksi (`do`, `end`, `win`, `lose`), dipisah `;`:
 | Layar | `dialog id`, `cutscene id`, `minigame id`, `toko pasar`, `ponsel`, `selesai` |
 | Lain | `teleport spawn_id`, `tidur`, `simpan`, `jika syarat ? aksi` |
 
-Bagian file: `start`, `onCaught`, `onFaint`, `onMorning`, `suspicious`, `items`, `shop`, `quests`, `speakers`, `dialogs` (gaya `vn`, `3d`, `chat`), `spawns` (`npc`, `spn`, `prop`, `zone`), `events`, `cutscenes`, `orders`, `kicau`, `berita`, `needs`, `barks`, `minigames`.
+Bagian file: `ending`, `start`, `onCaught`, `onFaint`, `onMorning`, `suspicious`, `items`, `shop`, `quests`, `speakers`, `dialogs` (gaya `vn`, `3d`, `chat`), `spawns` (`npc`, `spn`, `prop`, `zone`), `events`, `cutscenes`, `orders`, `kicau`, `berita`, `needs`, `barks`, `minigames`.
 
 ## Struktur konten (rencana)
 

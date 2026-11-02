@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameplayTagContainer.h"
 #include "Systems/GRNotificationSubsystem.h"
+#include "UI/GRUIAnim.h"
 #include "GRHUDWidget.generated.h"
 
 class UBorder;
@@ -81,6 +82,13 @@ private:
 		double EndTime = 0.0;
 	};
 	TArray<FToast> Toasts;
+	GRAnim::FPlayer Anim;
+
+	/** Money counts up/down to the new value and flashes green or red. */
+	float ShownUang = -1.f;
+	int32 TargetUang = 0;
+	float UangFlash = 0.f;
+	FLinearColor UangFlashColor = FLinearColor::White;
 
 	double BannerEndTime = 0.0;
 	double DistrictPopupStart = -100.0;

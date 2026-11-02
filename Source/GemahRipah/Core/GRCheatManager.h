@@ -77,6 +77,10 @@ public:
 	UFUNCTION(Exec)
 	void GRMenu();
 
+	/** Jumps to a chapter, marking every chapter before it done, e.g. GRBab bab2 */
+	UFUNCTION(Exec)
+	void GRBab(const FString& ChapterId);
+
 	/** Sets the clock, e.g. GRJam 19.5 */
 	UFUNCTION(Exec)
 	void GRJam(float Hour);

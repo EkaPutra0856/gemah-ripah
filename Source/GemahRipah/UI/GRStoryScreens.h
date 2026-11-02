@@ -39,6 +39,7 @@ private:
 	void Advance();
 	void Finish();
 	void RefreshMeter();
+	void AddBubble(class UWidget* Bubble, bool bMine);
 	UGRStorySubsystem* GetStory() const;
 
 	static FString PendingId;
@@ -46,7 +47,11 @@ private:
 	FString Style;
 	int32 NodeIndex = INDEX_NONE;
 	FString FullText;
+	FString LastSpeaker;
 	float Reveal = 0.f;
+	/** Short stop after punctuation while typing. */
+	float RevealPause = 0.f;
+	float HintTime = 0.f;
 	bool bHasChoices = false;
 	bool bFinished = false;
 
@@ -154,11 +159,13 @@ public:
 protected:
 	virtual void BuildScreen(UOverlay* Root) override;
 	virtual void OnShown() override;
+	virtual void PlayIntro() override;
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 	virtual void HandleBack() override;
 
 private:
 	void ShowApp(const FString& App);
+	void FillApp(const FString& App);
 	void AddLine(const FString& Text, int32 Size, const FLinearColor& Color, bool bBold = false);
 	void AddCard(const FString& Header, const FString& Body, const FLinearColor& HeaderColor);
 

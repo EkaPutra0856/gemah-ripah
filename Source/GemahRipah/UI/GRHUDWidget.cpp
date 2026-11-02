@@ -237,7 +237,20 @@ void UGRHUDWidget::RefreshStatus()
 	{
 		return;
 	}
-	UangText->SetText(FText::FromString(UGRStatusSubsystem::FormatRupiah(Status->GetUang())));
+	const int32 Uang = Status->GetUang();
+	if (ShownUang < 0.f)
+	{
+		ShownUang = Uang;
+		UangText->SetText(FText::FromString(UGRStatusSubsystem::FormatRupiah(Uang)));
+	}
+	else if (Uang != TargetUang)
+	{
+		UangFlash = 1.f;
+		UangFlashColor = Uang > TargetUang ? GRStyle::ColorGood : GRStyle::ColorDanger;
+		UangText->SetRenderTransformPivot(FVector2D(0.f, 0.5f));
+		Anim.Add(GRAnim::Pop(UangText, 0.f, 1.18f, FVector2D::ZeroVector, 0.35f));
+	}
+	TargetUang = Uang;
 	SuaraBar->SetPercent(Status->GetSuara() / UGRStatusSubsystem::MeterMax);
 	SuaraValue->SetText(FText::AsNumber(FMath::RoundToInt(Status->GetSuara())));
 	DiawasiBar->SetPercent(Status->GetDiawasi() / UGRStatusSubsystem::MeterMax);
@@ -362,11 +375,22 @@ void UGRHUDWidget::HandleRegulationViolated(UGRRegulationData* Regulation, FGame
 
 void UGRHUDWidget::HandleNotify(const FText& Message, EGRNotifyType Type)
 {
-	UBorder* Panel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanelSoft, FMargin(14.f, 8.f), 6.f);
-	Panel->SetContent(GRStyle::MakeText(WidgetTree, Message, 16, ToastColor(Type), true));
+	// Colored stripe on the left says good / bad / warning at a glance.
+	UBorder* Panel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanelSoft, FMargin(0.f), 6.f);
+	UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+	Panel->SetContent(Row);
+	USizeBox* Stripe = WidgetTree->ConstructWidget<USizeBox>();
+	Stripe->SetWidthOverride(4.f);
+	UBorder* StripeFill = WidgetTree->ConstructWidget<UBorder>();
+	StripeFill->SetBrush(GRStyle::RoundedBrush(ToastColor(Type), 2.f));
+	Stripe->SetContent(StripeFill);
+	Row->AddChildToHorizontalBox(Stripe)->SetVerticalAlignment(VAlign_Fill);
+	Row->AddChildToHorizontalBox(GRStyle::MakeText(WidgetTree, Message, 16, ToastColor(Type), true))->SetPadding(FMargin(12.f, 8.f, 14.f, 8.f));
 	UVerticalBoxSlot* ToastSlot = ToastList->AddChildToVerticalBox(Panel);
 	ToastSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 6.f));
 	ToastSlot->SetHorizontalAlignment(HAlign_Right);
+	Panel->SetRenderTransformPivot(FVector2D(1.f, 0.5f));
+	Anim.Add(GRAnim::Pop(Panel, 0.f, 0.9f, FVector2D(80.f, 0.f), 0.32f));
 
 	Toasts.Add({ Panel, FPlatformTime::Seconds() + ToastDuration });
 	while (Toasts.Num() > MaxToasts)
@@ -385,6 +409,7 @@ void UGRHUDWidget::ShowBanner(const FText& Title, const FText& Body, const FLine
 	BannerTitle->SetColorAndOpacity(FSlateColor(Color));
 	BannerBody->SetText(Body);
 	BannerPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
+	Anim.Add(GRAnim::Pop(BannerPanel, 0.f, 0.85f, FVector2D(0.f, -20.f), 0.4f));
 	BannerEndTime = FPlatformTime::Seconds() + Duration;
 }
 
@@ -404,10 +429,20 @@ void UGRHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		{
 			if (UWidget* Old = Toasts[Index].Widget.Get())
 			{
-				Old->RemoveFromParent();
+				Anim.Add(GRAnim::Out(Old, FVector2D(60.f, 0.f), 0.25f));
 			}
 			Toasts.RemoveAt(Index);
 		}
+	}
+	Anim.Tick(InDeltaTime);
+
+	if (ShownUang >= 0.f && (!FMath::IsNearlyEqual(ShownUang, static_cast<float>(TargetUang)) || UangFlash > 0.f))
+	{
+		ShownUang = FMath::Abs(ShownUang - TargetUang) < 50.f ? TargetUang : FMath::FInterpTo(ShownUang, static_cast<float>(TargetUang), InDeltaTime, 7.f);
+		const bool bSettled = FMath::IsNearlyEqual(ShownUang, static_cast<float>(TargetUang));
+		UangText->SetText(FText::FromString(UGRStatusSubsystem::FormatRupiah(bSettled ? TargetUang : FMath::RoundToInt(ShownUang / 100.f) * 100)));
+		UangFlash = FMath::Max(0.f, UangFlash - InDeltaTime * 1.2f);
+		UangText->SetColorAndOpacity(FSlateColor(FMath::Lerp(GRStyle::ColorText, UangFlashColor, UangFlash)));
 	}
 
 	// District name: fade in 0.5 s, hold, fade out by 3.5 s.

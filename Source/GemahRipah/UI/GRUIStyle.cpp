@@ -3,7 +3,11 @@
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
+#include "Engine/Texture2D.h"
+#include "ImageUtils.h"
+#include "Misc/Paths.h"
 #include "Styling/CoreStyle.h"
+#include "UObject/StrongObjectPtr.h"
 
 namespace GRStyle
 {
@@ -32,5 +36,18 @@ namespace GRStyle
 		Panel->SetBrush(RoundedBrush(Color, Radius));
 		Panel->SetPadding(Padding);
 		return Panel;
+	}
+
+	UTexture2D* Icon(const FString& Name)
+	{
+		// Loaded from the staged Data folder at runtime, like the JSON, so no editor import step is needed.
+		static TMap<FString, TStrongObjectPtr<UTexture2D>> Cache;
+		if (const TStrongObjectPtr<UTexture2D>* Found = Cache.Find(Name))
+		{
+			return Found->Get();
+		}
+		UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(FPaths::ProjectContentDir() / TEXT("Data/Icons") / (Name + TEXT(".png")));
+		Cache.Add(Name, TStrongObjectPtr<UTexture2D>(Texture));
+		return Texture;
 	}
 }

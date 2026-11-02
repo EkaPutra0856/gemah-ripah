@@ -7,6 +7,7 @@
 class UWidgetTree;
 class UTextBlock;
 class UBorder;
+class UTexture2D;
 struct FSlateBrush;
 
 /** Shared look for all code-built UI: smoky orange accent on dark panels. */
@@ -30,4 +31,7 @@ namespace GRStyle
 
 	UTextBlock* MakeText(UWidgetTree* Tree, const FText& Text, int32 Size, const FLinearColor& Color = ColorText, bool bBold = false);
 	UBorder* MakePanel(UWidgetTree* Tree, const FLinearColor& Color = ColorPanel, const FMargin& Padding = FMargin(24.f), float Radius = 8.f);
+
+	/** White icon from Content/Data/Icons/<Name>.png (drawn by Tools/Python/gen_icons.py), cached; null if missing. Tint it with the brush color. */
+	UTexture2D* Icon(const FString& Name);
 }

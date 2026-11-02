@@ -246,6 +246,45 @@ struct FGRMinigameDef
 	UPROPERTY() TArray<FGRPostOption> Options;
 };
 
+/** One line of the chapter end screen: Text when If holds, else Else (either may be empty). */
+USTRUCT()
+struct FGREndingLine
+{
+	GENERATED_BODY()
+	UPROPERTY() FString If;
+	UPROPERTY() FString Text;
+	UPROPERTY() FString Else;
+	UPROPERTY() int32 Size = 16;
+	UPROPERTY() FString Color;
+};
+
+/** Entry of chapters.json: one chapter on the chapter map. */
+USTRUCT()
+struct FGRChapterDef
+{
+	GENERATED_BODY()
+	UPROPERTY() FString Id;
+	UPROPERTY() int32 Number = 1;
+	/** Story file in Content/Data. Empty = not written yet ("segera"). */
+	UPROPERTY() FString File;
+	UPROPERTY() FString Title;
+	UPROPERTY() FString Subtitle;
+	UPROPERTY() FString Summary;
+	/** Icon name in Content/Data/Icons. */
+	UPROPERTY() FString Icon;
+	UPROPERTY() FString Color = TEXT("#E8A33A");
+	/** Place on the chapter map, 0..1 from the top-left. */
+	UPROPERTY() TArray<float> Pos;
+	UPROPERTY() FString Place;
+};
+
+USTRUCT()
+struct FGRChapterList
+{
+	GENERATED_BODY()
+	UPROPERTY() TArray<FGRChapterDef> Chapters;
+};
+
 USTRUCT()
 struct FGRStoryFile
 {
@@ -275,4 +314,6 @@ struct FGRStoryFile
 	UPROPERTY() TArray<FGRNeedDef> Needs;
 	UPROPERTY() TArray<FGRBarkDef> Barks;
 	UPROPERTY() TArray<FGRMinigameDef> Minigames;
+	/** Chapter end screen lines (after "selesai"). */
+	UPROPERTY() TArray<FGREndingLine> Ending;
 };

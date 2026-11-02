@@ -1,4 +1,5 @@
 #include "UI/GRMenuScreens.h"
+#include "UI/GRChapterScreens.h"
 #include "UI/GRMenuButton.h"
 #include "UI/GRSaveLoadScreen.h"
 #include "UI/GRSettingsScreen.h"
@@ -114,6 +115,7 @@ void UGRPauseScreen::BuildScreen(UOverlay* Root)
 
 	AddButton(Box, LOCTEXT("Resume", "Lanjut"), [this]() { Close(); });
 	AddButton(Box, LOCTEXT("PauseMap", "Peta"), [this]() { GetUI()->PushScreen<UGRMapScreen>(); });
+	AddButton(Box, LOCTEXT("PauseChapters", "Peta Bab"), [this]() { UGRChapterMapScreen::Open(GetUI()); });
 	AddButton(Box, LOCTEXT("Save", "Simpan"), [this]() { GetUI()->PushScreen<UGRSaveScreen>(); });
 	AddButton(Box, LOCTEXT("LoadPause", "Muat"), [this]() { GetUI()->PushScreen<UGRLoadScreen>(); });
 	AddButton(Box, LOCTEXT("SettingsPause", "Pengaturan"), [this]() { GetUI()->PushScreen<UGRSettingsScreen>(); });

@@ -511,7 +511,7 @@
           "text": "Besok pagi, piring-piring kosong akan dibawa ke depan Gedung Dewan." },
         { "t": 3.5, "fade": 1, "title": "BAB 1 SELESAI", "text": "Asap dan Piring" }
       ],
-      "end": "simpan; selesai"
+      "end": "selesai"
     }
   ],
 
@@ -606,5 +606,10 @@
         { "group": "nada", "text": "Satir: 'Terima kasih Pak Dewan, adik saya jadi langsing'", "viral": 45, "risk": 25 }
       ]
     }
+  ],
+  "ending": [
+    { "if": "suara>=40", "text": "Kota Sentosa mulai bersuara. Unggahanmu dibicarakan di pos ronda sampai pasar.", "else": "Sebagian warga mendengar ceritamu. Sebagian lagi masih takut." },
+    { "if": "guru_dilindungi", "text": "Kamu melindungi Bu Ratna. Namanya tidak pernah keluar dari mulutmu.", "else": "Nama Bu Ratna sampai ke telinga SPN. Ia dipindahtugaskan ke pulau seberang." },
+    { "if": "pungli_lapor", "text": "Rekaman pungli kelurahan ikut tersebar.", "else": "Pungli di kelurahan masih berjalan seperti biasa." }
   ]
 }

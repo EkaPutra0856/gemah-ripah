@@ -25,6 +25,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Alur")
 	bool LoadGame(const FString& SlotName);
 
+	/** Moves on to another chapter: switches the story data, resets the clock, reloads the city and autosaves there. */
+	UFUNCTION(BlueprintCallable, Category = "Alur")
+	bool StartChapter(const FString& ChapterId);
+
 	UFUNCTION(BlueprintCallable, Category = "Alur")
 	void ReturnToMainMenu();
 
