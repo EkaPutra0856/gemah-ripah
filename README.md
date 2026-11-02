@@ -27,10 +27,11 @@ Target saat ini: *vertical slice* Bab 1 "Asap dan Piring".
 | `Data/` | `GRDataSubsystem`: membaca JSON di `Content/Data/` (aturan, tips loading, kredit) |
 | `Player/` | `GRCharacter` (kamera orang ketiga ala Genshin, lari, zoom), `GRInteractionComponent` |
 | `Interaction/` | Interface `GRInteractable` dan `GRInteractableActor` (interaksi berbasis data untuk prototipe) |
-| `World/` | `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
+| `World/` | `GRNpc` (warga dan petugas SPN: jalan-jalan, patroli, celetukan, pandangan senter), `GRStoryProp` (benda atau zona dari data), `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
+| `Story/` | Sistem cerita berbasis data: `GRStoryTypes` (struktur `bab1.json`), `GRStorySubsystem` (variabel, syarat, aksi, quest, energi, order ojol, kotak pesan, dompet), `GRStoryDirector` (memunculkan NPC/prop/zona, lalu lintas, event, membuka dialog/cutscene/minigame) |
 | `Camera/` | `GRTopDownRoomVolume`: kamera berpindah ke top-down saat pemain masuk ruangan |
 | `Systems/` | Subsystem yang bertahan antar-map: status (uang, Suara, Diawasi), aturan ("Pengumuman Pemerintah"), progres (flag cerita, kota), save (otomatis + 3 slot), alur game (game baru, lanjut, menu), notifikasi |
-| `UI/` | UMG dibangun di C++: tumpukan layar (`GRUISubsystem`), menu utama, jeda, simpan/muat, pengaturan, kredit, konfirmasi, HUD (`GRHUDWidget`), loading screen (Slate) |
+| `UI/` | UMG dibangun di C++: tumpukan layar (`GRUISubsystem`), menu utama, jeda, simpan/muat, pengaturan, kredit, konfirmasi, HUD (`GRHUDWidget`), loading screen (Slate). Layar cerita di `GRStoryScreens` (dialog, cutscene, toko, jurnal, akhir bab) dan `GRPhoneScreens` (ponsel, minigame warnet, minigame menyusup) |
 
 Keputusan teknis:
 
@@ -51,6 +52,10 @@ Keputusan teknis:
 | Lompat | Spasi | A / Silang |
 | Interaksi | E | X / Kotak |
 | Peta kota | M | Back / View |
+| Ponsel | Tab | D-pad atas |
+| Jurnal (tugas, barang, keluarga) | J | D-pad bawah |
+| Naik/turun motor | F | Y / Segitiga |
+| Lanjut dialog | E, Spasi, Enter, klik | A / Silang |
 | Jeda | Esc atau P (P untuk Play di editor) | Start |
 | Kembali di menu | Esc | B / Lingkaran |
 
@@ -74,6 +79,8 @@ Keputusan teknis:
 | `GRAsap 300` | Paksa nilai ISPU (`GRAsap -1` = kembali ke data) |
 | `GRTidur` | Tidur sampai pagi (hari berikutnya + autosave) |
 | `GRPetaUlang` | Hitung ulang gambar peta dari bangunan |
+| `GRCerita "aksi; aksi"` | Jalankan aksi cerita, mis. `GRCerita "quest Piring; teleport ibu_pkm"` |
+| `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
 
 ## Map
 
@@ -90,6 +97,41 @@ Map *grey-box* hasil `Tools/Python/build_dev_map.py`. Isinya:
 - Titik "Antar order" untuk menambah uang.
 - Titik "Ngobrol dengan warga" berupa aksi `Aksi.Kumpul`. Aksi ini melanggar aturan setelah `GRUmumkanLarangan`.
 - Ruang warnet top-down dengan PC untuk "Unggah kritik".
+
+## Bab 1 "Asap dan Piring"
+
+Seluruh isi bab ada di `Content/Data/bab1.json`. Ubah teks, quest, NPC, atau minigame tanpa compile, lalu `GRReloadData`.
+
+Alur singkat (3 hari):
+
+1. Hari 1 pagi: ngobrol dengan Ibu, ambil motor, antar order pertama, beli beras.
+2. Dinda keracunan menu PPR. Bayu ke Puskesmas, Kelurahan (SKTM), sekolah, dan bertemu Bu Ratna.
+3. Hari 2 malam: menyusup ke Dapur PPR (minigame menyusup) dan mengambil bukti.
+4. Hari 3: unggah bukti di Warnet Jaya (minigame warnet). Jam malam dan razia SPN berlaku.
+5. Cutscene SPN, interogasi, rapat warga, lalu layar akhir bab.
+
+Kalau Diawasi mencapai 100 atau SPN melihat Bayu saat mencurigakan terlalu lama, Bayu ditangkap (`onCaught`). Kalau Energi habis, Bayu pingsan (`onFaint`).
+
+### Bahasa cerita
+
+Syarat (`if`, `suspicious`): gabungan `&&`, `||`, `!`, dan perbandingan `>= <= == != > <`.
+
+- Nilai bawaan: `day`, `hour`, `malam`, `uang`, `suara`, `diawasi`, `energi`, `order`, `orders_done`.
+- Variabel: nama bebas, `item.X` (jumlah barang), `q.Quest` (langkah quest, 100 = selesai), `ev.Id` (event sudah jalan), `baca.Id`, `order.Id`.
+
+Aksi (`do`, `end`, `win`, `lose`), dipisah `;`:
+
+| Aksi | Contoh |
+|---|---|
+| Variabel | `set x 1`, `add x 2`, `flag x`, `unflag x` |
+| Status | `uang -15000 Beli beras`, `suara 5`, `diawasi 10`, `energi 40`, `item beras 1` |
+| Quest | `quest Piring`, `step Piring 3`, `done Piring` |
+| Pesan | `notif teks`, `notifbaik teks`, `notifburuk teks`, `pesan id_pesan` |
+| Dunia | `umumkan Aturan.X`, `aksi Aksi.X`, `jam 19.5`, `order o_nasi`, `batalorder` |
+| Layar | `dialog id`, `cutscene id`, `minigame id`, `toko pasar`, `ponsel`, `selesai` |
+| Lain | `teleport spawn_id`, `tidur`, `simpan`, `jika syarat ? aksi` |
+
+Bagian file: `start`, `onCaught`, `onFaint`, `onMorning`, `suspicious`, `items`, `shop`, `quests`, `speakers`, `dialogs` (gaya `vn`, `3d`, `chat`), `spawns` (`npc`, `spn`, `prop`, `zone`), `events`, `cutscenes`, `orders`, `kicau`, `berita`, `needs`, `barks`, `minigames`.
 
 ## Struktur konten (rencana)
 
