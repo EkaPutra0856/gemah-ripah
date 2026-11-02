@@ -19,7 +19,10 @@ public class GemahRipah : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			"Json",
+			"JsonUtilities",
+			"MoviePlayer"
 		});
 
 		// Subfolders (Core/, Player/, Systems/, ...) are included relative to the module root.

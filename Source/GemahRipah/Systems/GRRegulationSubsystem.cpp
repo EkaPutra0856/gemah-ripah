@@ -2,12 +2,36 @@
 #include "Systems/GRRegulationData.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Systems/GRSaveGame.h"
+#include "Data/GRDataSubsystem.h"
 #include "GemahRipah.h"
 
 void UGRRegulationSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	Collection.InitializeDependency<UGRStatusSubsystem>();
+	Collection.InitializeDependency<UGRDataSubsystem>();
+}
+
+UGRRegulationData* UGRRegulationSubsystem::CreateById(const FString& RegulationId)
+{
+	const FGRRegulationDef* Def = GetGameInstance()->GetSubsystem<UGRDataSubsystem>()->FindRegulation(RegulationId);
+	if (!Def)
+	{
+		UE_LOG(LogGemahRipah, Warning, TEXT("Aturan tidak ada di regulations.json: %s"), *RegulationId);
+		return nullptr;
+	}
+	return UGRRegulationData::CreateFromDef(this, *Def);
+}
+
+bool UGRRegulationSubsystem::EnactById(const FString& RegulationId)
+{
+	UGRRegulationData* Rule = CreateById(RegulationId);
+	if (!Rule)
+	{
+		return false;
+	}
+	EnactRegulation(Rule);
+	return true;
 }
 
 void UGRRegulationSubsystem::EnactRegulation(UGRRegulationData* Regulation)
@@ -55,6 +79,14 @@ void UGRRegulationSubsystem::RevokeAll()
 			OnRegulationRevoked.Broadcast(Regulation->RegulationId);
 		}
 	}
+}
+
+bool UGRRegulationSubsystem::IsActive(FGameplayTag RegulationId) const
+{
+	return ActiveRegulations.ContainsByPredicate([RegulationId](const UGRRegulationData* Existing)
+	{
+		return Existing && Existing->RegulationId == RegulationId;
+	});
 }
 
 TArray<UGRRegulationData*> UGRRegulationSubsystem::GetActiveRegulations() const
@@ -107,15 +139,19 @@ bool UGRRegulationSubsystem::ReportAction(FGameplayTag Action)
 	return true;
 }
 
+void UGRRegulationSubsystem::ResetState()
+{
+	ActiveRegulations.Reset();
+}
+
 void UGRRegulationSubsystem::WriteToSave(UGRSaveGame& Save) const
 {
-	Save.ActiveRegulations.Reset();
+	Save.ActiveRegulationIds.Reset();
 	for (const UGRRegulationData* Regulation : ActiveRegulations)
 	{
-		// Rules created at runtime (debug cheats) have no asset and are not saved.
-		if (Regulation && Regulation->IsAsset())
+		if (Regulation && Regulation->RegulationId.IsValid())
 		{
-			Save.ActiveRegulations.Add(FSoftObjectPath(Regulation));
+			Save.ActiveRegulationIds.Add(Regulation->RegulationId.GetTagName());
 		}
 	}
 }
@@ -123,15 +159,11 @@ void UGRRegulationSubsystem::WriteToSave(UGRSaveGame& Save) const
 void UGRRegulationSubsystem::ReadFromSave(const UGRSaveGame& Save)
 {
 	ActiveRegulations.Reset();
-	for (const FSoftObjectPath& Path : Save.ActiveRegulations)
+	for (const FName& Id : Save.ActiveRegulationIds)
 	{
-		if (UGRRegulationData* Regulation = Cast<UGRRegulationData>(Path.TryLoad()))
+		if (UGRRegulationData* Rule = CreateById(Id.ToString()))
 		{
-			ActiveRegulations.Add(Regulation);
-		}
-		else
-		{
-			UE_LOG(LogGemahRipah, Warning, TEXT("Aturan di save tidak ditemukan: %s"), *Path.ToString());
+			ActiveRegulations.Add(Rule);
 		}
 	}
 }

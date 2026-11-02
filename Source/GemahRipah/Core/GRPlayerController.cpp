@@ -3,6 +3,8 @@
 #include "Camera/GRTopDownRoomVolume.h"
 #include "Player/GRCharacter.h"
 #include "Player/GRInteractionComponent.h"
+#include "UI/GRMenuScreens.h"
+#include "UI/GRUISubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
@@ -63,6 +65,7 @@ void AGRPlayerController::BuildInputAssets()
 	JumpAction = MakeAction(this, TEXT("IA_Jump"), EInputActionValueType::Boolean);
 	SprintAction = MakeAction(this, TEXT("IA_Sprint"), EInputActionValueType::Boolean);
 	InteractAction = MakeAction(this, TEXT("IA_Interact"), EInputActionValueType::Boolean);
+	PauseAction = MakeAction(this, TEXT("IA_Pause"), EInputActionValueType::Boolean);
 
 	DefaultContext = NewObject<UInputMappingContext>(this, TEXT("IMC_GemahRipah"));
 
@@ -85,6 +88,11 @@ void AGRPlayerController::BuildInputAssets()
 
 	DefaultContext->MapKey(InteractAction, EKeys::E);
 	DefaultContext->MapKey(InteractAction, EKeys::Gamepad_FaceButton_Left);
+
+	// P as well, because Escape ends Play-In-Editor.
+	DefaultContext->MapKey(PauseAction, EKeys::Escape);
+	DefaultContext->MapKey(PauseAction, EKeys::P);
+	DefaultContext->MapKey(PauseAction, EKeys::Gamepad_Special_Right);
 }
 
 void AGRPlayerController::AddMappingContext()
@@ -119,6 +127,7 @@ void AGRPlayerController::SetupInputComponent()
 	Input->BindAction(SprintAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleSprintStarted);
 	Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &AGRPlayerController::HandleSprintCompleted);
 	Input->BindAction(InteractAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleInteract);
+	Input->BindAction(PauseAction, ETriggerEvent::Started, this, &AGRPlayerController::HandlePause);
 }
 
 void AGRPlayerController::BeginPlay()
@@ -235,5 +244,14 @@ void AGRPlayerController::HandleInteract()
 	if (AGRCharacter* GRCharacter = GetGRCharacter())
 	{
 		GRCharacter->GetInteraction()->TryInteract();
+	}
+}
+
+void AGRPlayerController::HandlePause()
+{
+	UGRUISubsystem* UI = GetLocalPlayer() ? GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (UI && !UI->HasScreens())
+	{
+		UI->PushScreen<UGRPauseScreen>();
 	}
 }

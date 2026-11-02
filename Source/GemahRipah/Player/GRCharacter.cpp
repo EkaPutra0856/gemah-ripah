@@ -1,4 +1,5 @@
 #include "Player/GRCharacter.h"
+#include "Core/GRGameUserSettings.h"
 #include "Player/GRInteractionComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
@@ -78,8 +79,11 @@ void AGRCharacter::LookFromInput(const FVector2D& Axis)
 	{
 		return;
 	}
-	AddControllerYawInput(Axis.X);
-	AddControllerPitchInput(Axis.Y);
+	const UGRGameUserSettings* Settings = UGRGameUserSettings::Get();
+	const float Sensitivity = Settings ? Settings->MouseSensitivity : 1.f;
+	const float InvertY = Settings && Settings->bInvertLookY ? -1.f : 1.f;
+	AddControllerYawInput(Axis.X * Sensitivity);
+	AddControllerPitchInput(Axis.Y * Sensitivity * InvertY);
 }
 
 void AGRCharacter::ZoomFromInput(float Delta)

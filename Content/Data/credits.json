@@ -1,0 +1,8 @@
+{
+  "credits": [
+    { "role": "Konsep dan arahan", "name": "EkaPutra0856", "detail": "" },
+    { "role": "Mesin game", "name": "Unreal Engine 5.8", "detail": "Epic Games" },
+    { "role": "Karakter sementara", "name": "Mannequin", "detail": "Template Unreal Engine, Epic Games" },
+    { "role": "Material blockout", "name": "Level Prototyping", "detail": "Template Unreal Engine, Epic Games" }
+  ]
+}

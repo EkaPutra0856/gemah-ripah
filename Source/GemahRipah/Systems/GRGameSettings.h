@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
-#include "GRCitySettings.generated.h"
+#include "GRGameSettings.generated.h"
 
 USTRUCT(BlueprintType)
 struct FGRCityEntry
@@ -22,13 +22,20 @@ struct FGRCityEntry
 	bool bUnlockedAtStart = false;
 };
 
-/** City list. Edit in Project Settings > Game > Gemah Ripah Kota (stored in DefaultGame.ini). */
-UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Gemah Ripah Kota"))
-class GEMAHRIPAH_API UGRCitySettings : public UDeveloperSettings
+/** Project-wide game settings. Edit in Project Settings > Game > Gemah Ripah (stored in DefaultGame.ini). */
+UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Gemah Ripah"))
+class GEMAHRIPAH_API UGRGameSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(Config, EditAnywhere, Category = "Menu")
+	TSoftObjectPtr<UWorld> MainMenuMap;
+
+	/** City where a new game starts. */
+	UPROPERTY(Config, EditAnywhere, Category = "Kota")
+	FName StartCityId;
+
 	UPROPERTY(Config, EditAnywhere, Category = "Kota")
 	TArray<FGRCityEntry> Cities;
 

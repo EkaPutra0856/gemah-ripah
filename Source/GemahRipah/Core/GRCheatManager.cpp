@@ -1,10 +1,17 @@
 #include "Core/GRCheatManager.h"
-#include "Core/GRGameplayTags.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRRegulationData.h"
 #include "Systems/GRProgressSubsystem.h"
 #include "Systems/GRSaveSubsystem.h"
+#include "Systems/GRGameFlowSubsystem.h"
+#include "Systems/GRNotificationSubsystem.h"
+#include "Data/GRDataSubsystem.h"
+#include "UI/GRMenuScreens.h"
+#include "UI/GRSaveLoadScreen.h"
+#include "UI/GRSettingsScreen.h"
+#include "UI/GRUISubsystem.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
 #include "GemahRipah.h"
@@ -66,20 +73,16 @@ void UGRCheatManager::GRDiawasi(float Delta)
 
 void UGRCheatManager::GRUmumkanLarangan()
 {
-	UGameInstance* GI = GetGI();
-	if (!GI)
-	{
-		return;
-	}
+	GRUmumkan(TEXT("Aturan.LaranganBerkumpul"));
+}
 
-	// Transient rule for testing; real rules are UGRRegulationData assets.
-	UGRRegulationData* Rule = NewObject<UGRRegulationData>(GI);
-	Rule->RegulationId = GRTags::Aturan_LaranganBerkumpul;
-	Rule->Title = NSLOCTEXT("GemahRipah", "TestRuleTitle", "Larangan Berkumpul Tanpa Izin");
-	Rule->Announcement = NSLOCTEXT("GemahRipah", "TestRuleBody", "Demi ketertiban, warga dilarang berkumpul lebih dari tiga orang tanpa izin. Berlaku mulai detik ini.");
-	Rule->ForbiddenActions.AddTag(GRTags::Aksi_Kumpul);
-	Rule->DiawasiPenalty = 20.f;
-	GI->GetSubsystem<UGRRegulationSubsystem>()->EnactRegulation(Rule);
+void UGRCheatManager::GRUmumkan(const FString& RegulationId)
+{
+	UGameInstance* GI = GetGI();
+	if (GI && !GI->GetSubsystem<UGRRegulationSubsystem>()->EnactById(RegulationId))
+	{
+		Print(FString::Printf(TEXT("Aturan tidak ada di regulations.json: %s"), *RegulationId));
+	}
 }
 
 void UGRCheatManager::GRCabutSemuaAturan()
@@ -128,16 +131,67 @@ void UGRCheatManager::GRKota(FName CityId)
 	}
 }
 
-void UGRCheatManager::GRSimpan()
+FString UGRCheatManager::SlotOrDefault(const FString& SlotName)
 {
-	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRSaveSubsystem>()->SaveToSlot(UGRSaveSubsystem::DefaultSlot); }
+	return SlotName.IsEmpty() ? UGRSaveSubsystem::GetManualSlots()[0] : SlotName;
 }
 
-void UGRCheatManager::GRMuat()
+void UGRCheatManager::GRSimpan(const FString& SlotName)
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRSaveSubsystem>()->SaveToSlot(SlotOrDefault(SlotName)); }
+}
+
+void UGRCheatManager::GRMuat(const FString& SlotName)
 {
 	if (UGameInstance* GI = GetGI())
 	{
-		const bool bOk = GI->GetSubsystem<UGRSaveSubsystem>()->LoadFromSlot(UGRSaveSubsystem::DefaultSlot);
+		const bool bOk = GI->GetSubsystem<UGRGameFlowSubsystem>()->LoadGame(SlotOrDefault(SlotName));
 		Print(bOk ? TEXT("Save dimuat.") : TEXT("Save tidak ada."));
+	}
+}
+
+void UGRCheatManager::GRUI(const FString& Screen)
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	UGRUISubsystem* UI = PC && PC->GetLocalPlayer() ? PC->GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (!UI)
+	{
+		return;
+	}
+	const FString Name = Screen.ToLower();
+	if (Name == TEXT("menu")) { UI->PushScreen<UGRMainMenuScreen>(); }
+	else if (Name == TEXT("jeda")) { UI->PushScreen<UGRPauseScreen>(); }
+	else if (Name == TEXT("simpan")) { UI->PushScreen<UGRSaveScreen>(); }
+	else if (Name == TEXT("muat")) { UI->PushScreen<UGRLoadScreen>(); }
+	else if (Name == TEXT("pengaturan")) { UI->PushScreen<UGRSettingsScreen>(); }
+	else if (Name == TEXT("kredit")) { UI->PushScreen<UGRCreditsScreen>(); }
+	else if (Name == TEXT("tutup")) { UI->PopAll(); }
+	else { Print(TEXT("Layar: menu, jeda, simpan, muat, pengaturan, kredit, tutup")); }
+}
+
+void UGRCheatManager::GRReloadData()
+{
+	if (UGameInstance* GI = GetGI())
+	{
+		GI->GetSubsystem<UGRDataSubsystem>()->ReloadAll();
+		Print(TEXT("Data JSON dimuat ulang."));
+	}
+}
+
+void UGRCheatManager::GRNewGame()
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRGameFlowSubsystem>()->StartNewGame(); }
+}
+
+void UGRCheatManager::GRMenu()
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRGameFlowSubsystem>()->ReturnToMainMenu(); }
+}
+
+void UGRCheatManager::GRNotif(const FString& Message)
+{
+	if (UGameInstance* GI = GetGI())
+	{
+		GI->GetSubsystem<UGRNotificationSubsystem>()->Notify(FText::FromString(Message.IsEmpty() ? TEXT("Tes notifikasi") : Message));
 	}
 }

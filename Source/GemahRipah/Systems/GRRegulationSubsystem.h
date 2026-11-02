@@ -24,6 +24,10 @@ class GEMAHRIPAH_API UGRRegulationSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	/** Enacts a rule from regulations.json by id, e.g. "Aturan.LaranganBerkumpul". */
+	UFUNCTION(BlueprintCallable, Category = "Aturan")
+	bool EnactById(const FString& RegulationId);
+
 	UFUNCTION(BlueprintCallable, Category = "Aturan")
 	void EnactRegulation(UGRRegulationData* Regulation);
 
@@ -32,6 +36,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Aturan")
 	void RevokeAll();
+
+	UFUNCTION(BlueprintPure, Category = "Aturan")
+	bool IsActive(FGameplayTag RegulationId) const;
 
 	/** Returns the first active rule that forbids Action, or null. */
 	UFUNCTION(BlueprintPure, Category = "Aturan")
@@ -43,6 +50,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Aturan")
 	TArray<UGRRegulationData*> GetActiveRegulations() const;
+
+	/** New game: no rules, no events. */
+	void ResetState();
 
 	void WriteToSave(UGRSaveGame& Save) const;
 	void ReadFromSave(const UGRSaveGame& Save);
@@ -57,6 +67,8 @@ public:
 	FGROnRegulationViolated OnRegulationViolated;
 
 private:
+	UGRRegulationData* CreateById(const FString& RegulationId);
+
 	UPROPERTY()
 	TArray<TObjectPtr<UGRRegulationData>> ActiveRegulations;
 };

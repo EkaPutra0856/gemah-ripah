@@ -1,5 +1,5 @@
 #include "Systems/GRProgressSubsystem.h"
-#include "Systems/GRCitySettings.h"
+#include "Systems/GRGameSettings.h"
 #include "Systems/GRSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "GemahRipah.h"
@@ -7,18 +7,23 @@
 void UGRProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	ResetState();
+}
 
-	for (const FGRCityEntry& City : GetDefault<UGRCitySettings>()->Cities)
+void UGRProgressSubsystem::ResetState()
+{
+	StoryFlags.Reset();
+	UnlockedCities.Reset();
+
+	const UGRGameSettings* Settings = GetDefault<UGRGameSettings>();
+	for (const FGRCityEntry& City : Settings->Cities)
 	{
 		if (City.bUnlockedAtStart)
 		{
 			UnlockedCities.Add(City.CityId);
-			if (CurrentCityId.IsNone())
-			{
-				CurrentCityId = City.CityId;
-			}
 		}
 	}
+	CurrentCityId = Settings->StartCityId;
 }
 
 void UGRProgressSubsystem::AddStoryFlag(FGameplayTag Flag)
@@ -32,7 +37,7 @@ void UGRProgressSubsystem::AddStoryFlag(FGameplayTag Flag)
 
 void UGRProgressSubsystem::UnlockCity(FName CityId)
 {
-	if (!GetDefault<UGRCitySettings>()->FindCity(CityId))
+	if (!GetDefault<UGRGameSettings>()->FindCity(CityId))
 	{
 		UE_LOG(LogGemahRipah, Warning, TEXT("Kota tidak dikenal: %s"), *CityId.ToString());
 		return;
@@ -46,9 +51,15 @@ void UGRProgressSubsystem::UnlockCity(FName CityId)
 	}
 }
 
+FText UGRProgressSubsystem::GetCityDisplayName(FName CityId) const
+{
+	const FGRCityEntry* City = GetDefault<UGRGameSettings>()->FindCity(CityId);
+	return City ? City->DisplayName : FText::FromName(CityId);
+}
+
 bool UGRProgressSubsystem::TravelToCity(FName CityId)
 {
-	const FGRCityEntry* City = GetDefault<UGRCitySettings>()->FindCity(CityId);
+	const FGRCityEntry* City = GetDefault<UGRGameSettings>()->FindCity(CityId);
 	if (!City || City->Map.IsNull())
 	{
 		UE_LOG(LogGemahRipah, Warning, TEXT("Kota atau map tidak ada: %s"), *CityId.ToString());

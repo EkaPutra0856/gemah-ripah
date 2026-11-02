@@ -1,0 +1,40 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
+#include "Containers/Ticker.h"
+#include "GRGameInstance.generated.h"
+
+/**
+ * Shows the loading screen between maps and runs dev scripts.
+ *
+ * Dev script (non-shipping): -GRScript=<file> with lines "<seconds> <command>".
+ * Commands: "shot <name>" (screenshot to Saved/AutoShots), "quit", or any console command.
+ * Time counts from game start, across map loads.
+ */
+UCLASS()
+class GEMAHRIPAH_API UGRGameInstance : public UGameInstance
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Init() override;
+	virtual void Shutdown() override;
+
+private:
+	void BeginLoadingScreen(const FString& MapName);
+
+	struct FDevStep
+	{
+		double Time = 0.0;
+		FString Command;
+	};
+
+	void LoadDevScript();
+	bool TickDevScript(float DeltaTime);
+
+	TArray<FDevStep> DevSteps;
+	double DevScriptStart = 0.0;
+	FTSTicker::FDelegateHandle DevTickerHandle;
+	FDelegateHandle PreLoadMapHandle;
+};

@@ -20,6 +20,9 @@ class GEMAHRIPAH_API UGRStatusSubsystem : public UGameInstanceSubsystem
 
 public:
 	static constexpr float MeterMax = 100.f;
+	static constexpr int32 StartingUang = 50000;
+
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	UFUNCTION(BlueprintPure, Category = "Status")
 	int32 GetUang() const { return Uang; }
@@ -43,8 +46,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddDiawasi(float Delta);
 
+	/** New game values. */
+	void ResetState();
+
 	void WriteToSave(UGRSaveGame& Save) const;
 	void ReadFromSave(const UGRSaveGame& Save);
+
+	/** "Rp 1.250.000" */
+	static FString FormatRupiah(int32 Amount);
 
 	UPROPERTY(BlueprintAssignable, Category = "Status")
 	FGROnStatusChanged OnStatusChanged;
@@ -54,8 +63,10 @@ public:
 	FGROnDiawasiMaxed OnDiawasiMaxed;
 
 private:
+	void NotifyChange(const FString& Message, bool bGood) const;
+
 	UPROPERTY()
-	int32 Uang = 50000;
+	int32 Uang = StartingUang;
 
 	UPROPERTY()
 	float Suara = 0.f;

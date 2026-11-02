@@ -12,8 +12,27 @@ class GEMAHRIPAH_API UGRSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
+	static constexpr int32 CurrentVersion = 2;
+
 	UPROPERTY()
-	int32 SaveVersion = 1;
+	int32 SaveVersion = CurrentVersion;
+
+	// Slot info shown in the save/load menu
+	UPROPERTY()
+	FDateTime SavedAt;
+
+	UPROPERTY()
+	double PlayTimeSeconds = 0.0;
+
+	// Player
+	UPROPERTY()
+	bool bHasPlayerTransform = false;
+
+	UPROPERTY()
+	FTransform PlayerTransform;
+
+	UPROPERTY()
+	FRotator ControlRotation = FRotator::ZeroRotator;
 
 	// Status
 	UPROPERTY()
@@ -35,7 +54,7 @@ public:
 	UPROPERTY()
 	FName CurrentCityId;
 
-	// Regulations (only asset-backed ones are saved)
+	// Regulations, by tag name
 	UPROPERTY()
-	TArray<FSoftObjectPath> ActiveRegulations;
+	TArray<FName> ActiveRegulationIds;
 };

@@ -1,41 +1,40 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
+#include "UObject/Object.h"
 #include "GameplayTagContainer.h"
 #include "GRRegulationData.generated.h"
 
+struct FGRRegulationDef;
+
 /**
- * One "Pengumuman Pemerintah": a rule that can appear suddenly and forbid player actions.
- * Create assets in /Game/GemahRipah/Data/Regulations.
+ * One active "Pengumuman Pemerintah": a rule that can appear suddenly and forbid player actions.
+ * Definitions live in Content/Data/regulations.json.
  */
 UCLASS(BlueprintType)
-class GEMAHRIPAH_API UGRRegulationData : public UPrimaryDataAsset
+class GEMAHRIPAH_API UGRRegulationData : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aturan", meta = (Categories = "Aturan"))
+	static UGRRegulationData* CreateFromDef(UObject* Outer, const FGRRegulationDef& Def);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Aturan")
 	FGameplayTag RegulationId;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aturan")
+	UPROPERTY(BlueprintReadOnly, Category = "Aturan")
 	FText Title;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aturan", meta = (MultiLine = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Aturan")
 	FText Announcement;
 
 	/** Actions (and their child tags) that break this rule. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aturan", meta = (Categories = "Aksi"))
+	UPROPERTY(BlueprintReadOnly, Category = "Aturan")
 	FGameplayTagContainer ForbiddenActions;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sanksi")
+	UPROPERTY(BlueprintReadOnly, Category = "Sanksi")
 	float DiawasiPenalty = 15.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sanksi")
+	UPROPERTY(BlueprintReadOnly, Category = "Sanksi")
 	int32 FineUang = 0;
-
-	virtual FPrimaryAssetId GetPrimaryAssetId() const override
-	{
-		return FPrimaryAssetId(TEXT("GRRegulationData"), GetFName());
-	}
 };

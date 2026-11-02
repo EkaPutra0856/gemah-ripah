@@ -17,7 +17,9 @@ levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 
 
 def spawn(cls, loc, rot=(0, 0, 0), label=None):
-    actor = actors.spawn_actor_from_class(cls, unreal.Vector(*loc), unreal.Rotator(*rot))
+    # rot is (pitch, yaw, roll); unreal.Rotator's positional order is roll, pitch, yaw.
+    pitch, yaw, roll = rot
+    actor = actors.spawn_actor_from_class(cls, unreal.Vector(*loc), unreal.Rotator(roll=roll, pitch=pitch, yaw=yaw))
     if label:
         actor.set_actor_label(label)
     return actor
@@ -33,7 +35,7 @@ def box(label, loc, scale, mat=GRID_MAT, mesh=CUBE):
     return actor
 
 
-def label_text(text, loc, rot=(0, 0, 0)):
+def label_text(text, loc, rot=(0, 180, 0)):
     actor = spawn(unreal.TextRenderActor, loc, rot, label="Label_" + text.replace(" ", "_"))
     comp = actor.text_render
     comp.set_text(text)

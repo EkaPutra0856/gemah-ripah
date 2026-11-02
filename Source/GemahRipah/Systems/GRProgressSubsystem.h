@@ -37,9 +37,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Kota")
 	FName GetCurrentCityId() const { return CurrentCityId; }
 
+	UFUNCTION(BlueprintPure, Category = "Kota")
+	FText GetCityDisplayName(FName CityId) const;
+
 	/** Opens the city's map. Returns false if the city is unknown or still locked. */
 	UFUNCTION(BlueprintCallable, Category = "Kota")
 	bool TravelToCity(FName CityId);
+
+	/** New game: no flags, only the starting cities unlocked. */
+	void ResetState();
 
 	void WriteToSave(UGRSaveGame& Save) const;
 	void ReadFromSave(const UGRSaveGame& Save);

@@ -24,9 +24,13 @@ public:
 	UFUNCTION(Exec)
 	void GRDiawasi(float Delta);
 
-	/** Enacts a test rule that forbids gathering (Aksi.Kumpul). */
+	/** Enacts the "Larangan Berkumpul" rule (Aksi.Kumpul). */
 	UFUNCTION(Exec)
 	void GRUmumkanLarangan();
+
+	/** Enacts a rule from regulations.json, e.g. GRUmumkan Aturan.PasalKaretKritik */
+	UFUNCTION(Exec)
+	void GRUmumkan(const FString& RegulationId);
 
 	UFUNCTION(Exec)
 	void GRCabutSemuaAturan();
@@ -44,13 +48,33 @@ public:
 	UFUNCTION(Exec)
 	void GRKota(FName CityId);
 
+	/** GRSimpan [Slot1|Slot2|Slot3|Auto], default Slot1. */
 	UFUNCTION(Exec)
-	void GRSimpan();
+	void GRSimpan(const FString& SlotName);
 
 	UFUNCTION(Exec)
-	void GRMuat();
+	void GRMuat(const FString& SlotName);
+
+	/** Opens a screen: menu, jeda, simpan, muat, pengaturan, kredit. */
+	UFUNCTION(Exec)
+	void GRUI(const FString& Screen);
+
+	/** Re-reads Content/Data/*.json without restarting. */
+	UFUNCTION(Exec)
+	void GRReloadData();
+
+	UFUNCTION(Exec)
+	void GRNewGame();
+
+	UFUNCTION(Exec)
+	void GRMenu();
+
+	/** Sends a test toast. */
+	UFUNCTION(Exec)
+	void GRNotif(const FString& Message);
 
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;
+	static FString SlotOrDefault(const FString& SlotName);
 };

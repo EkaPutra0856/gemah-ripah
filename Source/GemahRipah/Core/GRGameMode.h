@@ -11,4 +11,7 @@ class GEMAHRIPAH_API AGRGameMode : public AGameModeBase
 
 public:
 	AGRGameMode();
+
+	/** Spawns as usual, then moves the pawn to the loaded save position if there is one. */
+	virtual void RestartPlayer(AController* NewPlayer) override;
 };
