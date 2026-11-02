@@ -78,6 +78,15 @@ bool UGRInteractionComponent::TryInteract()
 	{
 		return false;
 	}
+	// Turn to face whoever (or whatever) Bayu is talking to.
+	if (AActor* Owner = GetOwner())
+	{
+		const FVector ToTarget = Target->GetActorLocation() - Owner->GetActorLocation();
+		if (ToTarget.SizeSquared2D() > 1.f)
+		{
+			Owner->SetActorRotation(FRotator(0.f, ToTarget.Rotation().Yaw, 0.f));
+		}
+	}
 	IGRInteractable::Execute_Interact(Target, GetOwner());
 	return true;
 }

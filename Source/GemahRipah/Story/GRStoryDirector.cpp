@@ -311,7 +311,8 @@ AActor* AGRStoryDirector::FindSpawnedActor(const FString& SpawnId) const
 
 FVector AGRStoryDirector::GetSpawnLocation(const FString& SpawnId) const
 {
-	if (const AActor* Actor = FindSpawnedActor(SpawnId))
+	// A hidden actor may not be where its spawn is; use the data position then.
+	if (const AActor* Actor = FindSpawnedActor(SpawnId); Actor && !Actor->IsHidden())
 	{
 		return Actor->GetActorLocation();
 	}
@@ -347,6 +348,12 @@ void AGRStoryDirector::Tick(float DeltaSeconds)
 	}
 
 	TickTraffic(DeltaSeconds);
+	// Safety net: anyone who falls out of the world wakes up at home.
+	if (APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0); Player && Player->GetActorLocation().Z < -3000.f)
+	{
+		Teleport(TEXT("rumah"));
+		Story->Run(TEXT("notifburuk Kamu terjatuh. Bayu kembali ke rumah."));
+	}
 	const bool bBusy = IsUIBusy();
 	if (!bBusy)
 	{

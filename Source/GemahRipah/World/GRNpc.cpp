@@ -2,6 +2,7 @@
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
+#include "UI/GRUISubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/CapsuleComponent.h"
@@ -119,9 +120,28 @@ void AGRNpc::Setup(const FGRSpawnDef& Def)
 
 void AGRNpc::SetActive(bool bActive)
 {
+	// Hidden NPCs have no collision: freeze movement too, or they fall through the ground into the void.
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (bActive && IsHidden())
+	{
+		SetActorLocation(Home, false, nullptr, ETeleportType::ResetPhysics);
+		Move->Velocity = FVector::ZeroVector;
+		bHasTarget = false;
+		bChasing = false;
+	}
 	SetActorHiddenInGame(!bActive);
 	SetActorEnableCollision(bActive);
 	SetActorTickEnabled(bActive);
+	Move->SetComponentTickEnabled(bActive);
+	if (bActive)
+	{
+		Move->SetMovementMode(MOVE_Walking);
+	}
+	else
+	{
+		Move->StopMovementImmediately();
+		Move->DisableMovement();
+	}
 	if (Flashlight)
 	{
 		Flashlight->SetVisibility(bActive && bSpn);
@@ -201,7 +221,18 @@ void AGRNpc::TickMovement(float DeltaSeconds, const APawn* Player)
 {
 	if (TalkPause > 0.f)
 	{
-		TalkPause -= DeltaSeconds;
+		// Keep facing the player for the whole conversation, not just the first seconds.
+		const ULocalPlayer* LP = GetWorld()->GetFirstLocalPlayerFromController();
+		const UGRUISubsystem* UI = LP ? LP->GetSubsystem<UGRUISubsystem>() : nullptr;
+		if (!UI || !UI->HasScreens())
+		{
+			TalkPause -= DeltaSeconds;
+		}
+		if (Player)
+		{
+			const FRotator Want(0.f, (Player->GetActorLocation() - GetActorLocation()).Rotation().Yaw, 0.f);
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Want, DeltaSeconds, 8.f));
+		}
 		return;
 	}
 	if (bChasing && Player)

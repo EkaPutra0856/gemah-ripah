@@ -281,6 +281,19 @@ void UGRPhoneScreen::ShowApp(const FString& App)
 			AddLine(TEXT("Galeri kosong. Isinya foto kucing dan tangkapan layar promo kuota."), 15, GRStyle::ColorText);
 		}
 	}
+
+	// Inside an app, start on its first real entry rather than "< Kembali" (Esc already goes back).
+	if (!App.IsEmpty())
+	{
+		for (int32 i = 1; i < Content->GetChildrenCount(); ++i)
+		{
+			if (UGRMenuButton* Button = Cast<UGRMenuButton>(Content->GetChildAt(i)))
+			{
+				DefaultFocus = Button;
+				break;
+			}
+		}
+	}
 }
 
 FReply UGRPhoneScreen::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
@@ -330,7 +343,16 @@ void UGRWarnetScreen::BuildScreen(UOverlay* Root)
 {
 	MinigameId = PendingId;
 	const FGRMinigameDef* Def = StoryFor(this)->FindMinigame(MinigameId);
-	Body = MakeCenteredPanel(Root, FText::FromString(Def->Title), 940.f);
+	UVerticalBox* Panel = MakeCenteredPanel(Root, FText::FromString(Def->Title), 940.f);
+	// Up to five evidence items: scroll instead of running off the screen, and follow keyboard focus.
+	USizeBox* ListSize = WidgetTree->ConstructWidget<USizeBox>();
+	ListSize->SetMaxDesiredHeight(640.f);
+	Panel->AddChildToVerticalBox(ListSize);
+	UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
+	Scroll->SetScrollWhenFocusChanges(EScrollWhenFocusChanges::AnimatedScroll);
+	ListSize->SetContent(Scroll);
+	Body = WidgetTree->ConstructWidget<UVerticalBox>();
+	Scroll->AddChild(Body);
 	Rebuild();
 }
 
@@ -352,10 +374,7 @@ void UGRWarnetScreen::Rebuild()
 			++ButtonIndex;
 		}
 	}
-	while (Body->GetChildrenCount() > 1)
-	{
-		Body->RemoveChildAt(1);
-	}
+	Body->ClearChildren();
 	DefaultFocus = nullptr;
 	auto Line = [this](const FString& Text, int32 Size, const FLinearColor& Color, bool bBold = false)
 	{
