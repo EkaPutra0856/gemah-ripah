@@ -69,6 +69,22 @@ public:
 	UFUNCTION(Exec)
 	void GRMenu();
 
+	/** Sets the clock, e.g. GRJam 19.5 */
+	UFUNCTION(Exec)
+	void GRJam(float Hour);
+
+	/** Overrides the air index, e.g. GRAsap 300 (negative = back to daily value). */
+	UFUNCTION(Exec)
+	void GRAsap(float Ispu);
+
+	/** Sleeps until morning anywhere (fade + autosave). */
+	UFUNCTION(Exec)
+	void GRTidur();
+
+	/** Re-captures the map image. */
+	UFUNCTION(Exec)
+	void GRPetaUlang();
+
 	/** Sends a test toast. */
 	UFUNCTION(Exec)
 	void GRNotif(const FString& Message);

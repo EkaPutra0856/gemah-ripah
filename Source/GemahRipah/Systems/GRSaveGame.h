@@ -12,7 +12,7 @@ class GEMAHRIPAH_API UGRSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	static constexpr int32 CurrentVersion = 2;
+	static constexpr int32 CurrentVersion = 3;
 
 	UPROPERTY()
 	int32 SaveVersion = CurrentVersion;
@@ -53,6 +53,13 @@ public:
 
 	UPROPERTY()
 	FName CurrentCityId;
+
+	// Clock
+	UPROPERTY()
+	int32 Day = 1;
+
+	UPROPERTY()
+	float TimeMinutes = 0.f;
 
 	// Regulations, by tag name
 	UPROPERTY()

@@ -27,6 +27,7 @@ Target saat ini: *vertical slice* Bab 1 "Asap dan Piring".
 | `Data/` | `GRDataSubsystem`: membaca JSON di `Content/Data/` (aturan, tips loading, kredit) |
 | `Player/` | `GRCharacter` (kamera orang ketiga ala Genshin, lari, zoom), `GRInteractionComponent` |
 | `Interaction/` | Interface `GRInteractable` dan `GRInteractableActor` (interaksi berbasis data untuk prototipe) |
+| `World/` | `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
 | `Camera/` | `GRTopDownRoomVolume`: kamera berpindah ke top-down saat pemain masuk ruangan |
 | `Systems/` | Subsystem yang bertahan antar-map: status (uang, Suara, Diawasi), aturan ("Pengumuman Pemerintah"), progres (flag cerita, kota), save (otomatis + 3 slot), alur game (game baru, lanjut, menu), notifikasi |
 | `UI/` | UMG dibangun di C++: tumpukan layar (`GRUISubsystem`), menu utama, jeda, simpan/muat, pengaturan, kredit, konfirmasi, HUD (`GRHUDWidget`), loading screen (Slate) |
@@ -49,6 +50,7 @@ Keputusan teknis:
 | Lari | Shift kiri | Klik stik kiri |
 | Lompat | Spasi | A / Silang |
 | Interaksi | E | X / Kotak |
+| Peta kota | M | Back / View |
 | Jeda | Esc atau P (P untuk Play di editor) | Start |
 | Kembali di menu | Esc | B / Lingkaran |
 
@@ -68,9 +70,16 @@ Keputusan teknis:
 | `GRNewGame` / `GRMenu` | Mulai game baru / kembali ke menu utama |
 | `GRReloadData` | Muat ulang JSON di `Content/Data/` |
 | `GRNotif <teks>` | Tes notifikasi |
+| `GRJam 19.5` | Lompat ke jam tertentu |
+| `GRAsap 300` | Paksa nilai ISPU (`GRAsap -1` = kembali ke data) |
+| `GRTidur` | Tidur sampai pagi (hari berikutnya + autosave) |
+| `GRPetaUlang` | Hitung ulang gambar peta dari bangunan |
 
 ## Map
 
+- `L_KotaSentosa`: kota pertama (World Partition, 1 km). Dibuat ulang dengan `Tools/BuildKotaSentosa.bat` (hapus dulu map lama dan folder `__ExternalActors__`/`__ExternalObjects__` miliknya). Lima kawasan: Kampung Gang, Pasar, Kawasan Sekolah, Pusat Pemerintahan, Jalan Raya.
+- Waktu: satu hari = 24 menit nyata (`Content/Data/world.json`). Asap (ISPU) naik tiap hari; pemerintah selalu mengklaim "udara baik".
+- Tidur hanya bisa pukul 18.00 sampai 04.00 di kasur rumah Bayu. Bangun pukul 06.00 dan game tersimpan otomatis.
 - `L_MainMenu`: map awal game. Jalan berasap dilihat dari satu kamera, menu utama di atasnya.
 
 ### Map dev (`/Game/GemahRipah/Maps/L_Dev_Sandbox`)

@@ -47,6 +47,7 @@ private:
 	void HandleSprintCompleted();
 	void HandleInteract();
 	void HandlePause();
+	void HandleMap();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputMappingContext> DefaultContext;
@@ -71,6 +72,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputAction> PauseAction;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInputAction> MapAction;
 
 	TWeakObjectPtr<AGRTopDownRoomVolume> CurrentRoom;
 };

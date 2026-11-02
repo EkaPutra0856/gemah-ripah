@@ -2,6 +2,7 @@
 #include "UI/GRMenuButton.h"
 #include "UI/GRSaveLoadScreen.h"
 #include "UI/GRSettingsScreen.h"
+#include "UI/GRMapScreen.h"
 #include "UI/GRUISubsystem.h"
 #include "UI/GRUIStyle.h"
 #include "Data/GRDataSubsystem.h"
@@ -112,6 +113,7 @@ void UGRPauseScreen::BuildScreen(UOverlay* Root)
 	UVerticalBox* Box = MakeCenteredPanel(Root, LOCTEXT("PauseTitle", "Jeda"), 420.f);
 
 	AddButton(Box, LOCTEXT("Resume", "Lanjut"), [this]() { Close(); });
+	AddButton(Box, LOCTEXT("PauseMap", "Peta"), [this]() { GetUI()->PushScreen<UGRMapScreen>(); });
 	AddButton(Box, LOCTEXT("Save", "Simpan"), [this]() { GetUI()->PushScreen<UGRSaveScreen>(); });
 	AddButton(Box, LOCTEXT("LoadPause", "Muat"), [this]() { GetUI()->PushScreen<UGRLoadScreen>(); });
 	AddButton(Box, LOCTEXT("SettingsPause", "Pengaturan"), [this]() { GetUI()->PushScreen<UGRSettingsScreen>(); });

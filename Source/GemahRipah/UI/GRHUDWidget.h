@@ -11,6 +11,8 @@ class UProgressBar;
 class UTextBlock;
 class UVerticalBox;
 class UGRRegulationData;
+class UGRMapView;
+class AGRDistrictVolume;
 
 /**
  * In-game HUD built in code: money, Suara/Diawasi meters, active rules, city name,
@@ -40,6 +42,9 @@ private:
 	void HandleRegulationViolated(UGRRegulationData* Regulation, FGameplayTag Action);
 
 	void HandleNotify(const FText& Message, EGRNotifyType Type);
+	void HandleDistrictChanged(AGRDistrictVolume* District, bool bEntered);
+	void RefreshClock();
+	void RefreshLocation();
 
 	void RefreshStatus();
 	void RefreshRules();
@@ -53,6 +58,12 @@ private:
 	UPROPERTY() TObjectPtr<UTextBlock> DiawasiValue;
 	UPROPERTY() TObjectPtr<UVerticalBox> RuleList;
 	UPROPERTY() TObjectPtr<UTextBlock> CityText;
+	UPROPERTY() TObjectPtr<UTextBlock> ClockText;
+	UPROPERTY() TObjectPtr<UTextBlock> SmokeText;
+	UPROPERTY() TObjectPtr<UGRMapView> Minimap;
+	UPROPERTY() TObjectPtr<UVerticalBox> DistrictPopup;
+	UPROPERTY() TObjectPtr<UTextBlock> DistrictTitle;
+	UPROPERTY() TObjectPtr<UTextBlock> DistrictSubtitle;
 	UPROPERTY() TObjectPtr<UBorder> PromptPanel;
 	UPROPERTY() TObjectPtr<UTextBlock> PromptText;
 	UPROPERTY() TObjectPtr<UBorder> BannerPanel;
@@ -68,5 +79,8 @@ private:
 	TArray<FToast> Toasts;
 
 	double BannerEndTime = 0.0;
+	double DistrictPopupStart = -100.0;
+	double NextClockRefresh = 0.0;
+	FDelegateHandle DistrictHandle;
 	FDelegateHandle NotifyHandle;
 };

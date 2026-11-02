@@ -1,0 +1,14 @@
+{
+	"DayLengthMinutes": 24,
+	"StartDay": 1,
+	"StartHour": 6.5,
+	"WakeHour": 6,
+	"SleepFromHour": 18,
+	"SleepUntilHour": 4,
+	"SmokeDefault": 180,
+	"SmokeByDay": [
+		{ "Day": 1, "Ispu": 165, "OfficialClaim": "Kualitas udara Kota Sentosa terpantau baik. Warga diimbau tetap produktif." },
+		{ "Day": 2, "Ispu": 235, "OfficialClaim": "Kabut tipis hanyalah embun pagi. Tidak perlu panik, tidak perlu masker." },
+		{ "Day": 3, "Ispu": 320, "OfficialClaim": "Pemerintah mengimbau warga berhenti menyebarkan foto langit oranye hasil editan." }
+	]
+}

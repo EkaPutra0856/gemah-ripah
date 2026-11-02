@@ -6,6 +6,10 @@
 #include "Systems/GRRegulationData.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRClockSubsystem.h"
+#include "UI/GRMapView.h"
+#include "World/GRDistrictVolume.h"
+#include "World/GRMapSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/HorizontalBox.h"
@@ -74,9 +78,38 @@ void UGRHUDWidget::NativeOnInitialized()
 	RuleList = WidgetTree->ConstructWidget<UVerticalBox>();
 	StatusBox->AddChildToVerticalBox(RuleList)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
 
-	// Top-right: city.
-	CityText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 18, GRStyle::ColorTextDim, true);
-	Place(Root, CityText, HAlign_Right, VAlign_Top, FMargin(0.f, 28.f, 32.f, 0.f));
+	// Top-right: location, clock, air quality and minimap.
+	UVerticalBox* RightColumn = WidgetTree->ConstructWidget<UVerticalBox>();
+	Place(Root, RightColumn, HAlign_Right, VAlign_Top, FMargin(0.f, 24.f, 24.f, 0.f));
+	CityText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 15, GRStyle::ColorTextDim, true);
+	CityText->SetJustification(ETextJustify::Right);
+	RightColumn->AddChildToVerticalBox(CityText)->SetHorizontalAlignment(HAlign_Right);
+	ClockText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 24, GRStyle::ColorText, true);
+	RightColumn->AddChildToVerticalBox(ClockText)->SetHorizontalAlignment(HAlign_Right);
+	SmokeText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 14, GRStyle::ColorAccent, true);
+	RightColumn->AddChildToVerticalBox(SmokeText)->SetHorizontalAlignment(HAlign_Right);
+	USizeBox* MinimapSize = WidgetTree->ConstructWidget<USizeBox>();
+	MinimapSize->SetWidthOverride(230.f);
+	MinimapSize->SetHeightOverride(230.f);
+	Minimap = CreateWidget<UGRMapView>(this, UGRMapView::StaticClass());
+	Minimap->bFollowPlayer = true;
+	Minimap->ViewSize = 32000.f;
+	Minimap->bShowDistrictNames = false;
+	MinimapSize->SetContent(Minimap);
+	RightColumn->AddChildToVerticalBox(MinimapSize)->SetPadding(FMargin(0.f, 8.f, 0.f, 0.f));
+
+	// Upper-center: district name when entering an area.
+	DistrictPopup = WidgetTree->ConstructWidget<UVerticalBox>();
+	Place(Root, DistrictPopup, HAlign_Center, VAlign_Top, FMargin(0.f, 230.f, 0.f, 0.f));
+	DistrictTitle = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 40, GRStyle::ColorText, true);
+	DistrictTitle->SetShadowOffset(FVector2D(2.f, 2.f));
+	DistrictTitle->SetShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.8f));
+	DistrictPopup->AddChildToVerticalBox(DistrictTitle)->SetHorizontalAlignment(HAlign_Center);
+	DistrictSubtitle = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 18, GRStyle::ColorAccent);
+	DistrictSubtitle->SetShadowOffset(FVector2D(1.f, 1.f));
+	DistrictSubtitle->SetShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.8f));
+	DistrictPopup->AddChildToVerticalBox(DistrictSubtitle)->SetHorizontalAlignment(HAlign_Center);
+	DistrictPopup->SetRenderOpacity(0.f);
 
 	// Top-center: government banner.
 	BannerPanel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanel, FMargin(28.f, 16.f), 8.f);
@@ -101,7 +134,7 @@ void UGRHUDWidget::NativeOnInitialized()
 
 	// Right side: toasts.
 	ToastList = WidgetTree->ConstructWidget<UVerticalBox>();
-	Place(Root, ToastList, HAlign_Right, VAlign_Top, FMargin(0.f, 70.f, 24.f, 0.f));
+	Place(Root, ToastList, HAlign_Right, VAlign_Top, FMargin(0.f, 400.f, 24.f, 0.f));
 
 	UGameInstance* GI = GetGameInstance();
 	if (!GI)
@@ -122,10 +155,12 @@ void UGRHUDWidget::NativeOnInitialized()
 	{
 		NotifyHandle = Notifications->OnNotify.AddUObject(this, &UGRHUDWidget::HandleNotify);
 	}
-	if (const UGRProgressSubsystem* Progress = GI->GetSubsystem<UGRProgressSubsystem>())
+	if (UGRMapSubsystem* Map = GetWorld() ? GetWorld()->GetSubsystem<UGRMapSubsystem>() : nullptr)
 	{
-		CityText->SetText(Progress->GetCityDisplayName(Progress->GetCurrentCityId()));
+		DistrictHandle = Map->OnDistrictChanged.AddUObject(this, &UGRHUDWidget::HandleDistrictChanged);
 	}
+	RefreshLocation();
+	RefreshClock();
 
 	RefreshStatus();
 	RefreshRules();
@@ -150,6 +185,10 @@ void UGRHUDWidget::NativeDestruct()
 		{
 			Notifications->OnNotify.Remove(NotifyHandle);
 		}
+	}
+	if (UGRMapSubsystem* Map = GetWorld() ? GetWorld()->GetSubsystem<UGRMapSubsystem>() : nullptr)
+	{
+		Map->OnDistrictChanged.Remove(DistrictHandle);
 	}
 	Super::NativeDestruct();
 }
@@ -187,6 +226,39 @@ void UGRHUDWidget::RefreshStatus()
 	SuaraValue->SetText(FText::AsNumber(FMath::RoundToInt(Status->GetSuara())));
 	DiawasiBar->SetPercent(Status->GetDiawasi() / UGRStatusSubsystem::MeterMax);
 	DiawasiValue->SetText(FText::AsNumber(FMath::RoundToInt(Status->GetDiawasi())));
+}
+
+void UGRHUDWidget::RefreshLocation()
+{
+	const UGameInstance* GI = GetGameInstance();
+	const UGRProgressSubsystem* Progress = GI ? GI->GetSubsystem<UGRProgressSubsystem>() : nullptr;
+	const FText City = Progress ? Progress->GetCityDisplayName(Progress->GetCurrentCityId()) : FText::GetEmpty();
+	const UGRMapSubsystem* Map = GetWorld() ? GetWorld()->GetSubsystem<UGRMapSubsystem>() : nullptr;
+	const AGRDistrictVolume* District = Map ? Map->GetCurrentDistrict() : nullptr;
+	CityText->SetText(District ? FText::Format(LOCTEXT("Location", "{0}  |  {1}"), District->DisplayName, City) : City);
+}
+
+void UGRHUDWidget::RefreshClock()
+{
+	const UGRClockSubsystem* Clock = GetGameInstance() ? GetGameInstance()->GetSubsystem<UGRClockSubsystem>() : nullptr;
+	if (!Clock)
+	{
+		return;
+	}
+	ClockText->SetText(FText::Format(LOCTEXT("Clock", "Hari {0}  {1}"), FText::AsNumber(Clock->GetDay()), Clock->GetClockText()));
+	SmokeText->SetText(FText::Format(LOCTEXT("Smoke", "Udara: {0} (ISPU {1})"), Clock->GetSmokeCategory(), FText::AsNumber(FMath::RoundToInt(Clock->GetIspu()))));
+	SmokeText->SetColorAndOpacity(FSlateColor(Clock->GetSmokeColor()));
+}
+
+void UGRHUDWidget::HandleDistrictChanged(AGRDistrictVolume* District, bool bEntered)
+{
+	RefreshLocation();
+	if (District && bEntered)
+	{
+		DistrictTitle->SetText(FText::FromString(District->DisplayName.ToString().ToUpper()));
+		DistrictSubtitle->SetText(District->Subtitle);
+		DistrictPopupStart = FPlatformTime::Seconds();
+	}
 }
 
 void UGRHUDWidget::RefreshRules()
@@ -280,6 +352,23 @@ void UGRHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 				Old->RemoveFromParent();
 			}
 			Toasts.RemoveAt(Index);
+		}
+	}
+
+	// District name: fade in 0.5 s, hold, fade out by 3.5 s.
+	const double Since = Now - DistrictPopupStart;
+	const float PopupAlpha = Since < 0.5 ? Since / 0.5 : (Since < 2.8 ? 1.0 : FMath::Max(0.0, 1.0 - (Since - 2.8) / 0.7));
+	DistrictPopup->SetRenderOpacity(PopupAlpha);
+
+	if (Now >= NextClockRefresh)
+	{
+		NextClockRefresh = Now + 0.25;
+		RefreshClock();
+		UGRMapSubsystem* Map = GetWorld() ? GetWorld()->GetSubsystem<UGRMapSubsystem>() : nullptr;
+		const APawn* Pawn = GetOwningPlayerPawn();
+		if (Map && Pawn && !Map->GetCurrentDistrict())
+		{
+			Map->UpdateFromLocation(Pawn->GetActorLocation());
 		}
 	}
 

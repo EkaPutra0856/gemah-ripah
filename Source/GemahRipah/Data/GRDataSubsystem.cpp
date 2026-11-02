@@ -14,6 +14,7 @@ void UGRDataSubsystem::ReloadAll()
 	LoadJsonFile(TEXT("regulations.json"), Regulations);
 	LoadJsonFile(TEXT("tips.json"), Tips);
 	LoadJsonFile(TEXT("credits.json"), Credits);
+	LoadJsonFile(TEXT("world.json"), WorldConfig);
 
 	UE_LOG(LogGemahRipah, Log, TEXT("Data dimuat: %d aturan, %d tips, %d kredit."),
 		Regulations.Regulations.Num(), Tips.Tips.Num(), Credits.Credits.Num());

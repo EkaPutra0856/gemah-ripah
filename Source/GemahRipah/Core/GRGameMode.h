@@ -14,4 +14,8 @@ public:
 
 	/** Spawns as usual, then moves the pawn to the loaded save position if there is one. */
 	virtual void RestartPlayer(AController* NewPlayer) override;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };

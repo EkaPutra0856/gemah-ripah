@@ -4,6 +4,7 @@
 #include "Player/GRCharacter.h"
 #include "Player/GRInteractionComponent.h"
 #include "UI/GRMenuScreens.h"
+#include "UI/GRMapScreen.h"
 #include "UI/GRUISubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -66,6 +67,7 @@ void AGRPlayerController::BuildInputAssets()
 	SprintAction = MakeAction(this, TEXT("IA_Sprint"), EInputActionValueType::Boolean);
 	InteractAction = MakeAction(this, TEXT("IA_Interact"), EInputActionValueType::Boolean);
 	PauseAction = MakeAction(this, TEXT("IA_Pause"), EInputActionValueType::Boolean);
+	MapAction = MakeAction(this, TEXT("IA_Map"), EInputActionValueType::Boolean);
 
 	DefaultContext = NewObject<UInputMappingContext>(this, TEXT("IMC_GemahRipah"));
 
@@ -93,6 +95,9 @@ void AGRPlayerController::BuildInputAssets()
 	DefaultContext->MapKey(PauseAction, EKeys::Escape);
 	DefaultContext->MapKey(PauseAction, EKeys::P);
 	DefaultContext->MapKey(PauseAction, EKeys::Gamepad_Special_Right);
+
+	DefaultContext->MapKey(MapAction, EKeys::M);
+	DefaultContext->MapKey(MapAction, EKeys::Gamepad_Special_Left);
 }
 
 void AGRPlayerController::AddMappingContext()
@@ -128,6 +133,7 @@ void AGRPlayerController::SetupInputComponent()
 	Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &AGRPlayerController::HandleSprintCompleted);
 	Input->BindAction(InteractAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleInteract);
 	Input->BindAction(PauseAction, ETriggerEvent::Started, this, &AGRPlayerController::HandlePause);
+	Input->BindAction(MapAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleMap);
 }
 
 void AGRPlayerController::BeginPlay()
@@ -253,5 +259,14 @@ void AGRPlayerController::HandlePause()
 	if (UI && !UI->HasScreens())
 	{
 		UI->PushScreen<UGRPauseScreen>();
+	}
+}
+
+void AGRPlayerController::HandleMap()
+{
+	UGRUISubsystem* UI = GetLocalPlayer() ? GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (UI && !UI->HasScreens())
+	{
+		UI->PushScreen<UGRMapScreen>();
 	}
 }

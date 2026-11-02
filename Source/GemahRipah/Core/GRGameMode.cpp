@@ -3,6 +3,7 @@
 #include "Player/GRCharacter.h"
 #include "UI/GRHUD.h"
 #include "Systems/GRSaveSubsystem.h"
+#include "Systems/GRClockSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/Pawn.h"
 
@@ -26,4 +27,19 @@ void AGRGameMode::RestartPlayer(AController* NewPlayer)
 		Pawn->SetActorLocationAndRotation(Transform.GetLocation(), Transform.GetRotation(), false, nullptr, ETeleportType::TeleportPhysics);
 		NewPlayer->SetControlRotation(ControlRotation);
 	}
+}
+
+void AGRGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	GetGameInstance()->GetSubsystem<UGRClockSubsystem>()->SetRunning(true);
+}
+
+void AGRGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		GI->GetSubsystem<UGRClockSubsystem>()->SetRunning(false);
+	}
+	Super::EndPlay(EndPlayReason);
 }

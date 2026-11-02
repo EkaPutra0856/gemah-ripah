@@ -4,6 +4,7 @@
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRSaveSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRClockSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "GemahRipah.h"
@@ -20,6 +21,7 @@ void UGRGameFlowSubsystem::StartNewGame()
 	GI->GetSubsystem<UGRStatusSubsystem>()->ResetState();
 	GI->GetSubsystem<UGRProgressSubsystem>()->ResetState();
 	GI->GetSubsystem<UGRRegulationSubsystem>()->ResetState();
+	GI->GetSubsystem<UGRClockSubsystem>()->ResetState();
 	GI->GetSubsystem<UGRSaveSubsystem>()->ResetSession();
 
 	UGRProgressSubsystem* Progress = GI->GetSubsystem<UGRProgressSubsystem>();

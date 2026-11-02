@@ -10,8 +10,13 @@
 #include "UI/GRMenuScreens.h"
 #include "UI/GRSaveLoadScreen.h"
 #include "UI/GRSettingsScreen.h"
+#include "UI/GRMapScreen.h"
 #include "UI/GRUISubsystem.h"
 #include "Engine/LocalPlayer.h"
+#include "Systems/GRClockSubsystem.h"
+#include "World/GRBed.h"
+#include "World/GRMapBounds.h"
+#include "World/GRMapSubsystem.h"
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
 #include "GemahRipah.h"
@@ -165,6 +170,7 @@ void UGRCheatManager::GRUI(const FString& Screen)
 	else if (Name == TEXT("muat")) { UI->PushScreen<UGRLoadScreen>(); }
 	else if (Name == TEXT("pengaturan")) { UI->PushScreen<UGRSettingsScreen>(); }
 	else if (Name == TEXT("kredit")) { UI->PushScreen<UGRCreditsScreen>(); }
+	else if (Name == TEXT("peta")) { UI->PushScreen<UGRMapScreen>(); }
 	else if (Name == TEXT("tutup")) { UI->PopAll(); }
 	else { Print(TEXT("Layar: menu, jeda, simpan, muat, pengaturan, kredit, tutup")); }
 }
@@ -193,5 +199,38 @@ void UGRCheatManager::GRNotif(const FString& Message)
 	if (UGameInstance* GI = GetGI())
 	{
 		GI->GetSubsystem<UGRNotificationSubsystem>()->Notify(FText::FromString(Message.IsEmpty() ? TEXT("Tes notifikasi") : Message));
+	}
+}
+
+void UGRCheatManager::GRJam(float Hour)
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRClockSubsystem>()->SetHour(Hour); }
+}
+
+void UGRCheatManager::GRAsap(float Ispu)
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRClockSubsystem>()->SetIspuOverride(Ispu); }
+}
+
+void UGRCheatManager::GRTidur()
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	if (!PC)
+	{
+		return;
+	}
+	// A temporary bed does the fade, time jump and autosave.
+	AGRBed* Bed = PC->GetWorld()->SpawnActor<AGRBed>(FVector(0.f, 0.f, -100000.f), FRotator::ZeroRotator);
+	Bed->Sleep(PC);
+	Bed->SetLifeSpan(5.f);
+}
+
+void UGRCheatManager::GRPetaUlang()
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	const UGRMapSubsystem* Map = PC ? PC->GetWorld()->GetSubsystem<UGRMapSubsystem>() : nullptr;
+	if (UGRMapSubsystem* Mutable = const_cast<UGRMapSubsystem*>(Map))
+	{
+		Mutable->InvalidateFootprints();
 	}
 }

@@ -25,6 +25,7 @@ public:
 	const TArray<FGRRegulationDef>& GetRegulations() const { return Regulations.Regulations; }
 	const TArray<FString>& GetTips() const { return Tips.Tips; }
 	const TArray<FGRCreditEntry>& GetCredits() const { return Credits.Credits; }
+	const FGRWorldConfig& GetWorldConfig() const { return WorldConfig; }
 
 	FString GetRandomTip() const;
 
@@ -56,4 +57,5 @@ private:
 	FGRRegulationFile Regulations;
 	FGRTipsFile Tips;
 	FGRCreditsFile Credits;
+	FGRWorldConfig WorldConfig;
 };
