@@ -93,6 +93,10 @@ public:
 	UFUNCTION(Exec)
 	void GRPetaUlang();
 
+	/** Gets on or off the motor, same as the F key. */
+	UFUNCTION(Exec)
+	void GRMotor();
+
 	/** Sends a test toast. */
 	UFUNCTION(Exec)
 	void GRNotif(const FString& Message);

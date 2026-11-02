@@ -1,4 +1,5 @@
 #include "Core/GRCheatManager.h"
+#include "Core/GRPlayerController.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRRegulationData.h"
@@ -225,6 +226,14 @@ void UGRCheatManager::GRTidur()
 	AGRBed* Bed = PC->GetWorld()->SpawnActor<AGRBed>(FVector(0.f, 0.f, -100000.f), FRotator::ZeroRotator);
 	Bed->Sleep(PC);
 	Bed->SetLifeSpan(5.f);
+}
+
+void UGRCheatManager::GRMotor()
+{
+	if (AGRPlayerController* PC = Cast<AGRPlayerController>(GetOuterAPlayerController()))
+	{
+		PC->HandleMotor();
+	}
 }
 
 void UGRCheatManager::GRPetaUlang()

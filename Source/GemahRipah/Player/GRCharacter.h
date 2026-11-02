@@ -63,11 +63,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
 	float RideSpeed = 1600.f;
 
+	/** Grey-box scooter parts: body, cowl, seat, handlebar, two wheels. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gerak")
-	TObjectPtr<UStaticMeshComponent> MotorBody;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gerak")
-	TObjectPtr<UStaticMeshComponent> MotorFront;
+	TArray<TObjectPtr<UStaticMeshComponent>> MotorParts;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kamera")
 	float MinZoom = 200.f;

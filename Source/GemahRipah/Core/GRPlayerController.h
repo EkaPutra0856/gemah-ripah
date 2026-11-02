@@ -51,6 +51,7 @@ private:
 	void HandlePhone();
 	void HandleJournal();
 	void HandleMotor();
+	friend class UGRCheatManager;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputMappingContext> DefaultContext;

@@ -1,6 +1,7 @@
 #include "World/GRNpc.h"
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryUtil.h"
+#include "Systems/GRClockSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/CapsuleComponent.h"
@@ -172,6 +173,9 @@ void AGRNpc::Tick(float DeltaSeconds)
 	if (bSpn)
 	{
 		TickVision(DeltaSeconds, Player);
+		// Flashlights only after dark.
+		const UGRClockSubsystem* Clock = GetGameInstance()->GetSubsystem<UGRClockSubsystem>();
+		Flashlight->SetVisibility(Clock && Clock->IsNight());
 	}
 	TickBarks(DeltaSeconds, Player);
 

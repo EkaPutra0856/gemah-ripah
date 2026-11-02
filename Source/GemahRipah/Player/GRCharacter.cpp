@@ -46,21 +46,29 @@ AGRCharacter::AGRCharacter()
 
 	Interaction = CreateDefaultSubobject<UGRInteractionComponent>(TEXT("Interaction"));
 
-	// Grey-box motor under Bayu, shown while riding.
+	// Grey-box scooter under Bayu, shown while riding. Feet are at Z -96.
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
-	MotorBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MotorBody"));
-	MotorBody->SetupAttachment(RootComponent);
-	MotorBody->SetRelativeLocation(FVector(0.f, 0.f, -55.f));
-	MotorBody->SetRelativeScale3D(FVector(1.7f, 0.45f, 0.55f));
-	MotorFront = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MotorFront"));
-	MotorFront->SetupAttachment(RootComponent);
-	MotorFront->SetRelativeLocation(FVector(70.f, 0.f, -10.f));
-	MotorFront->SetRelativeScale3D(FVector(0.2f, 0.7f, 0.5f));
-	for (UStaticMeshComponent* Part : { MotorBody.Get(), MotorFront.Get() })
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMesh(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	struct FPart { const TCHAR* Name; bool bWheel; FVector Location; FVector Scale; };
+	const FPart Parts[] = {
+		{ TEXT("MotorBody"), false, FVector(0.f, 0.f, -66.f), FVector(1.1f, 0.3f, 0.2f) },
+		{ TEXT("MotorCowl"), false, FVector(50.f, 0.f, -45.f), FVector(0.18f, 0.36f, 0.6f) },
+		{ TEXT("MotorSeat"), false, FVector(-28.f, 0.f, -46.f), FVector(0.6f, 0.3f, 0.2f) },
+		{ TEXT("MotorBar"), false, FVector(44.f, 0.f, -12.f), FVector(0.06f, 0.75f, 0.06f) },
+		{ TEXT("MotorWheelF"), true, FVector(58.f, 0.f, -76.f), FVector(0.4f, 0.4f, 0.12f) },
+		{ TEXT("MotorWheelR"), true, FVector(-52.f, 0.f, -76.f), FVector(0.4f, 0.4f, 0.12f) },
+	};
+	for (const FPart& Info : Parts)
 	{
-		Part->SetStaticMesh(CubeMesh.Object);
+		UStaticMeshComponent* Part = CreateDefaultSubobject<UStaticMeshComponent>(Info.Name);
+		Part->SetupAttachment(RootComponent);
+		Part->SetStaticMesh(Info.bWheel ? CylinderMesh.Object : CubeMesh.Object);
+		Part->SetRelativeLocation(Info.Location);
+		Part->SetRelativeRotation(Info.bWheel ? FRotator(0.f, 0.f, 90.f) : FRotator::ZeroRotator);
+		Part->SetRelativeScale3D(Info.Scale);
 		Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Part->SetHiddenInGame(true);
+		MotorParts.Add(Part);
 	}
 
 	// Placeholder body until Bayu's model arrives from Tripo.
@@ -128,12 +136,14 @@ void AGRCharacter::SetRiding(bool bNewRiding)
 		return;
 	}
 	bRiding = bNewRiding;
-	MotorBody->SetHiddenInGame(!bRiding);
-	MotorFront->SetHiddenInGame(!bRiding);
-	if (bRiding)
+	// Body and cowl in the ojol green; seat, handlebar and wheels dark.
+	for (int32 i = 0; i < MotorParts.Num(); ++i)
 	{
-		GRStoryUtil::ApplyColor(MotorBody, FLinearColor(0.1f, 0.55f, 0.25f));
-		GRStoryUtil::ApplyColor(MotorFront, FLinearColor(0.15f, 0.15f, 0.15f));
+		MotorParts[i]->SetHiddenInGame(!bRiding);
+		if (bRiding)
+		{
+			GRStoryUtil::ApplyColor(MotorParts[i], i < 2 ? FLinearColor(0.1f, 0.55f, 0.25f) : FLinearColor(0.06f, 0.06f, 0.06f));
+		}
 	}
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	Move->MaxAcceleration = bRiding ? 1400.f : 2048.f;

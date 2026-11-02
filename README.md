@@ -80,6 +80,7 @@ Keputusan teknis:
 | `GRTidur` | Tidur sampai pagi (hari berikutnya + autosave) |
 | `GRPetaUlang` | Hitung ulang gambar peta dari bangunan |
 | `GRCerita "aksi; aksi"` | Jalankan aksi cerita, mis. `GRCerita "quest Piring; teleport ibu_pkm"` |
+| `GRMotor` | Naik/turun motor (sama dengan F) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
 
 ## Map
