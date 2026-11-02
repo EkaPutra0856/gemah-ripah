@@ -18,6 +18,7 @@
 #include "World/GRMapBounds.h"
 #include "World/GRMapSubsystem.h"
 #include "Engine/Engine.h"
+#include "Story/GRStorySubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "GemahRipah.h"
 
@@ -180,6 +181,7 @@ void UGRCheatManager::GRReloadData()
 	if (UGameInstance* GI = GetGI())
 	{
 		GI->GetSubsystem<UGRDataSubsystem>()->ReloadAll();
+		GI->GetSubsystem<UGRStorySubsystem>()->Reload();
 		Print(TEXT("Data JSON dimuat ulang."));
 	}
 }
@@ -232,5 +234,22 @@ void UGRCheatManager::GRPetaUlang()
 	if (UGRMapSubsystem* Mutable = const_cast<UGRMapSubsystem*>(Map))
 	{
 		Mutable->InvalidateFootprints();
+	}
+}
+
+void UGRCheatManager::GRCerita(const FString& Actions)
+{
+	if (UGRStorySubsystem* Story = GetWorld()->GetGameInstance()->GetSubsystem<UGRStorySubsystem>())
+	{
+		Story->Run(Actions);
+	}
+}
+
+void UGRCheatManager::GRCek(const FString& Condition)
+{
+	if (const UGRStorySubsystem* Story = GetWorld()->GetGameInstance()->GetSubsystem<UGRStorySubsystem>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GRCek %s = %s | objektif: %s | energi %.0f"), *Condition, Story->Check(Condition) ? TEXT("benar") : TEXT("salah"),
+			*Story->GetObjectiveText(), Story->GetEnergi());
 	}
 }

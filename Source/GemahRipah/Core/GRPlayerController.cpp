@@ -1,4 +1,6 @@
 #include "Core/GRPlayerController.h"
+#include "UI/GRStoryScreens.h"
+#include "Story/GRStorySubsystem.h"
 #include "Core/GRCheatManager.h"
 #include "Camera/GRTopDownRoomVolume.h"
 #include "Player/GRCharacter.h"
@@ -68,6 +70,9 @@ void AGRPlayerController::BuildInputAssets()
 	InteractAction = MakeAction(this, TEXT("IA_Interact"), EInputActionValueType::Boolean);
 	PauseAction = MakeAction(this, TEXT("IA_Pause"), EInputActionValueType::Boolean);
 	MapAction = MakeAction(this, TEXT("IA_Map"), EInputActionValueType::Boolean);
+	PhoneAction = MakeAction(this, TEXT("IA_Phone"), EInputActionValueType::Boolean);
+	JournalAction = MakeAction(this, TEXT("IA_Journal"), EInputActionValueType::Boolean);
+	MotorAction = MakeAction(this, TEXT("IA_Motor"), EInputActionValueType::Boolean);
 
 	DefaultContext = NewObject<UInputMappingContext>(this, TEXT("IMC_GemahRipah"));
 
@@ -98,6 +103,13 @@ void AGRPlayerController::BuildInputAssets()
 
 	DefaultContext->MapKey(MapAction, EKeys::M);
 	DefaultContext->MapKey(MapAction, EKeys::Gamepad_Special_Left);
+
+	DefaultContext->MapKey(PhoneAction, EKeys::Tab);
+	DefaultContext->MapKey(PhoneAction, EKeys::Gamepad_DPad_Up);
+	DefaultContext->MapKey(JournalAction, EKeys::J);
+	DefaultContext->MapKey(JournalAction, EKeys::Gamepad_DPad_Down);
+	DefaultContext->MapKey(MotorAction, EKeys::F);
+	DefaultContext->MapKey(MotorAction, EKeys::Gamepad_FaceButton_Top);
 }
 
 void AGRPlayerController::AddMappingContext()
@@ -134,6 +146,9 @@ void AGRPlayerController::SetupInputComponent()
 	Input->BindAction(InteractAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleInteract);
 	Input->BindAction(PauseAction, ETriggerEvent::Started, this, &AGRPlayerController::HandlePause);
 	Input->BindAction(MapAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleMap);
+	Input->BindAction(PhoneAction, ETriggerEvent::Started, this, &AGRPlayerController::HandlePhone);
+	Input->BindAction(JournalAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleJournal);
+	Input->BindAction(MotorAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleMotor);
 }
 
 void AGRPlayerController::BeginPlay()
@@ -268,5 +283,49 @@ void AGRPlayerController::HandleMap()
 	if (UI && !UI->HasScreens())
 	{
 		UI->PushScreen<UGRMapScreen>();
+	}
+}
+
+void AGRPlayerController::HandlePhone()
+{
+	UGRUISubsystem* UI = GetLocalPlayer() ? GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (UI && !UI->HasScreens())
+	{
+		UI->PushScreen<UGRPhoneScreen>();
+	}
+}
+
+void AGRPlayerController::HandleJournal()
+{
+	UGRUISubsystem* UI = GetLocalPlayer() ? GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (UI && !UI->HasScreens())
+	{
+		UI->PushScreen<UGRJournalScreen>();
+	}
+}
+
+void AGRPlayerController::HandleMotor()
+{
+	AGRCharacter* GRCharacter = GetGRCharacter();
+	UGRStorySubsystem* Story = GetGameInstance() ? GetGameInstance()->GetSubsystem<UGRStorySubsystem>() : nullptr;
+	if (!GRCharacter || !Story)
+	{
+		return;
+	}
+	if (GRCharacter->IsRiding())
+	{
+		GRCharacter->SetRiding(false);
+	}
+	else if (Story->GetVar(TEXT("punya_motor")) == 0)
+	{
+		Story->Run(TEXT("notif Motormu masih di halaman rumah."));
+	}
+	else if (CurrentRoom.IsValid())
+	{
+		Story->Run(TEXT("notif Tidak bisa naik motor di dalam ruangan."));
+	}
+	else
+	{
+		GRCharacter->SetRiding(true);
 	}
 }

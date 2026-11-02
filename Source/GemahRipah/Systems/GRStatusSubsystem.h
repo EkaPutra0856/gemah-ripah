@@ -44,7 +44,7 @@ public:
 	void AddSuara(float Delta);
 
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	void AddDiawasi(float Delta);
+	void AddDiawasi(float Delta, bool bQuiet = false);
 
 	/** New game values. */
 	void ResetState();

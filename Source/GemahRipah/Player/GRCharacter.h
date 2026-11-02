@@ -7,6 +7,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UGRInteractionComponent;
+class UStaticMeshComponent;
 
 /**
  * Bayu. Third-person open-world camera (Genshin-like) by default.
@@ -36,6 +37,13 @@ public:
 
 	UGRInteractionComponent* GetInteraction() const { return Interaction; }
 
+	/** Bayu's ojol motor: much faster, no stamina cost. */
+	UFUNCTION(BlueprintCallable, Category = "Gerak")
+	void SetRiding(bool bNewRiding);
+
+	UFUNCTION(BlueprintPure, Category = "Gerak")
+	bool IsRiding() const { return bRiding; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Kamera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -52,6 +60,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
 	float SprintSpeed = 750.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
+	float RideSpeed = 1600.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gerak")
+	TObjectPtr<UStaticMeshComponent> MotorBody;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gerak")
+	TObjectPtr<UStaticMeshComponent> MotorFront;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kamera")
 	float MinZoom = 200.f;
 
@@ -63,4 +80,6 @@ protected:
 
 private:
 	bool bTopDownMode = false;
+	bool bRiding = false;
+	bool bSprinting = false;
 };

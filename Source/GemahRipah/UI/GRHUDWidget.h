@@ -57,6 +57,10 @@ private:
 	UPROPERTY() TObjectPtr<UProgressBar> DiawasiBar;
 	UPROPERTY() TObjectPtr<UTextBlock> DiawasiValue;
 	UPROPERTY() TObjectPtr<UVerticalBox> RuleList;
+	UPROPERTY() TObjectPtr<UProgressBar> EnergiBar;
+	UPROPERTY() TObjectPtr<UTextBlock> EnergiValue;
+	UPROPERTY() TObjectPtr<UTextBlock> ObjectiveText;
+	UPROPERTY() TObjectPtr<UTextBlock> AlertText;
 	UPROPERTY() TObjectPtr<UTextBlock> CityText;
 	UPROPERTY() TObjectPtr<UTextBlock> ClockText;
 	UPROPERTY() TObjectPtr<UTextBlock> SmokeText;

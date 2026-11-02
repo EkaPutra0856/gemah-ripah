@@ -59,11 +59,11 @@ void UGRStatusSubsystem::AddSuara(float Delta)
 	OnStatusChanged.Broadcast();
 }
 
-void UGRStatusSubsystem::AddDiawasi(float Delta)
+void UGRStatusSubsystem::AddDiawasi(float Delta, bool bQuiet)
 {
 	const float Old = Diawasi;
 	Diawasi = FMath::Clamp(Diawasi + Delta, 0.f, MeterMax);
-	if (!FMath::IsNearlyEqual(Old, Diawasi))
+	if (!bQuiet && !FMath::IsNearlyEqual(Old, Diawasi))
 	{
 		NotifyChange(FString::Printf(TEXT("Diawasi %+.0f"), Diawasi - Old), Diawasi < Old);
 	}

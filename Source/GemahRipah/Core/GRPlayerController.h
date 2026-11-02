@@ -48,6 +48,9 @@ private:
 	void HandleInteract();
 	void HandlePause();
 	void HandleMap();
+	void HandlePhone();
+	void HandleJournal();
+	void HandleMotor();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputMappingContext> DefaultContext;
@@ -75,6 +78,15 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputAction> MapAction;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInputAction> PhoneAction;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInputAction> JournalAction;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInputAction> MotorAction;
 
 	TWeakObjectPtr<AGRTopDownRoomVolume> CurrentRoom;
 };

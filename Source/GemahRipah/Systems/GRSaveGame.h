@@ -12,7 +12,7 @@ class GEMAHRIPAH_API UGRSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	static constexpr int32 CurrentVersion = 3;
+	static constexpr int32 CurrentVersion = 4;
 
 	UPROPERTY()
 	int32 SaveVersion = CurrentVersion;
@@ -64,4 +64,19 @@ public:
 	// Regulations, by tag name
 	UPROPERTY()
 	TArray<FName> ActiveRegulationIds;
+
+	UPROPERTY()
+	TMap<FString, int32> StoryVars;
+
+	UPROPERTY()
+	TArray<FString> QuestOrder;
+
+	UPROPERTY()
+	TArray<FString> Inbox;
+
+	UPROPERTY()
+	TArray<FString> Ledger;
+
+	UPROPERTY()
+	float Energi = 100.f;
 };

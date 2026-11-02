@@ -3,6 +3,7 @@
 #include "Systems/GRNotificationSubsystem.h"
 #include "Systems/GRSaveSubsystem.h"
 #include "Data/GRDataSubsystem.h"
+#include "Story/GRStorySubsystem.h"
 #include "UI/GRMenuScreens.h"
 #include "UI/GRUISubsystem.h"
 #include "Camera/PlayerCameraManager.h"
@@ -68,6 +69,9 @@ void AGRBed::WakeUp(APlayerController* PC)
 	UGameInstance* GI = GetGameInstance();
 	UGRClockSubsystem* Clock = GI->GetSubsystem<UGRClockSubsystem>();
 	Clock->SleepUntilMorning();
+	UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>();
+	Story->CancelOrder();
+	Story->RunMorning();
 	GI->GetSubsystem<UGRSaveSubsystem>()->Autosave();
 	GI->GetSubsystem<UGRNotificationSubsystem>()->Notify(
 		FText::Format(LOCTEXT("NewDay", "Hari {0} dimulai. Udara: {1}"), FText::AsNumber(Clock->GetDay()), Clock->GetSmokeCategory()), EGRNotifyType::Info);

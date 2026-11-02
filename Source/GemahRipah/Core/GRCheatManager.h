@@ -15,6 +15,14 @@ public:
 	UFUNCTION(Exec)
 	void GRStatus();
 
+	/** Runs story actions, e.g. GRCerita "quest Pagi; item beras 2". */
+	UFUNCTION(Exec)
+	void GRCerita(const FString& Actions);
+
+	/** Logs whether a story condition holds, e.g. GRCek "q.Pagi>=2". */
+	UFUNCTION(Exec)
+	void GRCek(const FString& Condition);
+
 	UFUNCTION(Exec)
 	void GRUang(int32 Delta);
 

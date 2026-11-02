@@ -4,6 +4,7 @@
 #include "Systems/GRProgressSubsystem.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRClockSubsystem.h"
+#include "Story/GRStorySubsystem.h"
 #include "Systems/GRNotificationSubsystem.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -37,6 +38,7 @@ void UGRSaveSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Collection.InitializeDependency<UGRRegulationSubsystem>();
 	Collection.InitializeDependency<UGRNotificationSubsystem>();
 	Collection.InitializeDependency<UGRClockSubsystem>();
+	Collection.InitializeDependency<UGRStorySubsystem>();
 	ResetSession();
 }
 
@@ -71,6 +73,7 @@ bool UGRSaveSubsystem::SaveToSlot(const FString& SlotName)
 	GI->GetSubsystem<UGRProgressSubsystem>()->WriteToSave(*Save);
 	GI->GetSubsystem<UGRRegulationSubsystem>()->WriteToSave(*Save);
 	GI->GetSubsystem<UGRClockSubsystem>()->WriteToSave(*Save);
+	GI->GetSubsystem<UGRStorySubsystem>()->WriteToSave(*Save);
 
 	Save->SavedAt = FDateTime::Now();
 	Save->PlayTimeSeconds = GetPlayTimeSeconds();
@@ -116,6 +119,7 @@ bool UGRSaveSubsystem::LoadFromSlot(const FString& SlotName)
 	GI->GetSubsystem<UGRProgressSubsystem>()->ReadFromSave(*Save);
 	GI->GetSubsystem<UGRRegulationSubsystem>()->ReadFromSave(*Save);
 	GI->GetSubsystem<UGRClockSubsystem>()->ReadFromSave(*Save);
+	GI->GetSubsystem<UGRStorySubsystem>()->ReadFromSave(*Save);
 
 	PlayTimeBase = Save->PlayTimeSeconds;
 	SessionStartSeconds = FPlatformTime::Seconds();

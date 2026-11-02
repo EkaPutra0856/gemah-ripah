@@ -9,6 +9,9 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Story/GRStoryUtil.h"
 
 AGRCharacter::AGRCharacter()
 {
@@ -42,6 +45,23 @@ AGRCharacter::AGRCharacter()
 	FollowCamera->bUsePawnControlRotation = false;
 
 	Interaction = CreateDefaultSubobject<UGRInteractionComponent>(TEXT("Interaction"));
+
+	// Grey-box motor under Bayu, shown while riding.
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	MotorBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MotorBody"));
+	MotorBody->SetupAttachment(RootComponent);
+	MotorBody->SetRelativeLocation(FVector(0.f, 0.f, -55.f));
+	MotorBody->SetRelativeScale3D(FVector(1.7f, 0.45f, 0.55f));
+	MotorFront = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MotorFront"));
+	MotorFront->SetupAttachment(RootComponent);
+	MotorFront->SetRelativeLocation(FVector(70.f, 0.f, -10.f));
+	MotorFront->SetRelativeScale3D(FVector(0.2f, 0.7f, 0.5f));
+	for (UStaticMeshComponent* Part : { MotorBody.Get(), MotorFront.Get() })
+	{
+		Part->SetStaticMesh(CubeMesh.Object);
+		Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Part->SetHiddenInGame(true);
+	}
 
 	// Placeholder body until Bayu's model arrives from Tripo.
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MannyMesh(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
@@ -97,5 +117,26 @@ void AGRCharacter::ZoomFromInput(float Delta)
 
 void AGRCharacter::SetSprinting(bool bNewSprinting)
 {
-	GetCharacterMovement()->MaxWalkSpeed = bNewSprinting ? SprintSpeed : WalkSpeed;
+	bSprinting = bNewSprinting;
+	GetCharacterMovement()->MaxWalkSpeed = bRiding ? RideSpeed * (bSprinting ? 1.3f : 1.f) : (bSprinting ? SprintSpeed : WalkSpeed);
+}
+
+void AGRCharacter::SetRiding(bool bNewRiding)
+{
+	if (bRiding == bNewRiding)
+	{
+		return;
+	}
+	bRiding = bNewRiding;
+	MotorBody->SetHiddenInGame(!bRiding);
+	MotorFront->SetHiddenInGame(!bRiding);
+	if (bRiding)
+	{
+		GRStoryUtil::ApplyColor(MotorBody, FLinearColor(0.1f, 0.55f, 0.25f));
+		GRStoryUtil::ApplyColor(MotorFront, FLinearColor(0.15f, 0.15f, 0.15f));
+	}
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	Move->MaxAcceleration = bRiding ? 1400.f : 2048.f;
+	Move->RotationRate = FRotator(0.f, bRiding ? 260.f : 600.f, 0.f);
+	SetSprinting(bSprinting);
 }

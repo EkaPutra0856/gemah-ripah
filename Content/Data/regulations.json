@@ -4,7 +4,9 @@
       "id": "Aturan.LaranganBerkumpul",
       "title": "Larangan Berkumpul Tanpa Izin",
       "announcement": "Demi ketertiban, warga dilarang berkumpul lebih dari tiga orang tanpa izin. Berlaku mulai detik ini.",
-      "forbiddenActions": ["Aksi.Kumpul"],
+      "forbiddenActions": [
+        "Aksi.Kumpul"
+      ],
       "diawasiPenalty": 20,
       "fineUang": 0
     },
@@ -12,7 +14,10 @@
       "id": "Aturan.PasalKaretKritik",
       "title": "Pasal Penghinaan Pejabat",
       "announcement": "Setiap unggahan yang merendahkan martabat pejabat negara dapat dipidana. Kritik tetap boleh, asal sopan, membangun, dan tidak benar-benar mengkritik.",
-      "forbiddenActions": ["Aksi.Unggah.Kritik", "Aksi.Bicara.Media"],
+      "forbiddenActions": [
+        "Aksi.Unggah.Kritik",
+        "Aksi.Bicara.Media"
+      ],
       "diawasiPenalty": 25,
       "fineUang": 0
     },
@@ -20,9 +25,21 @@
       "id": "Aturan.LaranganInfoPPR",
       "title": "Larangan Menyebarkan Informasi PPR",
       "announcement": "Informasi tentang Program Piring Rakyat hanya boleh disampaikan oleh juru bicara resmi. Penyebar kabar keracunan akan ditindak.",
-      "forbiddenActions": ["Aksi.Unggah.InfoPPR"],
+      "forbiddenActions": [
+        "Aksi.Unggah.InfoPPR"
+      ],
       "diawasiPenalty": 30,
       "fineUang": 50000
+    },
+    {
+      "id": "Aturan.JamMalamAsap",
+      "title": "Jam Malam Demi Kesehatan",
+      "announcement": "Demi melindungi warga dari asap yang sebenarnya baik-baik saja, jam malam berlaku pukul 21.00 sampai 04.00. Pelanggar akan diantar pulang oleh SPN.",
+      "forbiddenActions": [
+        "Aksi.Keluyuran"
+      ],
+      "diawasiPenalty": 10,
+      "fineUang": 0
     }
   ]
 }

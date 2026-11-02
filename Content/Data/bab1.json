@@ -1,0 +1,611 @@
+{
+  "title": "Bab 1: Asap dan Piring",
+  "start": "cutscene pembuka",
+  "onCaught": "cutscene ditangkap",
+  "onFaint": "notifburuk Bayu pingsan karena lelah dan asap.; uang -20000 Biaya klinik; tidur",
+  "onMorning": "",
+  "suspicious": "bawa_bukti || jam_malam && hour>=21 || jam_malam && hour<4",
+
+  "items": [
+    { "id": "beras", "name": "Beras 2 kg", "desc": "Untuk makan keluarga sehari." },
+    { "id": "obat", "name": "Obat Dinda", "desc": "Obat mual dan vitamin dari apotek pasar." },
+    { "id": "masker", "name": "Masker N95 (KW)", "desc": "Selama punya satu, napas lebih lega dan lelah karena asap berkurang." },
+    { "id": "nasi_bungkus", "name": "Nasi bungkus", "desc": "Nasi, tempe, sambal. Menambah energi.", "use": "energi 40; notif Kenyang. Energi bertambah." },
+    { "id": "kopi", "name": "Kopi sachet", "desc": "Tiga ribu rupiah semangat.", "use": "energi 18; notif Melek lagi." },
+    { "id": "sktm", "name": "Surat Keterangan Tidak Mampu", "desc": "Selembar kertas yang membuktikan negara tahu kamu miskin." },
+    { "id": "foto_lab", "name": "Foto hasil lab Puskesmas", "desc": "Hasil lab 23 siswa: bakteri E. coli tinggi. Ada stempel RAHASIA.", "bukti": true },
+    { "id": "foto_dapur", "name": "Foto dapur PPR", "desc": "Ayam berbelatung di kotak bertuliskan 'Higienis 100%'.", "bukti": true },
+    { "id": "nota_anggaran", "name": "Nota anggaran PPR", "desc": "Di atas kertas Rp15.000 per porsi. Belanja nyata Rp6.200.", "bukti": true },
+    { "id": "daftar_korban", "name": "Daftar siswa sakit", "desc": "23 nama siswa yang dirawat, dengan catatan tangan: 'jangan bocor'.", "bukti": true },
+    { "id": "rekaman_pungli", "name": "Rekaman pungli kelurahan", "desc": "Suara Pak Darmo: 'Gratis itu kalau prosesnya dua minggu.'", "bukti": true }
+  ],
+
+  "shop": [
+    { "item": "beras", "place": "pasar", "price": 15000, "priceStepPerDay": 2500 },
+    { "item": "obat", "place": "pasar", "price": 25000, "priceStepPerDay": 0 },
+    { "item": "masker", "place": "pasar", "price": 10000, "priceStepPerDay": 4000 },
+    { "item": "nasi_bungkus", "place": "pasar", "price": 12000, "priceStepPerDay": 1000 },
+    { "item": "kopi", "place": "warung", "price": 5000, "priceStepPerDay": 1000 },
+    { "item": "nasi_bungkus", "place": "warung", "price": 13000, "priceStepPerDay": 1000 },
+    { "item": "masker", "place": "warung", "price": 12000, "priceStepPerDay": 4000 }
+  ],
+
+  "quests": [
+    {
+      "id": "Pagi", "title": "Asap Pagi",
+      "desc": "Hari pertama. Keluarga butuh beras, dan OjekKu butuh pengemudi.",
+      "steps": [
+        "Bicara dengan Ibu di dalam rumah.",
+        "Ambil motor di halaman, lalu tekan F untuk naik.",
+        "Buka OjekKu di ponsel (Tab) dan selesaikan satu order.",
+        "Beli beras di Pasar Sentosa."
+      ],
+      "targets": ["ibu_pagi", "motor_halaman", "", "tini"]
+    },
+    {
+      "id": "Piring", "title": "Piring Beracun",
+      "desc": "Dinda keracunan makanan Program Piring Rakyat.",
+      "steps": [
+        "Pergi ke Puskesmas. Dinda dirawat di sana.",
+        "Urus Surat Keterangan Tidak Mampu (SKTM) di Kantor Kelurahan.",
+        "Bawa SKTM ke dr. Lestari di Puskesmas.",
+        "Tanyakan kasus keracunan ke Kepala SDN Sentosa 1.",
+        "Temui guru yang memberi isyarat di ujung pagar sekolah.",
+        "Pulang dan tidur. Kasur bisa dipakai mulai pukul 18.00."
+      ],
+      "targets": ["ibu_pkm", "darmo_skm", "dokter_sktm", "kepsek_kasus", "ratna", "rumah"]
+    },
+    {
+      "id": "Dapur", "title": "Dapur Rahasia",
+      "desc": "Bu Ratna bilang bukti ada di kantor Dapur PPR.",
+      "steps": [
+        "Menyusup ke Dapur PPR lewat pintu belakang, setelah pukul 19.00.",
+        "Bawa bukti pulang ke rumah. Hindari pandangan SPN!"
+      ],
+      "targets": ["pintu_dapur", "rumah"]
+    },
+    {
+      "id": "Unggah", "title": "Unggah",
+      "desc": "Bukti harus dilihat banyak orang sebelum dihapus.",
+      "steps": [
+        "Tidur. Besok pagi (Hari 3) unggah bukti di Warnet Jaya.",
+        "Unggah bukti lewat PC di Warnet Jaya.",
+        "Pulang ke rumah."
+      ],
+      "targets": ["rumah", "pc_warnet", "rumah"]
+    },
+    {
+      "id": "Malam", "title": "Warga Berkumpul",
+      "desc": "Pak RT mengundang ke Pos Ronda. Katanya cuma ngopi.",
+      "steps": ["Datang ke Pos Ronda dan temui Pak RT."],
+      "targets": ["pak_rt"]
+    }
+  ],
+
+  "speakers": [
+    { "id": "bayu", "name": "Bayu", "role": "Bayu, ojol", "color": "#5FD3C8" },
+    { "id": "ibu", "name": "Bu Sri", "role": "Ibu Bayu", "color": "#C77DBA" },
+    { "id": "dinda", "name": "Dinda", "role": "Adik Bayu", "color": "#F2C14E" },
+    { "id": "rudi", "name": "Rudi", "role": "Teman ojol", "color": "#7FB069" },
+    { "id": "darmo", "name": "Pak Darmo", "role": "Pegawai kelurahan", "color": "#E9C46A" },
+    { "id": "dokter", "name": "dr. Lestari", "role": "Dokter Puskesmas", "color": "#9AD1D4" },
+    { "id": "kepsek", "name": "Pak Hartono", "role": "Kepala sekolah", "color": "#B5838D" },
+    { "id": "ratna", "name": "Bu Ratna", "role": "Guru honorer", "color": "#F4A261" },
+    { "id": "tini", "name": "Bu Tini", "role": "Pedagang beras", "color": "#E76F51" },
+    { "id": "wiryo", "name": "Komandan Wiryo", "role": "SPN", "color": "#6C8EBF" },
+    { "id": "intel", "name": "Pria Berkemeja", "role": "Tidak menyebut nama", "color": "#8D99AE" },
+    { "id": "spn", "name": "Petugas SPN", "role": "SPN", "color": "#6C8EBF" },
+    { "id": "rt", "name": "Pak RT Darto", "role": "Ketua RT", "color": "#D4A373" },
+    { "id": "warga", "name": "Pak Udin", "role": "Warga", "color": "#A8DADC" },
+    { "id": "joko", "name": "Mas Joko", "role": "Penjaga warnet", "color": "#90BE6D" },
+    { "id": "satpam", "name": "Satpam Dapur", "role": "Satpam", "color": "#577590" }
+  ],
+
+  "dialogs": [
+    {
+      "id": "ibu_pagi", "style": "vn",
+      "nodes": [
+        { "speaker": "ibu", "text": "Bay, sudah bangun? Asapnya makin tebal. Ibu sampai nggak bisa lihat jemuran." },
+        { "speaker": "bayu", "text": "Iya, Bu. Dinda sudah berangkat?" },
+        { "speaker": "ibu", "text": "Sudah. Katanya menu PPR hari ini ayam goreng. Senang sekali dia." },
+        { "speaker": "ibu", "text": "Beras tinggal segenggam. Nanti selesai narik, belikan beras di pasar ya.",
+          "choices": [
+            { "text": "Siap, Bu. Bayu narik dulu.", "do": "step Pagi 2", "next": "end" },
+            { "text": "Uangnya cukup, Bu?", "next": "uang" }
+          ] },
+        { "id": "uang", "speaker": "ibu", "text": "Cukup, kalau harganya nggak naik lagi. Di TV katanya harga stabil.", "do": "step Pagi 2", "next": "end" }
+      ]
+    },
+    {
+      "id": "ibu_rumah", "style": "3d",
+      "nodes": [
+        { "if": "viral>=1", "speaker": "ibu", "text": "Tetangga semua bicara soal unggahanmu, Bay. Ibu bangga. Ibu juga takut.", "next": "end" },
+        { "if": "dinda_sakit && day>=2", "speaker": "ibu", "text": "Dinda masih lemas. Kata dokter jangan makan PPR dulu. Jangan lupa obatnya, ya.", "next": "end" },
+        { "speaker": "ibu", "text": "Hati-hati di jalan, Bay. Pakai masker. Uhuk...", "next": "end" }
+      ]
+    },
+    {
+      "id": "ibu_malam", "style": "vn",
+      "nodes": [
+        { "speaker": "ibu", "text": "Bayu! Dari mana malam-malam begini? Bajumu bau got." },
+        { "speaker": "bayu", "text": "Dari dapur PPR, Bu. Bayu punya buktinya. Ayamnya busuk, anggarannya dipotong." },
+        { "speaker": "ibu", "text": "Ya Allah... Bay, kamu ingat Pak Marto? Protes soal tanah, besoknya hilang dua minggu." },
+        { "speaker": "ibu", "text": "Ibu bangga. Tapi Ibu takut. Janji sama Ibu, hati-hati.",
+          "choices": [
+            { "text": "Bayu janji, Bu.", "next": "end" },
+            { "text": "Kalau kita diam, korban berikutnya siapa, Bu?", "do": "suara 5", "next": "end" }
+          ] }
+      ]
+    },
+    {
+      "id": "dinda_rumah", "style": "3d",
+      "nodes": [
+        { "if": "viral>=1", "speaker": "dinda", "text": "Kak Bayu masuk Kicau! Teman-teman Dinda pada lihat. Kata mereka Kakak pahlawan. Kata Bu Kepala Sekolah, Kakak provokator.", "next": "end" },
+        { "speaker": "dinda", "text": "Kak, ayam kemarin baunya aneh. Tapi kata pengawas harus dihabiskan, nanti dimarahi.", "next": "end" }
+      ]
+    },
+    {
+      "id": "rudi_pagi", "style": "chat",
+      "nodes": [
+        { "speaker": "rudi", "text": "Bro, order sepi, asap tebel banget." },
+        { "speaker": "rudi", "text": "Potongan aplikasi naik jadi 20%. Katanya buat kesejahteraan mitra. Mitra yang mana coba." },
+        { "speaker": "rudi", "text": "Pakai masker. Di pasar ada yang jual. Jangan sok kuat.",
+          "choices": [ { "text": "Siap bro, makasih.", "next": "end" } ] }
+      ]
+    },
+    {
+      "id": "ibu_darurat", "style": "chat",
+      "nodes": [
+        { "speaker": "ibu", "text": "BAYU!! Dinda muntah-muntah habis makan siang PPR di sekolah!!" },
+        { "speaker": "ibu", "text": "Ibu bawa ke Puskesmas sekarang. Banyak temannya juga. Cepat ke sini." },
+        { "speaker": "ibu", "text": "Berasnya taruh rumah dulu juga nggak apa-apa. Cepat ya Nak.",
+          "choices": [ { "text": "Bayu ke sana sekarang, Bu!", "next": "end" } ] }
+      ]
+    },
+    {
+      "id": "ratna_pesan", "style": "chat",
+      "nodes": [
+        { "speaker": "ratna", "text": "Bayu, ini Bu Ratna. Hapus pesan ini setelah dibaca." },
+        { "speaker": "ratna", "text": "Malam ini setelah jam 7, pintu belakang Dapur PPR. Satpam ganti shift." },
+        { "speaker": "ratna", "text": "Nota anggaran di meja kantor dapur. Ada juga daftar anak yang sakit. Hati-hati, ada penjaga di dalam.",
+          "choices": [ { "text": "Siap, Bu. Pesannya saya hapus.", "next": "end" } ] }
+      ]
+    },
+    {
+      "id": "rt_undangan", "style": "chat",
+      "nodes": [
+        { "speaker": "rt", "text": "Bay, warga kumpul di Pos Ronda malam ini." },
+        { "speaker": "rt", "text": "Bukan rapat. Cuma ngopi. Kalau ada yang tanya, bilang ngopi.",
+          "choices": [ { "text": "Saya ke sana, Pak.", "next": "end" } ] }
+      ]
+    },
+    {
+      "id": "ibu_pkm", "style": "vn",
+      "nodes": [
+        { "speaker": "ibu", "text": "Bay! Dinda di dalam, diinfus. Muntahnya sudah berhenti." },
+        { "speaker": "dinda", "text": "Kak... ayamnya bau... tapi Dinda habisin, takut dimarahin..." },
+        { "speaker": "dokter", "text": "Saya dr. Lestari. Hari ini sudah dua puluh tiga anak dari SDN Sentosa 1. Gejalanya sama." },
+        { "speaker": "dokter", "text": "Dinda harus dirawat semalam. Gratis kalau ada Surat Keterangan Tidak Mampu dari kelurahan. Kalau tidak, Rp350.000.",
+          "choices": [
+            { "text": "(Bayar Rp350.000)", "if": "uang>=350000", "do": "uang -350000 Biaya rawat Dinda; step Piring 4", "next": "bayar" },
+            { "text": "Saya urus suratnya ke kelurahan, Dok.", "do": "step Piring 2", "next": "end" }
+          ] },
+        { "id": "bayar", "speaker": "dokter", "text": "Baik. Coba tanya juga ke sekolah. Banyak anak yang kena, tapi saya dilarang menyebut kata 'keracunan'.", "next": "end" }
+      ]
+    },
+    {
+      "id": "dokter_sktm", "style": "vn",
+      "nodes": [
+        { "speaker": "dokter", "text": "Suratnya sudah ada? Baik, Dinda kami rawat. Biaya ditanggung." },
+        { "speaker": "dokter", "text": "Hasil lab sudah keluar. Bakterinya dari makanan. Tapi dinas minta hasilnya disimpan. 'Demi ketenangan publik.'",
+          "choices": [
+            { "text": "Boleh saya foto hasil labnya, Dok?", "do": "item foto_lab 1; diawasi 5", "next": "akhir" },
+            { "text": "Terima kasih, Dok.", "next": "akhir" }
+          ] },
+        { "id": "akhir", "speaker": "dokter", "text": "Coba tanya ke sekolah. Tapi kepala sekolahnya... ya, kamu lihat sendiri.", "do": "item sktm -1; step Piring 4", "next": "end" }
+      ]
+    },
+    {
+      "id": "dokter_umum", "style": "3d",
+      "nodes": [ { "speaker": "dokter", "text": "Puskesmas penuh. Kalau tidak darurat, pakai masker dan banyak minum air.", "next": "end" } ]
+    },
+    {
+      "id": "darmo_skm", "style": "3d",
+      "nodes": [
+        { "speaker": "darmo", "text": "SKTM? Bisa, bisa. Biaya administrasinya seratus ribu.",
+          "choices": [
+            { "text": "Bayar Rp100.000", "if": "uang>=100000", "do": "uang -100000 Pungli SKTM kelurahan; set pungli_bayar 1", "next": "beri" },
+            { "text": "Tawar: Rp50.000 saja, Pak.", "if": "uang>=50000", "next": "tawar" },
+            { "text": "Bukannya gratis? Di papan pengumuman tertulis gratis.", "next": "gratis" }
+          ] },
+        { "id": "tawar", "speaker": "darmo", "text": "Ya sudah, lima puluh. Jangan bilang-bilang. Ini bukan pungli, ini uang lelah.", "do": "uang -50000 Pungli SKTM (ditawar); set pungli_bayar 1", "next": "beri" },
+        { "id": "gratis", "speaker": "darmo", "text": "Gratis itu kalau prosesnya dua minggu. Adikmu bisa nunggu dua minggu?",
+          "choices": [
+            { "text": "(Rekam diam-diam, lalu bayar Rp50.000)", "if": "uang>=50000", "do": "item rekaman_pungli 1; diawasi 5; uang -50000 Pungli SKTM (direkam)", "next": "beri" },
+            { "text": "Saya lapor Ombudsman, Pak.", "do": "suara 8; diawasi 8", "next": "ombudsman" }
+          ] },
+        { "id": "ombudsman", "speaker": "darmo", "text": "Lapor saja. Ombudsman-nya teman mancing saya. ...Ya sudah, ini suratnya. Saya lagi malas ribut.", "next": "beri" },
+        { "id": "beri", "speaker": "darmo", "text": "Ini suratnya. Stempelnya agak miring, tapi sah.", "do": "item sktm 1; step Piring 3", "next": "end" }
+      ]
+    },
+    {
+      "id": "darmo_umum", "style": "3d",
+      "nodes": [ { "speaker": "darmo", "text": "Pelayanan sudah tutup. Eh, buka. Tergantung.", "next": "end" } ]
+    },
+    {
+      "id": "kepsek", "style": "3d",
+      "nodes": [
+        { "speaker": "kepsek", "text": "Keracunan? Tidak ada keracunan di sekolah ini, Pak." },
+        { "speaker": "kepsek", "text": "Anak-anak sakit karena asap dan kurang sarapan. Itu kata dinas. Dinas tidak pernah salah.",
+          "choices": [
+            { "text": "Adik saya muntah setelah makan PPR!", "do": "diawasi 5", "next": "hoaks" },
+            { "text": "Boleh saya lihat sisa makanannya?", "next": "sop" }
+          ] },
+        { "id": "hoaks", "speaker": "kepsek", "text": "Hati-hati bicara, Pak. Ada pasal untuk penyebar hoaks. Permisi.", "do": "step Piring 5; notif Seorang guru memberi isyarat dari ujung pagar sekolah.", "next": "end" },
+        { "id": "sop", "speaker": "kepsek", "text": "Sudah dimusnahkan sesuai SOP. Permisi, saya ada rapat daring dengan dinas.", "do": "step Piring 5; notif Seorang guru memberi isyarat dari ujung pagar sekolah.", "next": "end" }
+      ]
+    },
+    {
+      "id": "kepsek_umum", "style": "3d",
+      "nodes": [ { "speaker": "kepsek", "text": "Sekolah kami sekolah Adiwiyata. Asap pun kami anggap kabut pendidikan.", "next": "end" } ]
+    },
+    {
+      "id": "ratna", "style": "vn",
+      "nodes": [
+        { "speaker": "ratna", "text": "Kamu kakaknya Dinda, ya? Saya Bu Ratna, wali kelasnya. Cepat, nanti ada yang lihat." },
+        { "speaker": "ratna", "text": "Ayam PPR kemarin datang jam lima pagi. Dimasak malam sebelumnya. Baunya sudah asam." },
+        { "speaker": "ratna", "text": "Dapurnya milik CV Berkah Haryo Jaya. Haryo itu anggota dewan. Anggaran lima belas ribu per porsi. Yang sampai ke piring, mungkin enam ribu.",
+          "choices": [
+            { "text": "Kenapa Ibu tidak lapor?", "next": "honorer" },
+            { "text": "Ada buktinya, Bu?", "next": "bukti" }
+          ] },
+        { "id": "honorer", "speaker": "ratna", "text": "Saya guru honorer, Bay. Gaji tiga bulan belum cair. Kalau saya bicara, besok saya tidak mengajar lagi." },
+        { "id": "bukti", "speaker": "ratna", "text": "Nota anggarannya di kantor dapur. Datanglah besok malam lewat pintu belakang, setelah jam tujuh. Satpam ganti shift.", "do": "step Piring 6; flag ratna_info", "next": "end" }
+      ]
+    },
+    {
+      "id": "ratna_umum", "style": "3d",
+      "nodes": [ { "speaker": "ratna", "text": "(Bu Ratna pura-pura tidak mengenalmu, lalu berbisik:) Hati-hati, Bay.", "next": "end" } ]
+    },
+    {
+      "id": "tini", "style": "3d",
+      "nodes": [
+        { "speaker": "tini", "text": "Beras, Mas? Naik lagi. Katanya karena asap. Asap kok bisa makan beras.", "do": "toko pasar", "next": "end" }
+      ]
+    },
+    {
+      "id": "joko", "style": "3d",
+      "nodes": [ { "speaker": "joko", "text": "Sejam lima ribu. Jangan buka situs aneh-aneh, sekarang semua dipantau. Katanya.", "next": "end" } ]
+    },
+    {
+      "id": "satpam", "style": "3d",
+      "nodes": [ { "speaker": "satpam", "text": "Dilarang masuk! Ini proyek strategis nasional. Foto juga dilarang. Bau juga dilarang.", "next": "end" } ]
+    },
+    {
+      "id": "wiryo_umum", "style": "3d",
+      "nodes": [ { "speaker": "wiryo", "text": "Ada perlu apa? Kalau lapor kehilangan, isi formulir. Kalau lapor pejabat, pulang saja.", "next": "end" } ]
+    },
+    {
+      "id": "warga_umum", "style": "3d",
+      "nodes": [
+        { "if": "viral>=1", "speaker": "warga", "text": "Bay! Unggahanmu sampai ke grup WA keluarga saya. Yang biasanya cuma kirim stiker selamat pagi.", "next": "end" },
+        { "speaker": "warga", "text": "Asapnya parah, Bay. Tapi di TV katanya baik. Mungkin TV saya yang rusak.", "next": "end" }
+      ]
+    },
+    {
+      "id": "rt_siang", "style": "3d",
+      "nodes": [ { "speaker": "rt", "text": "Bay, kalau ada apa-apa, pos ronda selalu terbuka. Kopinya juga, asal bayar.", "next": "end" } ]
+    },
+    {
+      "id": "rt_akhir", "style": "vn",
+      "nodes": [
+        { "speaker": "rt", "text": "Bay, sini duduk. Semua sudah lihat unggahanmu." },
+        { "speaker": "warga", "text": "Anak saya juga muntah, Bay. Dua hari. Saya kira masuk angin." },
+        { "speaker": "rt", "text": "Kami juga punya cerita. Pak Udin dipalak di kelurahan. Bu Yati warungnya digusur buat parkir mobil dinas.",
+          "choices": [
+            { "text": "Kita bisa apa, Pak? Mereka punya SPN.", "next": "banyak" },
+            { "text": "Saya takut, Pak.", "next": "takut" }
+          ] },
+        { "id": "banyak", "speaker": "rt", "text": "Mereka punya SPN. Kita punya banyak orang.", "next": "besok" },
+        { "id": "takut", "speaker": "rt", "text": "Takut itu wajar, Bay. Diam itu pilihan.", "next": "besok" },
+        { "id": "besok", "speaker": "rt", "text": "Besok pagi kita jalan ke Gedung Dewan. Bawa piring kosong. Biar mereka lihat isinya.", "do": "done Malam; suara 10; cutscene penutup", "next": "end" }
+      ]
+    },
+    {
+      "id": "interogasi", "style": "vn", "meter": "tekanan", "meterLabel": "Kesabaran Komandan habis",
+      "nodes": [
+        { "speaker": "wiryo", "text": "Duduk, Saudara Bayu. Santai saja. Ini bukan interogasi. Ini silaturahmi.", "do": "set tekanan 20; diawasi -50" },
+        { "speaker": "intel", "text": "Unggahanmu sudah dilihat dua ratus ribu orang. Termasuk atasan kami. Atasan kami tidak suka." },
+        { "speaker": "wiryo", "text": "Siapa yang memberimu nota anggaran itu?",
+          "choices": [
+            { "text": "Tidak ada. Saya masuk sendiri.", "do": "add tekanan 20; set guru_dilindungi 1", "next": "sendiri" },
+            { "text": "(Diam saja.)", "do": "add tekanan 30; set guru_dilindungi 1", "next": "sendiri" },
+            { "text": "Seorang guru... Bu Ratna.", "do": "add tekanan -10", "next": "bocor" }
+          ] },
+        { "id": "sendiri", "speaker": "wiryo", "text": "Masuk sendiri. Ke dapur proyek strategis negara. Menarik sekali.", "next": "pilihan" },
+        { "id": "bocor", "speaker": "wiryo", "text": "Nah, begitu. Kooperatif. Bu Ratna akan kami ajak silaturahmi juga." },
+        { "id": "pilihan", "speaker": "intel", "text": "Pilihanmu sederhana. Hapus unggahan, bikin video minta maaf, selesai.",
+          "choices": [
+            { "text": "Baik, saya hapus dan minta maaf.", "do": "suara -15; set minta_maaf 1", "next": "maaf" },
+            { "text": "Itu fakta. Adik saya keracunan.", "do": "add tekanan 25; suara 10", "next": "fakta" },
+            { "text": "Saya minta didampingi pengacara LBH.", "do": "add tekanan 15; suara 5; set lbh 1", "next": "fakta" }
+          ] },
+        { "id": "maaf", "speaker": "wiryo", "text": "Bagus. Rekam di sini, kamera sudah siap. Ingat, senyum. Bilang kamu khilaf.", "next": "vonis" },
+        { "id": "fakta", "speaker": "wiryo", "text": "Fakta, fakta. Di negara ini, yang menentukan fakta adalah yang pegang stempel." },
+        { "id": "vonis", "if": "tekanan>=60", "speaker": "wiryo", "text": "Kamu boleh pulang. Tapi mulai hari ini kamu kami awasi. Akunmu juga.", "do": "diawasi 20", "next": "akun" },
+        { "if": "tekanan<60", "speaker": "wiryo", "text": "Kamu boleh pulang. Jangan bikin ulah lagi.", "do": "diawasi 5" },
+        { "id": "akun", "speaker": "", "text": "Ponselmu bergetar. Notifikasi Kicau: akunmu dibekukan karena 'menyebarkan informasi yang meresahkan'.", "do": "set kicau_beku 1; umumkan Aturan.LaranganInfoPPR" },
+        { "speaker": "wiryo", "text": "Satu lagi. Salam untuk ibumu. Kami tahu rumahmu.", "do": "quest Malam; pesan rt_undangan", "next": "end" }
+      ]
+    },
+    {
+      "id": "interogasi_razia", "style": "3d",
+      "nodes": [
+        { "speaker": "spn", "text": "Jam segini keluyuran. KTP mana? Mau ke mana?", "do": "diawasi -60",
+          "choices": [
+            { "text": "Saya ojol, Pak. Lagi narik.", "next": "periksa" },
+            { "text": "Saya cuma mau pulang, Pak.", "next": "periksa" },
+            { "text": "Salah saya apa, Pak?", "do": "suara 3", "next": "periksa" }
+          ] },
+        { "id": "periksa", "if": "bawa_bukti && item.foto_dapur>=1", "speaker": "spn", "text": "Ponselmu kami periksa. Foto-foto ini kami hapus. Demi ketertiban.", "do": "item foto_dapur -1" },
+        { "speaker": "spn", "text": "Kali ini kami antar pulang. Uang bensinnya dua puluh ribu. Lain kali, kamu menginap.", "do": "uang -20000 Uang bensin petugas; teleport rumah", "next": "end" }
+      ]
+    }
+  ],
+
+  "spawns": [
+    { "id": "rumah", "kind": "zone", "name": "Rumah Bayu", "pos": [-9000, -9000], "radius": 650 },
+    { "id": "z_pulang_dapur", "kind": "zone", "name": "Rumah Bayu", "pos": [-9000, -9000], "radius": 700, "if": "q.Dapur==2",
+      "do": "done Dapur; unflag bawa_bukti; quest Unggah; dialog ibu_malam" },
+    { "id": "z_pulang_unggah", "kind": "zone", "name": "Rumah Bayu", "pos": [-9000, -9000], "radius": 700, "if": "q.Unggah==3",
+      "do": "step Unggah 3; cutscene spn_datang; done Unggah" },
+    { "id": "ibu_pagi", "kind": "npc", "name": "Ibu", "pos": [-9150, -8700], "yaw": 0, "if": "q.Pagi==1", "dialog": "ibu_pagi", "color": "#C77DBA",
+      "barks": ["Uhuk... asapnya masuk rumah lagi."] },
+    { "id": "ibu_rumah", "kind": "npc", "name": "Ibu", "pos": [-9150, -8700], "yaw": 0, "if": "q.Pagi>=2 && q.Piring==0 || day>=2", "dialog": "ibu_rumah", "color": "#C77DBA",
+      "barks": ["Uhuk... uhuk...", "Jemuran kotor lagi kena abu."] },
+    { "id": "dinda_rumah", "kind": "npc", "name": "Dinda", "pos": [-8850, -9350], "yaw": 90, "if": "day>=2", "dialog": "dinda_rumah", "color": "#F2C14E",
+      "barks": ["Kak, Dinda bosan di rumah.", "Dinda nggak mau makan ayam lagi."] },
+    { "id": "motor_halaman", "kind": "prop", "name": "Motor Bayu", "pos": [-7700, -8400], "yaw": 0, "size": [180, 50, 90], "color": "#2E8B57",
+      "if": "!punya_motor", "prompt": "Ambil motor", "do": "set punya_motor 1; jika q.Pagi==2 ? step Pagi 3; notifbaik Tekan F untuk naik atau turun motor." },
+
+    { "id": "warung_ronda", "kind": "prop", "name": "Warung Kopi Pos Ronda", "pos": [-6000, -12000], "size": [220, 120, 100], "color": "#8B5A2B",
+      "prompt": "Belanja di warung", "do": "toko warung" },
+    { "id": "udin", "kind": "npc", "name": "Pak Udin", "pos": [-5650, -11700], "wander": 250, "dialog": "warga_umum", "color": "#A8DADC",
+      "barks": ["Kopi dulu, baru mikir.", "Kemarin kelurahan minta 'uang kebersihan' lagi."] },
+    { "id": "yati", "kind": "npc", "name": "Bu Yati", "pos": [-6350, -11750], "wander": 200, "dialog": "warga_umum", "color": "#CDB4DB",
+      "barks": ["Warung saya digusur, katanya buat penghijauan. Sekarang jadi parkiran.", "Anak-anak batuk semua."] },
+    { "id": "pak_rt_siang", "kind": "npc", "name": "Pak RT Darto", "pos": [-5650, -12300], "yaw": 180, "if": "q.Malam==0", "dialog": "rt_siang", "color": "#D4A373" },
+    { "id": "pak_rt", "kind": "npc", "name": "Pak RT Darto", "pos": [-5650, -12300], "yaw": 180, "if": "q.Malam==1", "dialog": "rt_akhir", "color": "#D4A373",
+      "barks": ["Sini, Bay. Kopinya sudah dingin nungguin kamu."] },
+    { "id": "warga_malam1", "kind": "npc", "name": "Warga", "pos": [-5400, -12000], "if": "q.Malam>=1", "wander": 150, "color": "#888888",
+      "barks": ["Bawa piring apa? Piring kaleng biar bunyi."] },
+    { "id": "warga_malam2", "kind": "npc", "name": "Warga", "pos": [-6300, -12300], "if": "q.Malam>=1", "wander": 150, "color": "#AAAAAA",
+      "barks": ["Saya ikut. Anak saya juga sakit."] },
+
+    { "id": "tini", "kind": "npc", "name": "Bu Tini (Beras)", "pos": [-9600, 13000], "yaw": 0, "dialog": "tini", "color": "#E76F51",
+      "barks": ["Beras, beras! Harga hari ini, bukan harga besok!", "Timbangan saya jujur, Mas. Yang lain saya tidak tahu."] },
+    { "id": "lapak_tini", "kind": "prop", "name": "Lapak Bu Tini", "pos": [-9850, 13450], "size": [150, 260, 90], "color": "#C08552",
+      "prompt": "Belanja", "do": "toko pasar" },
+    { "id": "pembeli1", "kind": "npc", "name": "Pembeli", "pos": [-10500, 12000], "wander": 500, "color": "#999999",
+      "barks": ["Cabai naik, bawang naik, gaji nggak naik.", "Minyak goreng sekarang dijual per sendok?"] },
+    { "id": "pembeli2", "kind": "npc", "name": "Pembeli", "pos": [-11500, 14500], "wander": 500, "color": "#BBBBBB",
+      "barks": ["Katanya inflasi terkendali. Yang terkendali dompet saya."] },
+
+    { "id": "darmo_skm", "kind": "npc", "name": "Pak Darmo (Kelurahan)", "pos": [8950, -9000], "yaw": 180, "if": "q.Piring==2", "dialog": "darmo_skm", "color": "#E9C46A" },
+    { "id": "darmo_umum", "kind": "npc", "name": "Pak Darmo (Kelurahan)", "pos": [8950, -9000], "yaw": 180, "if": "q.Piring!=2", "dialog": "darmo_umum", "color": "#E9C46A",
+      "barks": ["Antre, antre. Yang bawa amplop antrenya beda."] },
+    { "id": "papan_kelurahan", "kind": "prop", "name": "Papan Pengumuman", "pos": [7950, -9600], "size": [30, 220, 160], "color": "#F1FAEE",
+      "prompt": "Baca papan", "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)" },
+
+    { "id": "ibu_pkm", "kind": "npc", "name": "Ibu", "pos": [7900, 21600], "yaw": 180, "if": "q.Piring>=1 && q.Piring<=3", "dialog": "ibu_pkm", "color": "#C77DBA",
+      "barks": ["Ya Allah, Dinda..."] },
+    { "id": "dokter_sktm", "kind": "npc", "name": "dr. Lestari", "pos": [7900, 22300], "yaw": 180, "if": "q.Piring==3", "dialog": "dokter_sktm", "color": "#9AD1D4" },
+    { "id": "dokter_umum", "kind": "npc", "name": "dr. Lestari", "pos": [7900, 22300], "yaw": 180, "if": "q.Piring!=3", "dialog": "dokter_umum", "color": "#9AD1D4",
+      "barks": ["Antrean nomor 47!", "Pakai masker, Bu, Pak."] },
+    { "id": "pasien1", "kind": "npc", "name": "Orang tua murid", "pos": [7700, 21000], "if": "q.Piring>=1", "wander": 200, "color": "#999999",
+      "barks": ["Anak saya juga makan PPR...", "Katanya kurang sarapan. Anak saya sarapan!"] },
+
+    { "id": "kepsek_kasus", "kind": "npc", "name": "Pak Hartono (Kepsek)", "pos": [9150, 12600], "yaw": 180, "if": "q.Piring==4", "dialog": "kepsek", "color": "#B5838D" },
+    { "id": "kepsek_umum", "kind": "npc", "name": "Pak Hartono (Kepsek)", "pos": [9150, 12600], "yaw": 180, "if": "q.Piring!=4", "dialog": "kepsek_umum", "color": "#B5838D",
+      "barks": ["Prestasi sekolah kami: nol kasus. Nol dilaporkan."] },
+    { "id": "ratna", "kind": "npc", "name": "Bu Ratna (Guru)", "pos": [9150, 15900], "yaw": 180, "if": "q.Piring==5", "dialog": "ratna", "color": "#F4A261",
+      "barks": ["Psst! Sini, cepat."] },
+    { "id": "ratna_umum", "kind": "npc", "name": "Bu Ratna (Guru)", "pos": [9150, 15900], "yaw": 180, "if": "q.Piring>=6 && !guru_dibocorkan", "dialog": "ratna_umum", "color": "#F4A261" },
+    { "id": "murid", "kind": "npc", "name": "Murid SD", "pos": [9000, 13800], "wander": 300, "color": "#E0FBFC",
+      "barks": ["Menu besok katanya ayam lagi...", "Aku bawa bekal dari rumah aja."] },
+
+    { "id": "satpam_dapur", "kind": "npc", "name": "Satpam Dapur", "pos": [18800, 19500], "yaw": 180, "if": "hour>=6 && hour<19", "dialog": "satpam", "color": "#577590",
+      "barks": ["Jangan foto-foto!", "Ini dapur rakyat. Rakyat dilarang masuk."] },
+    { "id": "pintu_dapur_siang", "kind": "prop", "name": "Pintu Belakang Dapur", "pos": [18980, 20500], "size": [40, 120, 210], "color": "#6B4226",
+      "if": "q.Dapur==1 && hour>=4 && hour<19", "prompt": "Coba masuk", "do": "notif Masih ramai pekerja. Kembali setelah pukul 19.00." },
+    { "id": "pintu_dapur", "kind": "prop", "name": "Pintu Belakang Dapur", "pos": [18980, 20500], "size": [40, 120, 210], "color": "#6B4226",
+      "if": "q.Dapur==1 && hour>=19 || q.Dapur==1 && hour<4", "prompt": "Menyusup ke dapur", "do": "minigame dapur" },
+
+    { "id": "joko", "kind": "npc", "name": "Mas Joko (Warnet)", "pos": [-2250, 6650], "yaw": 180, "dialog": "joko", "color": "#90BE6D",
+      "barks": ["Billing sejam lima ribu. Asap gratis."] },
+    { "id": "pc_warnet", "kind": "prop", "name": "PC Nomor 7", "pos": [-2850, 6200], "size": [60, 100, 110], "color": "#3A6EA5",
+      "if": "q.Unggah==2", "prompt": "Unggah bukti ke Kicau (Rp5.000)", "do": "uang -5000 Sewa warnet 1 jam; minigame warnet" },
+    { "id": "pc_warnet_umum", "kind": "prop", "name": "PC Nomor 7", "pos": [-2850, 6200], "size": [60, 100, 110], "color": "#3A6EA5",
+      "if": "q.Unggah!=2", "prompt": "Main warnet", "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol." },
+
+    { "id": "wiryo", "kind": "npc", "name": "Komandan Wiryo (SPN)", "pos": [5850, -4500], "yaw": 180, "dialog": "wiryo_umum", "color": "#2B3A67",
+      "barks": ["Situasi kondusif.", "Asap? Itu kabut."] },
+    { "id": "spn_p1", "kind": "spn", "name": "Petugas SPN", "pos": [700, -12000], "patrol": [700, -15000, 700, 15000], "color": "#22305A" },
+    { "id": "spn_p2", "kind": "spn", "name": "Petugas SPN", "pos": [-12000, -700], "patrol": [-15000, -700, 15000, -700], "color": "#22305A" },
+    { "id": "spn_p3", "kind": "spn", "name": "Petugas SPN", "pos": [12000, 17600], "if": "q.Dapur>=1", "patrol": [9000, 17600, 19000, 17600], "color": "#22305A" },
+    { "id": "spn_r1", "kind": "spn", "name": "Razia SPN", "pos": [1400, -1500], "yaw": -45, "if": "razia && hour>=18 || razia && hour<5", "color": "#22305A" },
+    { "id": "spn_r2", "kind": "spn", "name": "Razia SPN", "pos": [-1400, 1500], "yaw": 135, "if": "razia && hour>=18 || razia && hour<5", "color": "#22305A" },
+
+    { "id": "op_pasar", "kind": "zone", "name": "Gerbang Pasar Sentosa", "pos": [-8800, 13000], "radius": 300 },
+    { "id": "op_ruko", "kind": "zone", "name": "Ruko Sentosa Blok A", "pos": [1700, -9000], "radius": 300 },
+    { "id": "op_sekolah", "kind": "zone", "name": "Depan SDN Sentosa 1", "pos": [9000, 11000], "radius": 300 },
+    { "id": "op_tugu", "kind": "zone", "name": "Tugu Gemah Ripah", "pos": [1700, 2500], "radius": 300 },
+    { "id": "op_dewan", "kind": "zone", "name": "Gerbang Gedung Dewan", "pos": [36400, 1500], "radius": 300 },
+    { "id": "op_kelurahan", "kind": "zone", "name": "Kantor Kelurahan", "pos": [7300, -9000], "radius": 300 },
+    { "id": "op_puskesmas", "kind": "zone", "name": "Puskesmas Sentosa", "pos": [7700, 21000], "radius": 300 },
+    { "id": "op_warnet", "kind": "zone", "name": "Warnet Jaya", "pos": [-1700, 6700], "radius": 300 },
+    { "id": "op_gang", "kind": "zone", "name": "Gang Melati", "pos": [-1700, -16500], "radius": 300 },
+    { "id": "op_perum", "kind": "zone", "name": "Perumahan Sentosa Indah", "pos": [1700, 21000], "radius": 300 }
+  ],
+
+  "orders": [
+    { "id": "o_nasi", "title": "Nasi Padang 2 bungkus", "customer": "Mbak Rina (bintang 4,9)", "from": "op_pasar", "to": "op_ruko", "fare": 18000, "time": 75 },
+    { "id": "o_paket", "title": "Paket skincare", "customer": "Kak Lala", "from": "op_tugu", "to": "op_perum", "fare": 16000, "time": 60 },
+    { "id": "o_dokumen", "title": "Map dokumen 'SANGAT RAHASIA'", "customer": "Staf Kelurahan", "from": "op_kelurahan", "to": "op_dewan", "fare": 25000, "time": 70 },
+    { "id": "o_kopi", "title": "Es kopi 10 gelas (rapat dewan)", "customer": "Ajudan Dewan (tip: 0)", "from": "op_ruko", "to": "op_dewan", "fare": 40000, "time": 80, "if": "day>=2" },
+    { "id": "o_masker", "title": "Masker 1 dus untuk murid", "customer": "Bu Guru Ratna", "from": "op_pasar", "to": "op_sekolah", "fare": 20000, "time": 90, "if": "day>=2" },
+    { "id": "o_obat", "title": "Obat batuk", "customer": "Pak Yusuf (lansia)", "from": "op_puskesmas", "to": "op_gang", "fare": 15000, "time": 90 },
+    { "id": "o_galon", "title": "Galon air 2 buah", "customer": "Mas Joko", "from": "op_gang", "to": "op_warnet", "fare": 14000, "time": 70 }
+  ],
+
+  "events": [
+    { "id": "e_pagi4", "if": "q.Pagi==3 && orders_done>=1", "do": "step Pagi 4" },
+    { "id": "e_pagi_selesai", "if": "q.Pagi==4 && item.beras>=1", "do": "done Pagi; quest Piring; set dinda_sakit 1; pesan ibu_darurat" },
+    { "id": "e_hari2", "if": "day>=2 && q.Piring==6", "do": "done Piring; quest Dapur; pesan ratna_pesan" },
+    { "id": "e_razia", "if": "day>=2 && hour>=17", "do": "umumkan Aturan.JamMalamAsap; set jam_malam 1; set razia 1" },
+    { "id": "e_hari3", "if": "day>=3 && q.Unggah==1", "do": "step Unggah 2; notif Warnet Jaya sudah buka. Saatnya unggah bukti." },
+    { "id": "e_capek", "if": "energi<30", "do": "notif Energi tinggal sedikit. Makan, minum kopi, atau tidur." },
+    { "id": "e_petang", "if": "day==1 && hour>=18", "do": "notif Sudah petang. Kasur di rumah bisa dipakai tidur mulai pukul 18.00." }
+  ],
+
+  "cutscenes": [
+    {
+      "id": "pembuka",
+      "steps": [
+        { "t": 0.05, "fade": 1 },
+        { "t": 5, "cam": [-20000, -25000, 6000, -18, 51], "cam2": [-14000, -17000, 4000, -18, 51], "fade": 0,
+          "title": "Kota Sentosa", "text": "Republik Gemah Ripah. Musim asap tahun ketiga." },
+        { "t": 5.5, "cam": [30000, -6000, 1500, -6, 23], "cam2": [33000, -3000, 1800, -5, 15],
+          "text": "Di baliho, pemerintah bilang udara baik dan Program Piring Rakyat menyehatkan anak bangsa." },
+        { "t": 5.5, "cam": [-6500, -7000, 900, -25, -141], "cam2": [-7000, -8000, 700, -22, -153],
+          "text": "Bayu, 24 tahun, pengemudi OjekKu. Tinggal di gang sempit bersama Ibu dan adiknya, Dinda." },
+        { "t": 1, "fade": 1 }
+      ],
+      "end": "quest Pagi; pesan rudi_pagi; notif J: jurnal | Tab: ponsel | M: peta | F: motor | E: interaksi"
+    },
+    {
+      "id": "spn_datang",
+      "steps": [
+        { "t": 4, "cam": [-7300, -8000, 450, -10, -140], "cam2": [-7600, -8300, 420, -8, -145],
+          "text": "Malam itu, sebuah mobil SPN berhenti di depan rumah Bayu." },
+        { "t": 4, "speaker": "wiryo", "text": "Saudara Bayu? Ikut kami sebentar. Tidak lama. Cuma ngobrol." },
+        { "t": 1.2, "fade": 1 }
+      ],
+      "end": "dialog interogasi"
+    },
+    {
+      "id": "ditangkap",
+      "steps": [
+        { "t": 0.8, "fade": 1, "text": "Hei! Berhenti di situ!" },
+        { "t": 2.5, "text": "Tiga petugas SPN menyergapmu di pinggir jalan." }
+      ],
+      "end": "dialog interogasi_razia"
+    },
+    {
+      "id": "penutup",
+      "steps": [
+        { "t": 0.8, "fade": 1 },
+        { "t": 5, "cam": [-4800, -11000, 700, -15, -128], "cam2": [-5200, -11500, 650, -15, -122], "fade": 0,
+          "text": "Malam itu, belasan warga berkumpul di Pos Ronda. Tidak ada yang menyebutnya rapat." },
+        { "t": 5, "cam": [30000, -5000, 1200, -5, 20], "cam2": [32000, -2000, 1500, -3, 12],
+          "text": "Besok pagi, piring-piring kosong akan dibawa ke depan Gedung Dewan." },
+        { "t": 3.5, "fade": 1, "title": "BAB 1 SELESAI", "text": "Asap dan Piring" }
+      ],
+      "end": "simpan; selesai"
+    }
+  ],
+
+  "kicau": [
+    { "id": "k1", "author": "Humas Kota Sentosa", "handle": "HumasSentosa", "official": true, "likes": 120,
+      "text": "Kualitas udara Kota Sentosa hari ini BAIK. Warga dihimbau tetap produktif dan tidak panik. #SentosaSehat" },
+    { "id": "k2", "author": "Ojol Sentosa", "handle": "ojol_sentosa", "likes": 2210,
+      "text": "Narik dari subuh, mata perih, tenggorokan gatal. Udara baik katanya. Baik buat paru-paru siapa?" },
+    { "id": "k3", "if": "q.Piring>=1", "author": "Ibu-Ibu Sentosa", "handle": "ibuibu_sentosa", "likes": 845,
+      "text": "Anak saya muntah-muntah habis makan PPR, kelas 4 SDN Sentosa 1. Ada yang sama?" },
+    { "id": "k4", "if": "q.Piring>=4", "author": "Humas Kota Sentosa", "handle": "HumasSentosa", "official": true, "likes": 97,
+      "text": "Isu keracunan PPR adalah HOAKS. Menu PPR sudah lolos uji kelayakan. Penyebar hoaks akan ditindak tegas." },
+    { "id": "k5", "if": "day>=2", "author": "Haryo Sudarmo, Anggota Dewan", "handle": "haryo_dewan", "official": true, "likes": 3200,
+      "text": "Program Piring Rakyat adalah bukti negara hadir di piring anak-anak kita. Kerja nyata, bukan omon-omon. #PPRuntukRakyat" },
+    { "id": "k6", "if": "day>=2", "author": "Buzzer Bersatu", "handle": "nkri_harga_mati_88", "likes": 1500,
+      "text": "Yang ribut soal asap pasti antek asing. Asap ini asap perjuangan. #DukungPemerintah" },
+    { "id": "k7", "if": "viral>=1", "author": "Bayu", "handle": "bayu_ngojek", "likes": 41300,
+      "text": "Ini yang terjadi di dapur PPR Kota Sentosa. Adik saya dan 22 temannya keracunan. Anggaran 15 ribu, yang sampai 6 ribu. Lihat sendiri. #PiringRakyat" },
+    { "id": "k8", "if": "viral>=1", "author": "Warga Kritis", "handle": "warga_kritis", "likes": 9800,
+      "text": "Nota 15rb jadi 6rb. Sisanya ke mana? Ke CV Berkah HARYO Jaya? Kebetulan namanya mirip ya." },
+    { "id": "k9", "if": "viral>=1", "author": "Buzzer Bersatu", "handle": "nkri_harga_mati_88", "likes": 640,
+      "text": "Ojol kok bisa masuk dapur negara? Pasti dibayar. Usut siapa dalangnya! #PPRHebat" },
+    { "id": "k10", "if": "kicau_beku", "author": "Humas Kota Sentosa", "handle": "HumasSentosa", "official": true, "likes": 45,
+      "text": "Akun penyebar informasi meresahkan terkait PPR telah ditindak. Terima kasih atas kepatuhan warga. Udara tetap baik." },
+    { "id": "k11", "if": "q.Malam>=1", "author": "Ibu-Ibu Sentosa", "handle": "ibuibu_sentosa", "likes": 12000,
+      "text": "Besok pagi kami bawa piring kosong ke Gedung Dewan. Bukan demo. Cuma mau tunjukkan isi piring anak kami." }
+  ],
+
+  "berita": [
+    { "id": "b1", "source": "Sentosa Pos", "title": "Pemerintah: Asap Bukan Karhutla, Hanya Kabut Pagi yang Agak Lama",
+      "body": "Juru bicara menyebut warga terlalu sensitif. 'Di negara lain kabutnya lebih parah,' katanya, tanpa menyebut negara mana." },
+    { "id": "b2", "source": "Warta Rakyat", "title": "Harga Beras Naik Lagi, Pejabat Sarankan Warga Makan Setengah Porsi",
+      "body": "Menurut pejabat terkait, makan setengah porsi juga baik untuk diet. Beliau diwawancarai di restoran hotel bintang lima." },
+    { "id": "b3", "if": "q.Piring>=1", "source": "Sentosa Pos", "title": "Puluhan Siswa Dilarikan ke Puskesmas, Dinas: Karena Kurang Sarapan",
+      "body": "Dinas memastikan menu PPR higienis. 'Anak-anak sekarang lemah karena main gawai,' kata kepala dinas." },
+    { "id": "b4", "if": "day>=2", "source": "Warta Rakyat", "title": "Anggota Dewan Haryo Resmikan Dapur PPR Ketiga",
+      "body": "Dapur dikelola CV Berkah Haryo Jaya. Ditanya soal kemiripan nama, Haryo menjawab, 'Itu kebetulan yang membanggakan.'" },
+    { "id": "b5", "if": "jam_malam", "source": "Sentosa Pos", "title": "Jam Malam Diberlakukan, Asap Disebut Lebih Berbahaya Saat Malam",
+      "body": "Warga dilarang keluar pukul 21.00 sampai 04.00. Pemerintah tetap menyebut kualitas udara baik." },
+    { "id": "b6", "if": "viral>=1", "source": "Kabar Kini", "title": "Unggahan Ojol Soal Dapur PPR Viral, Kementerian: Sedang Kami Take Down",
+      "body": "Kementerian menyebut unggahan tersebut 'mengandung fakta yang tidak sesuai narasi resmi'." },
+    { "id": "b7", "if": "kicau_beku", "source": "Sentosa Pos", "title": "SPN Ajak Pengunggah Hoaks PPR Silaturahmi",
+      "body": "Komandan Wiryo menegaskan tidak ada penangkapan. 'Kami hanya ngobrol sampai subuh. Itu namanya keakraban.'" }
+  ],
+
+  "needs": [
+    { "item": "beras", "if": "day>=2", "ok": "notif Ibu memasak nasi. Keluarga sarapan.", "fail": "notifburuk Beras habis. Keluarga sarapan air teh. Energimu berkurang.; energi -30; suara -2" },
+    { "item": "obat", "if": "dinda_sakit && day>=2", "ok": "notif Dinda minum obat. Demamnya turun.", "fail": "notifburuk Obat Dinda habis. Dinda demam semalaman.; energi -15" }
+  ],
+
+  "barks": [
+    { "text": "Uhuk... uhuk..." },
+    { "text": "Udara baik katanya. Baik buat siapa?" },
+    { "text": "Mata saya perih dari pagi." },
+    { "if": "day>=2", "text": "Harga beras naik lagi pagi ini." },
+    { "if": "q.Piring>=1", "text": "Anak tetangga juga muntah habis makan PPR." },
+    { "if": "jam_malam", "text": "Cepat pulang, nanti kena jam malam." },
+    { "if": "viral>=1", "text": "Eh, itu Bayu yang viral itu, kan?" },
+    { "if": "viral>=1", "text": "Hati-hati, Bay. Banyak intel sekarang." }
+  ],
+
+  "minigames": [
+    {
+      "id": "dapur", "title": "Dapur PPR: Menyusup",
+      "help": "WASD/panah: bergerak. Ambil bukti (kuning), hindari pandangan penjaga (merah), keluar lewat pintu hijau. Semak/rak (hijau tua) menyembunyikanmu.",
+      "win": "step Dapur 2; set bawa_bukti 1; suara 5; notifbaik Kamu keluar lewat pintu samping. Bawa buktinya pulang. Hindari SPN!",
+      "lose": "diawasi 20; notifburuk Penjaga melihatmu kabur. Coba lagi nanti.",
+      "loot": ["foto_dapur", "nota_anggaran", "daftar_korban"],
+      "grid": [
+        "#################",
+        "#P..#.....C....B#",
+        "#...#.G.........#",
+        "#.C.#...###..C..#",
+        "#.......#B#.....#",
+        "#.C.....#.#..H..#",
+        "####.####.###...#",
+        "#...G......C....#",
+        "#.C......#####..#",
+        "#X.....C.....B.C#",
+        "#################"
+      ]
+    },
+    {
+      "id": "warnet", "title": "Warnet Jaya: Unggah ke Kicau",
+      "help": "Pilih judul, lampirkan bukti, dan tentukan nada. Makin keras, makin jauh menyebar, makin cepat kamu diincar.",
+      "win": "step Unggah 3; aksi Aksi.Unggah.Kritik; suara 15; jika viral>=120 ? suara 15; jika risiko>=60 ? diawasi 15; jika unggah.rekaman_pungli ? set pungli_lapor 1; notifbaik Unggahanmu menyebar! Lihat Kicau di ponsel, lalu pulang.",
+      "options": [
+        { "group": "judul", "text": "Anak-anak keracunan PPR, dinas bilang kurang sarapan", "viral": 30, "risk": 10 },
+        { "group": "judul", "text": "DAPUR PPR MILIK KELUARGA DEWAN!!! BONGKAR!!!", "viral": 50, "risk": 35 },
+        { "group": "judul", "text": "Catatan seorang kakak: apa yang dimakan adik saya?", "viral": 25, "risk": 5 },
+        { "group": "nada", "text": "Fakta dan data, tanpa menyebut nama", "viral": 20, "risk": 10 },
+        { "group": "nada", "text": "Marah dan menyebut nama pejabat", "viral": 40, "risk": 40 },
+        { "group": "nada", "text": "Satir: 'Terima kasih Pak Dewan, adik saya jadi langsing'", "viral": 45, "risk": 25 }
+      ]
+    }
+  ]
+}

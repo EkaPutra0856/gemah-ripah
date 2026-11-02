@@ -1,4 +1,9 @@
 #include "UI/GRHUDWidget.h"
+#include "UI/GRStoryScreens.h"
+#include "UI/GRUISubsystem.h"
+#include "Story/GRStorySubsystem.h"
+#include "World/GRNpc.h"
+#include "Engine/LocalPlayer.h"
 #include "UI/GRUIStyle.h"
 #include "Player/GRCharacter.h"
 #include "Player/GRInteractionComponent.h"
@@ -74,6 +79,16 @@ void UGRHUDWidget::NativeOnInitialized()
 	SuaraValue = Value;
 	DiawasiBar = MakeMeter(StatusBox, LOCTEXT("Diawasi", "Diawasi"), GRStyle::ColorDanger, Value);
 	DiawasiValue = Value;
+	EnergiBar = MakeMeter(StatusBox, LOCTEXT("Energi", "Energi"), GRStyle::ColorGood, Value);
+	EnergiValue = Value;
+
+	ObjectiveText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 15, GRStyle::ColorAccent, true);
+	ObjectiveText->SetAutoWrapText(true);
+	StatusBox->AddChildToVerticalBox(ObjectiveText)->SetPadding(FMargin(0.f, 10.f, 0.f, 0.f));
+	AlertText = GRStyle::MakeText(WidgetTree, LOCTEXT("Spotted", "SPN MELIHATMU! Menjauh dari pandangan."), 15, GRStyle::ColorDanger, true);
+	AlertText->SetAutoWrapText(true);
+	AlertText->SetVisibility(ESlateVisibility::Collapsed);
+	StatusBox->AddChildToVerticalBox(AlertText)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
 
 	RuleList = WidgetTree->ConstructWidget<UVerticalBox>();
 	StatusBox->AddChildToVerticalBox(RuleList)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
@@ -248,6 +263,31 @@ void UGRHUDWidget::RefreshClock()
 	ClockText->SetText(FText::Format(LOCTEXT("Clock", "Hari {0}  {1}"), FText::AsNumber(Clock->GetDay()), Clock->GetClockText()));
 	SmokeText->SetText(FText::Format(LOCTEXT("Smoke", "Udara: {0} (ISPU {1})"), Clock->GetSmokeCategory(), FText::AsNumber(FMath::RoundToInt(Clock->GetIspu()))));
 	SmokeText->SetColorAndOpacity(FSlateColor(Clock->GetSmokeColor()));
+
+	if (const UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>())
+	{
+		const float Energi = Story->GetEnergi();
+		EnergiBar->SetPercent(Energi / 100.f);
+		EnergiBar->SetFillColorAndOpacity(Energi < 25.f ? GRStyle::ColorDanger : GRStyle::ColorGood);
+		EnergiValue->SetText(FText::AsNumber(FMath::RoundToInt(Energi)));
+		FString Objective = Story->GetObjectiveText();
+		if (Story->GetOrderStage() == 2)
+		{
+			Objective += FString::Printf(TEXT(" (%d dtk)"), FMath::Max(0, FMath::RoundToInt(Story->GetOrderTimeLeft())));
+		}
+		ObjectiveText->SetText(FText::FromString(Objective.IsEmpty() ? FString() : TEXT("> ") + Objective));
+		ObjectiveText->SetVisibility(Objective.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+	}
+	const bool bSpotted = GetWorld() && GetWorld()->GetTimeSeconds() - AGRNpc::LastSpottedTime < 1.0;
+	AlertText->SetVisibility(bSpotted ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+
+	// Cutscenes get the whole screen.
+	const ULocalPlayer* LP = GetOwningLocalPlayer();
+	const UGRUISubsystem* UI = LP ? LP->GetSubsystem<UGRUISubsystem>() : nullptr;
+	const bool bCutscene = UI && Cast<UGRCutsceneScreen>(UI->GetTopScreen());
+	SetRenderOpacity(bCutscene ? 0.f : 1.f);
+	// The minimap paints itself and ignores render opacity.
+	Minimap->SetVisibility(bCutscene ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 }
 
 void UGRHUDWidget::HandleDistrictChanged(AGRDistrictVolume* District, bool bEntered)
@@ -377,7 +417,8 @@ void UGRHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	{
 		Prompt = Character->GetInteraction()->GetFocusedPrompt();
 	}
-	if (Prompt.IsEmpty())
+	const UGRUISubsystem* PromptUI = GetOwningLocalPlayer() ? GetOwningLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (Prompt.IsEmpty() || (PromptUI && PromptUI->GetTopScreen()))
 	{
 		PromptPanel->SetVisibility(ESlateVisibility::Collapsed);
 	}
