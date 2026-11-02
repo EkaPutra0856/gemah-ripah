@@ -1,0 +1,19 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "",
+	"Description": "Gemah Ripah - game open world satir: rakyat biasa mengejar keadilan dan kebebasan di negara fiktif.",
+	"Modules": [
+		{
+			"Name": "GemahRipah",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{ "Name": "ModelingToolsEditorMode", "Enabled": true, "TargetAllowList": [ "Editor" ] },
+		{ "Name": "PythonScriptPlugin", "Enabled": true, "TargetAllowList": [ "Editor" ] },
+		{ "Name": "StateTree", "Enabled": true },
+		{ "Name": "GameplayStateTree", "Enabled": true }
+	]
+}
