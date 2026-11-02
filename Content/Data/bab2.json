@@ -34,31 +34,31 @@
    "use": "energi 18; notif Melek lagi."
   },
   {
-   "id": "foto_lab",
+   "id": "foto_lab", "icon": "item_foto",
    "name": "Foto hasil lab Puskesmas",
    "desc": "Hasil lab 23 siswa: bakteri E. coli tinggi. Ada stempel RAHASIA.",
    "bukti": true
   },
   {
-   "id": "foto_dapur",
+   "id": "foto_dapur", "icon": "item_foto",
    "name": "Foto dapur PPR",
    "desc": "Ayam berbelatung di kotak bertuliskan 'Higienis 100%'.",
    "bukti": true
   },
   {
-   "id": "nota_anggaran",
+   "id": "nota_anggaran", "icon": "item_dokumen",
    "name": "Nota anggaran PPR",
    "desc": "Di atas kertas Rp15.000 per porsi. Belanja nyata Rp6.200.",
    "bukti": true
   },
   {
-   "id": "daftar_korban",
+   "id": "daftar_korban", "icon": "item_dokumen",
    "name": "Daftar siswa sakit",
    "desc": "23 nama siswa yang dirawat, dengan catatan tangan: 'jangan bocor'.",
    "bukti": true
   },
   {
-   "id": "rekaman_pungli",
+   "id": "rekaman_pungli", "icon": "item_rekaman",
    "name": "Rekaman pungli kelurahan",
    "desc": "Suara Pak Darmo: 'Gratis itu kalau prosesnya dua minggu.'",
    "bukti": true

@@ -110,7 +110,7 @@ Daftar bab ada di `Content/Data/chapters.json`: nomor, file cerita, judul, ringk
 - Akhir bab: aksi `selesai` menandai bab selesai, menyimpan otomatis, lalu menampilkan baris `ending` dari file bab.
 - Teks tugas boleh memuat `{variabel}`, mis. `dukungan {dukungan}/3`.
 
-Ikon UI (aplikasi ponsel, bab, status) adalah PNG putih di `Content/Data/Icons`, digambar ulang dengan `python Tools/Python/gen_icons.py Content/Data/Icons`. Dimuat saat game berjalan, tanpa impor ke editor.
+Ikon UI (aplikasi ponsel, bab, status, HUD, menu, barang, notifikasi) adalah tile berwarna buatan Google Gemini di `Content/Data/Icons` (128 px). Sumbernya di `Tools/IconSheets`, dipotong dengan `Tools/Python/slice_icon_sheet.py`. Dimuat saat game berjalan, tanpa impor ke editor. Barang memakai `item_<id>`, atau field `icon` di data barang.
 
 ## Bab 1 "Asap dan Piring"
 

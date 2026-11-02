@@ -50,7 +50,7 @@ private:
 	void RefreshStatus();
 	void RefreshRules();
 	void ShowBanner(const FText& Title, const FText& Body, const FLinearColor& Color, float Duration);
-	UProgressBar* MakeMeter(UVerticalBox* Parent, const FText& Label, const FLinearColor& Color, UTextBlock*& OutValue);
+	UProgressBar* MakeMeter(UVerticalBox* Parent, const FText& Label, const TCHAR* IconName, const FLinearColor& Color, UTextBlock*& OutValue);
 
 	UPROPERTY() TObjectPtr<UTextBlock> UangText;
 	UPROPERTY() TObjectPtr<UProgressBar> SuaraBar;

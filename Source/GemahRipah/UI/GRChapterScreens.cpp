@@ -76,16 +76,9 @@ namespace
 		}
 	}
 
-	UImage* MakeIcon(UWidgetTree* Tree, const FString& Name, float Size, const FLinearColor& Tint = FLinearColor::White)
+	UWidget* MakeIcon(UWidgetTree* Tree, const FString& Name, float Size)
 	{
-		UImage* Image = Tree->ConstructWidget<UImage>();
-		if (UTexture2D* Texture = GRStyle::Icon(Name))
-		{
-			Image->SetBrushFromTexture(Texture);
-		}
-		Image->SetDesiredSizeOverride(FVector2D(Size, Size));
-		Image->SetColorAndOpacity(Tint);
-		return Image;
+		return GRStyle::MakeIcon(Tree, GRStyle::Icon(Name), Size);
 	}
 }
 
@@ -114,9 +107,12 @@ void UGRChapterNode::NativeOnInitialized()
 
 	Button = WidgetTree->ConstructWidget<UButton>();
 	Ring->SetContent(Button);
+	USizeBox* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+	IconSize->SetWidthOverride(62.f);
+	IconSize->SetHeightOverride(62.f);
 	IconImage = WidgetTree->ConstructWidget<UImage>();
-	IconImage->SetDesiredSizeOverride(FVector2D(48.f, 48.f));
-	Button->SetContent(IconImage);
+	IconSize->SetContent(IconImage);
+	Button->SetContent(IconSize);
 
 	USizeBox* BadgeSize = WidgetTree->ConstructWidget<USizeBox>();
 	BadgeSize->SetWidthOverride(30.f);
@@ -125,8 +121,8 @@ void UGRChapterNode::NativeOnInitialized()
 	BadgeSlot->SetHorizontalAlignment(HAlign_Right);
 	BadgeSlot->SetVerticalAlignment(VAlign_Bottom);
 	Badge = WidgetTree->ConstructWidget<UBorder>();
-	Badge->SetBrush(GRStyle::RoundedBrush(FLinearColor::White, 15.f));
-	Badge->SetPadding(FMargin(6.f));
+	Badge->SetBrush(GRStyle::RoundedBrush(FLinearColor::Transparent, 15.f));
+	Badge->SetPadding(FMargin(0.f));
 	BadgeSize->SetContent(Badge);
 	BadgeImage = WidgetTree->ConstructWidget<UImage>();
 	Badge->SetContent(BadgeImage);
@@ -158,21 +154,18 @@ void UGRChapterNode::Setup(const FGRChapterDef& Def, EGRChapterState InState)
 	if (UTexture2D* Texture = GRStyle::Icon(Def.Icon))
 	{
 		IconImage->SetBrushFromTexture(Texture);
-		IconImage->SetDesiredSizeOverride(FVector2D(48.f, 48.f));
 	}
-	IconImage->SetColorAndOpacity(bLocked ? FLinearColor(1.f, 1.f, 1.f, 0.35f) : FLinearColor::White);
+	IconImage->SetColorAndOpacity(bLocked ? FLinearColor(0.4f, 0.4f, 0.42f, 0.7f) : FLinearColor::White);
 	Ring->SetBrushColor(bLocked ? FLinearColor(0.25f, 0.25f, 0.27f, 1.f) : StateColor(State));
 
 	const TCHAR* BadgeIcon = StateIcon(State);
 	Badge->SetVisibility(BadgeIcon ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	if (BadgeIcon)
 	{
-		Badge->SetBrushColor(StateColor(State));
 		if (UTexture2D* Texture = GRStyle::Icon(BadgeIcon))
 		{
 			BadgeImage->SetBrushFromTexture(Texture);
 		}
-		BadgeImage->SetColorAndOpacity(State == EGRChapterState::Done || State == EGRChapterState::Current ? FLinearColor(0.05f, 0.05f, 0.05f, 1.f) : FLinearColor::White);
 	}
 	NumberText->SetText(FText::Format(LOCTEXT("ChapNum", "BAB {0}"), Def.Number));
 	TitleText->SetText(FText::FromString(Def.Title));
@@ -418,8 +411,8 @@ void UGRChapterMapScreen::ShowDetails(int32 Index)
 	USizeBox* IconSize = WidgetTree->ConstructWidget<USizeBox>();
 	IconSize->SetWidthOverride(84.f);
 	IconSize->SetHeightOverride(84.f);
-	UBorder* IconBox = GRStyle::MakePanel(WidgetTree, State == EGRChapterState::Soon || State == EGRChapterState::Locked ? FLinearColor(0.2f, 0.2f, 0.22f, 1.f) : Color, FMargin(14.f), 18.f);
-	IconBox->SetContent(MakeIcon(WidgetTree, Def.Icon, 56.f));
+	UBorder* IconBox = GRStyle::MakePanel(WidgetTree, State == EGRChapterState::Soon || State == EGRChapterState::Locked ? FLinearColor(0.2f, 0.2f, 0.22f, 1.f) : Color, FMargin(4.f), 20.f);
+	IconBox->SetContent(MakeIcon(WidgetTree, Def.Icon, 76.f));
 	IconSize->SetContent(IconBox);
 	Header->AddChildToHorizontalBox(IconSize)->SetVerticalAlignment(VAlign_Center);
 	UVerticalBox* Names = WidgetTree->ConstructWidget<UVerticalBox>();

@@ -170,6 +170,7 @@ private:
 	void AddCard(const FString& Header, const FString& Body, const FLinearColor& HeaderColor);
 
 	FString CurrentApp;
+	UPROPERTY() TObjectPtr<class UUniformGridPanel> AppGrid;
 	UPROPERTY() TObjectPtr<UVerticalBox> Content;
 	UPROPERTY() TObjectPtr<UTextBlock> AppTitle;
 	UPROPERTY() TObjectPtr<UTextBlock> StatusBar;

@@ -8,6 +8,9 @@ class UWidgetTree;
 class UTextBlock;
 class UBorder;
 class UTexture2D;
+class UImage;
+class UWidget;
+struct FGRItemDef;
 struct FSlateBrush;
 
 /** Shared look for all code-built UI: smoky orange accent on dark panels. */
@@ -32,6 +35,10 @@ namespace GRStyle
 	UTextBlock* MakeText(UWidgetTree* Tree, const FText& Text, int32 Size, const FLinearColor& Color = ColorText, bool bBold = false);
 	UBorder* MakePanel(UWidgetTree* Tree, const FLinearColor& Color = ColorPanel, const FMargin& Padding = FMargin(24.f), float Radius = 8.f);
 
-	/** White icon from Content/Data/Icons/<Name>.png (drawn by Tools/Python/gen_icons.py), cached; null if missing. Tint it with the brush color. */
+	/** Full-colour icon tile from Content/Data/Icons/<Name>.png (see Docs/CREDITS.md), cached; null if missing. */
 	UTexture2D* Icon(const FString& Name);
+	/** Icon of a story item: its "icon" field, else item_<id>. */
+	UTexture2D* ItemIcon(const FGRItemDef& Item);
+	/** Image of the given icon in a fixed-size box (empty when the icon is missing). */
+	UWidget* MakeIcon(UWidgetTree* Tree, UTexture2D* Texture, float Size);
 }

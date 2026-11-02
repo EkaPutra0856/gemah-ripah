@@ -1,7 +1,10 @@
 #include "UI/GRUIStyle.h"
+#include "Story/GRStoryTypes.h"
 #include "Blueprint/WidgetTree.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Components/Border.h"
+#include "Components/Image.h"
+#include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -49,5 +52,28 @@ namespace GRStyle
 		UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(FPaths::ProjectContentDir() / TEXT("Data/Icons") / (Name + TEXT(".png")));
 		Cache.Add(Name, TStrongObjectPtr<UTexture2D>(Texture));
 		return Texture;
+	}
+
+	UTexture2D* ItemIcon(const FGRItemDef& Item)
+	{
+		return Icon(Item.Icon.IsEmpty() ? TEXT("item_") + Item.Id : Item.Icon);
+	}
+
+	UWidget* MakeIcon(UWidgetTree* Tree, UTexture2D* Texture, float Size)
+	{
+		USizeBox* Box = Tree->ConstructWidget<USizeBox>();
+		Box->SetWidthOverride(Size);
+		Box->SetHeightOverride(Size);
+		UImage* Image = Tree->ConstructWidget<UImage>();
+		Box->SetContent(Image);
+		if (Texture)
+		{
+			Image->SetBrushFromTexture(Texture);
+		}
+		else
+		{
+			Image->SetColorAndOpacity(FLinearColor::Transparent);
+		}
+		return Box;
 	}
 }

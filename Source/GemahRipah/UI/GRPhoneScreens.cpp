@@ -2,6 +2,9 @@
 #include "UI/GRMapScreen.h"
 #include "UI/GRMenuButton.h"
 #include "UI/GRUIStyle.h"
+#include "UI/GRAppTile.h"
+#include "Components/UniformGridPanel.h"
+#include "Components/Button.h"
 #include "UI/GRUISubsystem.h"
 #include "Story/GRStorySubsystem.h"
 #include "Systems/GRClockSubsystem.h"
@@ -135,23 +138,30 @@ void UGRPhoneScreen::FillApp(const FString& App)
 		struct FApp
 		{
 			const TCHAR* Id;
-			FString Label;
-			const TCHAR* Glyph;
-			FLinearColor Color;
+			FText Label;
+			FString Badge;
 		};
 		const FApp Apps[] = {
-			{ TEXT("ojekku"), Story->GetActiveOrder() ? TEXT("OjekKu (order aktif)") : TEXT("OjekKu"), TEXT("O"), FLinearColor(FColor(46, 160, 67)) },
-			{ TEXT("pesan"), Unread > 0 ? FString::Printf(TEXT("Pesan (%d baru)"), Unread) : TEXT("Pesan"), TEXT("P"), FLinearColor(FColor(52, 120, 220)) },
-			{ TEXT("kicau"), TEXT("Kicau"), TEXT("K"), FLinearColor(FColor(29, 155, 240)) },
-			{ TEXT("berita"), TEXT("Berita"), TEXT("B"), FLinearColor(FColor(200, 60, 50)) },
-			{ TEXT("dompet"), TEXT("Dompet"), TEXT("Rp"), FLinearColor(FColor(220, 150, 30)) },
-			{ TEXT("galeri"), TEXT("Galeri / Kamera"), TEXT("G"), FLinearColor(FColor(150, 80, 200)) },
-			{ TEXT("peta"), TEXT("Peta"), TEXT("M"), FLinearColor(FColor(40, 150, 140)) },
+			{ TEXT("ojekku"), LOCTEXT("AppOjekKu", "OjekKu"), Story->GetActiveOrder() ? TEXT("!") : TEXT("") },
+			{ TEXT("pesan"), LOCTEXT("AppPesan", "Pesan"), Unread > 0 ? FString::FromInt(Unread) : FString() },
+			{ TEXT("kicau"), LOCTEXT("AppKicau", "Kicau"), FString() },
+			{ TEXT("berita"), LOCTEXT("AppBerita", "Berita"), FString() },
+			{ TEXT("dompet"), LOCTEXT("AppDompet", "Dompet"), FString() },
+			{ TEXT("galeri"), LOCTEXT("AppGaleri", "Galeri"), FString() },
+			{ TEXT("peta"), LOCTEXT("AppPeta", "Peta"), FString() },
 		};
-		for (const FApp& Entry : Apps)
+		// Home screen: a 3-column grid of app icons, like a real phone.
+		AppGrid = WidgetTree->ConstructWidget<UUniformGridPanel>();
+		AppGrid->SetSlotPadding(FMargin(8.f, 10.f));
+		Content->AddChildToVerticalBox(AppGrid)->SetPadding(FMargin(0.f, 8.f, 0.f, 0.f));
+		DefaultFocus = nullptr;
+		for (int32 i = 0; i < UE_ARRAY_COUNT(Apps); ++i)
 		{
+			const FApp& Entry = Apps[i];
 			const FString Id = Entry.Id;
-			UGRMenuButton* Button = AddButton(Content, FText::FromString(Entry.Label), [this, Id]()
+			UGRAppTile* Tile = CreateWidget<UGRAppTile>(this, UGRAppTile::StaticClass());
+			Tile->Setup(GRStyle::Icon(FString(TEXT("app_")) + Entry.Id), Entry.Label, Entry.Badge);
+			Tile->OnClicked = [this, Id]()
 			{
 				if (Id == TEXT("peta"))
 				{
@@ -160,8 +170,12 @@ void UGRPhoneScreen::FillApp(const FString& App)
 				}
 				ShowApp(Id);
 				Super::OnShown();
-			});
-			Button->SetIcon(Entry.Glyph, Entry.Color, GRStyle::Icon(FString(TEXT("app_")) + Entry.Id));
+			};
+			AppGrid->AddChildToUniformGrid(Tile, i / 3, i % 3);
+			if (!DefaultFocus)
+			{
+				DefaultFocus = Tile->GetButton();
+			}
 		}
 		return;
 	}
@@ -310,7 +324,7 @@ void UGRPhoneScreen::ShowApp(const FString& App)
 	{
 		// Home: icons rise into place one after another.
 		Anim.Add(GRAnim::In(AppTitle, 0.f, FVector2D(0.f, -10.f), 0.2f));
-		Anim.Stagger(Content, 0.04f, 0.035f, FVector2D(0.f, 18.f), 0.24f);
+		Anim.Stagger(AppGrid, 0.04f, 0.04f, FVector2D(0.f, 22.f), 0.28f);
 		return;
 	}
 
@@ -442,12 +456,13 @@ void UGRWarnetScreen::Rebuild()
 		const FString Id = Item.Id;
 		const bool bOn = Evidence.Contains(Id);
 		if (bOn) { Viral += 25; Risk += 10; }
-		AddButton(Body, FText::FromString(FString::Printf(TEXT("%s%s"), bOn ? TEXT("[x] ") : TEXT("[  ] "), *Item.Name)), [this, Id, bOn]()
+		UGRMenuButton* EvidenceButton = AddButton(Body, FText::FromString(FString::Printf(TEXT("%s%s"), bOn ? TEXT("[x] ") : TEXT("[  ] "), *Item.Name)), [this, Id, bOn]()
 		{
 			if (bOn) { Evidence.Remove(Id); } else { Evidence.Add(Id); }
 			Rebuild();
 			OnShown();
 		});
+		EvidenceButton->SetIcon(FString(), FLinearColor::Transparent, GRStyle::ItemIcon(Item));
 	}
 	if (!bAnyEvidence)
 	{

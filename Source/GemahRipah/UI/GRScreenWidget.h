@@ -48,6 +48,8 @@ protected:
 	UVerticalBox* MakeCenteredPanel(UOverlay* Root, const FText& Title, float Width);
 
 	UGRMenuButton* AddButton(UPanelWidget* Parent, const FText& Label, TFunction<void()> OnClicked);
+	/** AddButton with an icon tile from Content/Data/Icons in front of the label. */
+	UGRMenuButton* AddIconButton(UPanelWidget* Parent, const FText& Label, const TCHAR* IconName, TFunction<void()> OnClicked);
 
 	/** Widget focused when the screen is shown (first button by default). */
 	UPROPERTY()

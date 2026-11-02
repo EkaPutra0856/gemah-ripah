@@ -164,3 +164,13 @@ UGRMenuButton* UGRScreenWidget::AddButton(UPanelWidget* Parent, const FText& Lab
 	}
 	return Button;
 }
+
+UGRMenuButton* UGRScreenWidget::AddIconButton(UPanelWidget* Parent, const FText& Label, const TCHAR* IconName, TFunction<void()> OnClicked)
+{
+	UGRMenuButton* Button = AddButton(Parent, Label, MoveTemp(OnClicked));
+	if (UTexture2D* Texture = GRStyle::Icon(IconName))
+	{
+		Button->SetIcon(FString(), FLinearColor::Transparent, Texture);
+	}
+	return Button;
+}

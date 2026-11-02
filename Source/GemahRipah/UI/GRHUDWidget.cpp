@@ -6,6 +6,7 @@
 #include "World/GRNpc.h"
 #include "Engine/LocalPlayer.h"
 #include "UI/GRUIStyle.h"
+#include "Components/Image.h"
 #include "Player/GRCharacter.h"
 #include "Player/GRInteractionComponent.h"
 #include "Systems/GRProgressSubsystem.h"
@@ -46,6 +47,17 @@ namespace
 		}
 	}
 
+	const TCHAR* ToastIcon(EGRNotifyType Type)
+	{
+		switch (Type)
+		{
+		case EGRNotifyType::Good: return TEXT("status_selesai");
+		case EGRNotifyType::Bad: return TEXT("ui_peringatan");
+		case EGRNotifyType::Warning: return TEXT("stat_diawasi");
+		default: return TEXT("app_pesan");
+		}
+	}
+
 	UOverlaySlot* Place(UOverlay* Root, UWidget* Widget, EHorizontalAlignment H, EVerticalAlignment V, const FMargin& Padding)
 	{
 		UOverlaySlot* WidgetSlot = Root->AddChildToOverlay(Widget);
@@ -73,14 +85,17 @@ void UGRHUDWidget::NativeOnInitialized()
 	UVerticalBox* StatusBox = WidgetTree->ConstructWidget<UVerticalBox>();
 	StatusSize->SetContent(StatusBox);
 
+	UHorizontalBox* UangRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+	StatusBox->AddChildToVerticalBox(UangRow)->SetPadding(FMargin(0.f, 0.f, 0.f, 8.f));
+	UangRow->AddChildToHorizontalBox(GRStyle::MakeIcon(WidgetTree, GRStyle::Icon(TEXT("stat_uang")), 34.f))->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
 	UangText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 24, GRStyle::ColorText, true);
-	StatusBox->AddChildToVerticalBox(UangText)->SetPadding(FMargin(0.f, 0.f, 0.f, 8.f));
+	UangRow->AddChildToHorizontalBox(UangText)->SetVerticalAlignment(VAlign_Center);
 	UTextBlock* Value = nullptr;
-	SuaraBar = MakeMeter(StatusBox, LOCTEXT("Suara", "Suara"), GRStyle::ColorInfo, Value);
+	SuaraBar = MakeMeter(StatusBox, LOCTEXT("Suara", "Suara"), TEXT("stat_suara"), GRStyle::ColorInfo, Value);
 	SuaraValue = Value;
-	DiawasiBar = MakeMeter(StatusBox, LOCTEXT("Diawasi", "Diawasi"), GRStyle::ColorDanger, Value);
+	DiawasiBar = MakeMeter(StatusBox, LOCTEXT("Diawasi", "Diawasi"), TEXT("stat_diawasi"), GRStyle::ColorDanger, Value);
 	DiawasiValue = Value;
-	EnergiBar = MakeMeter(StatusBox, LOCTEXT("Energi", "Energi"), GRStyle::ColorGood, Value);
+	EnergiBar = MakeMeter(StatusBox, LOCTEXT("Energi", "Energi"), TEXT("stat_energi"), GRStyle::ColorGood, Value);
 	EnergiValue = Value;
 
 	ObjectiveText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 15, GRStyle::ColorAccent, true);
@@ -209,11 +224,14 @@ void UGRHUDWidget::NativeDestruct()
 	Super::NativeDestruct();
 }
 
-UProgressBar* UGRHUDWidget::MakeMeter(UVerticalBox* Parent, const FText& Label, const FLinearColor& Color, UTextBlock*& OutValue)
+UProgressBar* UGRHUDWidget::MakeMeter(UVerticalBox* Parent, const FText& Label, const TCHAR* IconName, const FLinearColor& Color, UTextBlock*& OutValue)
 {
 	UHorizontalBox* Header = WidgetTree->ConstructWidget<UHorizontalBox>();
 	Parent->AddChildToVerticalBox(Header)->SetPadding(FMargin(0.f, 4.f, 0.f, 2.f));
-	Header->AddChildToHorizontalBox(GRStyle::MakeText(WidgetTree, Label, 14, GRStyle::ColorTextDim))->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	Header->AddChildToHorizontalBox(GRStyle::MakeIcon(WidgetTree, GRStyle::Icon(IconName), 20.f))->SetPadding(FMargin(0.f, 0.f, 6.f, 0.f));
+	UHorizontalBoxSlot* LabelSlot = Header->AddChildToHorizontalBox(GRStyle::MakeText(WidgetTree, Label, 14, GRStyle::ColorTextDim));
+	LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	LabelSlot->SetVerticalAlignment(VAlign_Center);
 	OutValue = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 14, GRStyle::ColorText, true);
 	Header->AddChildToHorizontalBox(OutValue);
 
@@ -385,7 +403,12 @@ void UGRHUDWidget::HandleNotify(const FText& Message, EGRNotifyType Type)
 	StripeFill->SetBrush(GRStyle::RoundedBrush(ToastColor(Type), 2.f));
 	Stripe->SetContent(StripeFill);
 	Row->AddChildToHorizontalBox(Stripe)->SetVerticalAlignment(VAlign_Fill);
-	Row->AddChildToHorizontalBox(GRStyle::MakeText(WidgetTree, Message, 16, ToastColor(Type), true))->SetPadding(FMargin(12.f, 8.f, 14.f, 8.f));
+	UHorizontalBoxSlot* IconSlot = Row->AddChildToHorizontalBox(GRStyle::MakeIcon(WidgetTree, GRStyle::Icon(ToastIcon(Type)), 26.f));
+	IconSlot->SetPadding(FMargin(10.f, 6.f, 0.f, 6.f));
+	IconSlot->SetVerticalAlignment(VAlign_Center);
+	UHorizontalBoxSlot* TextSlot = Row->AddChildToHorizontalBox(GRStyle::MakeText(WidgetTree, Message, 16, ToastColor(Type), true));
+	TextSlot->SetPadding(FMargin(10.f, 8.f, 14.f, 8.f));
+	TextSlot->SetVerticalAlignment(VAlign_Center);
 	UVerticalBoxSlot* ToastSlot = ToastList->AddChildToVerticalBox(Panel);
 	ToastSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 6.f));
 	ToastSlot->SetHorizontalAlignment(HAlign_Right);

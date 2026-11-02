@@ -17,6 +17,8 @@ struct FGRItemDef
 	UPROPERTY() FString Use;
 	/** Evidence items count for the warnet post. */
 	UPROPERTY() bool Bukti = false;
+	/** Icon name in Content/Data/Icons (default item_<Id>). */
+	UPROPERTY() FString Icon;
 };
 
 USTRUCT()

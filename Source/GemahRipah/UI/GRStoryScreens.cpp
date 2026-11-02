@@ -3,6 +3,7 @@
 #include "World/GRStealthLevel.h"
 #include "UI/GRMenuButton.h"
 #include "UI/GRUIStyle.h"
+#include "Components/Image.h"
 #include "UI/GRUISubsystem.h"
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryUtil.h"
@@ -727,7 +728,7 @@ void UGRShopScreen::Rebuild()
 		const FString Label = FString::Printf(TEXT("%s  -  %s   (punya %d)"), Item ? *Item->Name : *Entry.Item, *UGRStatusSubsystem::FormatRupiah(Price), Story->GetItemCount(Entry.Item));
 		const FString ItemId = Entry.Item;
 		const FString ItemName = Item ? Item->Name : Entry.Item;
-		AddButton(List, FText::FromString(Label), [this, ItemId, ItemName, Price]()
+		UGRMenuButton* BuyButton = AddButton(List, FText::FromString(Label), [this, ItemId, ItemName, Price]()
 		{
 			UGRStorySubsystem* S = StoryOf(this);
 			if (GetGameInstance()->GetSubsystem<UGRStatusSubsystem>()->SpendUang(Price))
@@ -742,6 +743,10 @@ void UGRShopScreen::Rebuild()
 			Rebuild();
 			OnShown();
 		});
+		if (Item)
+		{
+			BuyButton->SetIcon(FString(), FLinearColor::Transparent, GRStyle::ItemIcon(*Item));
+		}
 	}
 }
 
@@ -830,8 +835,15 @@ void UGRJournalScreen::ShowTab(int32 Tab)
 				continue;
 			}
 			bAny = true;
-			Line(FString::Printf(TEXT("%s%s  x%d"), Item.Bukti ? TEXT("[Bukti] ") : TEXT(""), *Item.Name, Count), 18, Item.Bukti ? GRStyle::ColorDanger : GRStyle::ColorText, true, 8.f);
-			Line(Item.Desc, 14, GRStyle::ColorTextDim);
+			UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+			Content->AddChildToVerticalBox(Row)->SetPadding(FMargin(0.f, 8.f, 0.f, 2.f));
+			Row->AddChildToHorizontalBox(GRStyle::MakeIcon(WidgetTree, GRStyle::ItemIcon(Item), 52.f))->SetPadding(FMargin(0.f, 0.f, 14.f, 0.f));
+			UVerticalBox* Texts = WidgetTree->ConstructWidget<UVerticalBox>();
+			UHorizontalBoxSlot* TextsSlot = Row->AddChildToHorizontalBox(Texts);
+			TextsSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+			TextsSlot->SetVerticalAlignment(VAlign_Center);
+			Texts->AddChildToVerticalBox(Wrapped(GRStyle::MakeText(WidgetTree, FText::FromString(FString::Printf(TEXT("%s%s  x%d"), Item.Bukti ? TEXT("[Bukti] ") : TEXT(""), *Item.Name, Count)), 18, Item.Bukti ? GRStyle::ColorDanger : GRStyle::ColorText, true)));
+			Texts->AddChildToVerticalBox(Wrapped(GRStyle::MakeText(WidgetTree, FText::FromString(Item.Desc), 14, GRStyle::ColorTextDim)));
 			if (!Item.Use.IsEmpty())
 			{
 				const FString Id = Item.Id;

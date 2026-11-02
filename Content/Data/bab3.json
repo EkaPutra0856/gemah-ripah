@@ -34,31 +34,31 @@
    "use": "energi 18; notif Melek lagi."
   },
   {
-   "id": "foto_lab",
+   "id": "foto_lab", "icon": "item_foto",
    "name": "Foto hasil lab Puskesmas",
    "desc": "Hasil lab 23 siswa: bakteri E. coli tinggi. Ada stempel RAHASIA.",
    "bukti": true
   },
   {
-   "id": "foto_dapur",
+   "id": "foto_dapur", "icon": "item_foto",
    "name": "Foto dapur PPR",
    "desc": "Ayam berbelatung di kotak bertuliskan 'Higienis 100%'.",
    "bukti": true
   },
   {
-   "id": "nota_anggaran",
+   "id": "nota_anggaran", "icon": "item_dokumen",
    "name": "Nota anggaran PPR",
    "desc": "Di atas kertas Rp15.000 per porsi. Belanja nyata Rp6.200.",
    "bukti": true
   },
   {
-   "id": "daftar_korban",
+   "id": "daftar_korban", "icon": "item_dokumen",
    "name": "Daftar siswa sakit",
    "desc": "23 nama siswa yang dirawat, dengan catatan tangan: 'jangan bocor'.",
    "bukti": true
   },
   {
-   "id": "rekaman_pungli",
+   "id": "rekaman_pungli", "icon": "item_rekaman",
    "name": "Rekaman pungli kelurahan",
    "desc": "Suara Pak Darmo: 'Gratis itu kalau prosesnya dua minggu.'",
    "bukti": true
@@ -70,30 +70,30 @@
    "bukti": true
   },
   {
-   "id": "kunci_kel",
+   "id": "kunci_kel", "icon": "item_kunci",
    "name": "Kunci cadangan Kelurahan",
    "desc": "Dititipkan ke Pos Ronda supaya aman. Dari siapa, tidak jelas."
   },
   {
-   "id": "laporan_palsu",
+   "id": "laporan_palsu", "icon": "item_laporan",
    "name": "Laporan warga No. 47",
    "desc": "Laporan atas Rudi. Pelapor: Sukirman, RT 05. RT 05 itu pemakaman umum.",
    "bukti": true
   },
   {
-   "id": "memo_target",
+   "id": "memo_target", "icon": "item_dokumen",
    "name": "Memo target laporan",
    "desc": "'Target bulan ini: 50 laporan pasal penghinaan. Kelurahan terbaik dapat studi banding.'",
    "bukti": true
   },
   {
-   "id": "daftar_pantau",
+   "id": "daftar_pantau", "icon": "item_laporan",
    "name": "Daftar pantauan warga",
    "desc": "112 nama. Nomor 3: Bayu. Nomor 4: Ibu. Nomor 5: Dinda, 9 tahun.",
    "bukti": true
   },
   {
-   "id": "rekaman_tawar",
+   "id": "rekaman_tawar", "icon": "item_rekaman",
    "name": "Rekaman 'biaya penangguhan'",
    "desc": "Suara Komandan Wiryo menyebut 'uang administrasi' dua juta rupiah.",
    "bukti": true

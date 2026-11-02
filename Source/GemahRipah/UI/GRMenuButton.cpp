@@ -52,17 +52,15 @@ void UGRMenuButton::SetIcon(const FString& Glyph, const FLinearColor& Color, UTe
 	IconSize->SetWidthOverride(40.f);
 	IconSize->SetHeightOverride(40.f);
 	UBorder* Icon = WidgetTree->ConstructWidget<UBorder>();
-	Icon->SetBrush(GRStyle::RoundedBrush(Color, 10.f));
+	// Icon tiles bring their own rounded background; text glyphs get a coloured one.
+	Icon->SetBrush(GRStyle::RoundedBrush(Texture ? FLinearColor::Transparent : Color, 10.f));
 	Icon->SetHorizontalAlignment(HAlign_Center);
 	Icon->SetVerticalAlignment(VAlign_Center);
-	Icon->SetPadding(FMargin(6.f));
+	Icon->SetPadding(FMargin(Texture ? 0.f : 6.f));
 	IconSize->SetContent(Icon);
 	if (Texture)
 	{
-		UImage* Image = WidgetTree->ConstructWidget<UImage>();
-		Image->SetBrushFromTexture(Texture);
-		Image->SetDesiredSizeOverride(FVector2D(28.f, 28.f));
-		Icon->SetContent(Image);
+		Icon->SetContent(GRStyle::MakeIcon(WidgetTree, Texture, 40.f));
 	}
 	else
 	{

@@ -55,18 +55,18 @@ void UGRMainMenuScreen::BuildScreen(UOverlay* Root)
 	Box->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, LOCTEXT("ChapterTitle", "Bab 1: Asap dan Piring"), 22, GRStyle::ColorText))
 		->SetPadding(FMargin(0.f, 0.f, 0.f, 36.f));
 
-	ContinueButton = AddButton(Box, LOCTEXT("Continue", "Lanjutkan"), [this]()
+	ContinueButton = AddIconButton(Box, LOCTEXT("Continue", "Lanjutkan"), TEXT("menu_lanjut"), [this]()
 	{
 		if (UGRGameFlowSubsystem* Flow = GetFlow(this)) { Flow->ContinueGame(); }
 	});
-	AddButton(Box, LOCTEXT("NewGame", "Game Baru"), [this]()
+	AddIconButton(Box, LOCTEXT("NewGame", "Game Baru"), TEXT("menu_baru"), [this]()
 	{
 		if (UGRGameFlowSubsystem* Flow = GetFlow(this)) { Flow->StartNewGame(); }
 	});
-	AddButton(Box, LOCTEXT("Load", "Muat"), [this]() { GetUI()->PushScreen<UGRLoadScreen>(); });
-	AddButton(Box, LOCTEXT("Settings", "Pengaturan"), [this]() { GetUI()->PushScreen<UGRSettingsScreen>(); });
-	AddButton(Box, LOCTEXT("Credits", "Kredit"), [this]() { GetUI()->PushScreen<UGRCreditsScreen>(); });
-	AddButton(Box, LOCTEXT("Quit", "Keluar"), [this]()
+	AddIconButton(Box, LOCTEXT("Load", "Muat"), TEXT("menu_muat"), [this]() { GetUI()->PushScreen<UGRLoadScreen>(); });
+	AddIconButton(Box, LOCTEXT("Settings", "Pengaturan"), TEXT("menu_pengaturan"), [this]() { GetUI()->PushScreen<UGRSettingsScreen>(); });
+	AddIconButton(Box, LOCTEXT("Credits", "Kredit"), TEXT("menu_kredit"), [this]() { GetUI()->PushScreen<UGRCreditsScreen>(); });
+	AddIconButton(Box, LOCTEXT("Quit", "Keluar"), TEXT("menu_keluar"), [this]()
 	{
 		if (UGRGameFlowSubsystem* Flow = GetFlow(this)) { Flow->QuitGame(); }
 	});
@@ -113,20 +113,20 @@ void UGRPauseScreen::BuildScreen(UOverlay* Root)
 {
 	UVerticalBox* Box = MakeCenteredPanel(Root, LOCTEXT("PauseTitle", "Jeda"), 420.f);
 
-	AddButton(Box, LOCTEXT("Resume", "Lanjut"), [this]() { Close(); });
-	AddButton(Box, LOCTEXT("PauseMap", "Peta"), [this]() { GetUI()->PushScreen<UGRMapScreen>(); });
-	AddButton(Box, LOCTEXT("PauseChapters", "Peta Bab"), [this]() { UGRChapterMapScreen::Open(GetUI()); });
-	AddButton(Box, LOCTEXT("Save", "Simpan"), [this]() { GetUI()->PushScreen<UGRSaveScreen>(); });
-	AddButton(Box, LOCTEXT("LoadPause", "Muat"), [this]() { GetUI()->PushScreen<UGRLoadScreen>(); });
-	AddButton(Box, LOCTEXT("SettingsPause", "Pengaturan"), [this]() { GetUI()->PushScreen<UGRSettingsScreen>(); });
-	AddButton(Box, LOCTEXT("MainMenu", "Menu Utama"), [this]()
+	AddIconButton(Box, LOCTEXT("Resume", "Lanjut"), TEXT("menu_lanjut"), [this]() { Close(); });
+	AddIconButton(Box, LOCTEXT("PauseMap", "Peta"), TEXT("app_peta"), [this]() { GetUI()->PushScreen<UGRMapScreen>(); });
+	AddIconButton(Box, LOCTEXT("PauseChapters", "Peta Bab"), TEXT("menu_petabab"), [this]() { UGRChapterMapScreen::Open(GetUI()); });
+	AddIconButton(Box, LOCTEXT("Save", "Simpan"), TEXT("menu_simpan"), [this]() { GetUI()->PushScreen<UGRSaveScreen>(); });
+	AddIconButton(Box, LOCTEXT("LoadPause", "Muat"), TEXT("menu_muat"), [this]() { GetUI()->PushScreen<UGRLoadScreen>(); });
+	AddIconButton(Box, LOCTEXT("SettingsPause", "Pengaturan"), TEXT("menu_pengaturan"), [this]() { GetUI()->PushScreen<UGRSettingsScreen>(); });
+	AddIconButton(Box, LOCTEXT("MainMenu", "Menu Utama"), TEXT("menu_utama"), [this]()
 	{
 		UGRConfirmScreen::Ask(GetUI(), LOCTEXT("ConfirmMenu", "Kembali ke menu utama?\nProgres sejak simpanan terakhir akan hilang."), [this]()
 		{
 			if (UGRGameFlowSubsystem* Flow = GetFlow(this)) { Flow->ReturnToMainMenu(); }
 		});
 	});
-	AddButton(Box, LOCTEXT("QuitGame", "Keluar Game"), [this]()
+	AddIconButton(Box, LOCTEXT("QuitGame", "Keluar Game"), TEXT("menu_keluar"), [this]()
 	{
 		UGRConfirmScreen::Ask(GetUI(), LOCTEXT("ConfirmQuit", "Keluar dari game?\nProgres sejak simpanan terakhir akan hilang."), [this]()
 		{
