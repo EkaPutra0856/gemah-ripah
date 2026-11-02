@@ -97,6 +97,10 @@ public:
 	UFUNCTION(Exec)
 	void GRMotor();
 
+	/** Holds a key for a while, as if pressed by the player (for scripted tests). Example: GRTekan W 1.5 */
+	UFUNCTION(Exec)
+	void GRTekan(const FString& KeyName, float Seconds = 0.1f);
+
 	/** Sends a test toast. */
 	UFUNCTION(Exec)
 	void GRNotif(const FString& Message);

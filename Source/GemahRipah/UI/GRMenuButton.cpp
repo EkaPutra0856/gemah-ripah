@@ -73,7 +73,9 @@ void UGRMenuButton::RefreshStyle()
 	FButtonStyle Style;
 	Style.SetNormal(GRStyle::RoundedBrush(Base));
 	Style.SetHovered(GRStyle::RoundedBrush(GRStyle::ColorButtonFocus));
-	Style.SetPressed(GRStyle::RoundedBrush(GRStyle::ColorAccent));
+	// Dark accent, so the accent-colored label stays readable while held.
+	const FLinearColor Pressed(GRStyle::ColorAccent.R * 0.45f, GRStyle::ColorAccent.G * 0.45f, GRStyle::ColorAccent.B * 0.45f, 1.f);
+	Style.SetPressed(GRStyle::RoundedBrush(Pressed));
 	Style.SetDisabled(GRStyle::RoundedBrush(GRStyle::ColorPanelSoft));
 	Style.SetNormalPadding(FMargin(0.f));
 	Style.SetPressedPadding(FMargin(0.f));

@@ -338,6 +338,20 @@ void UGRWarnetScreen::Rebuild()
 {
 	UGRStorySubsystem* Story = StoryFor(this);
 	const FGRMinigameDef* Def = Story->FindMinigame(MinigameId);
+	// Remember which button had focus, so a choice does not send keyboard focus back to the top.
+	int32 FocusIndex = INDEX_NONE;
+	int32 ButtonIndex = 0;
+	for (UWidget* Child : Body->GetAllChildren())
+	{
+		if (const UGRMenuButton* Button = Cast<UGRMenuButton>(Child))
+		{
+			if (Button->HasFocusedDescendants())
+			{
+				FocusIndex = ButtonIndex;
+			}
+			++ButtonIndex;
+		}
+	}
 	while (Body->GetChildrenCount() > 1)
 	{
 		Body->RemoveChildAt(1);
@@ -400,6 +414,18 @@ void UGRWarnetScreen::Rebuild()
 	UGRMenuButton* Post = AddButton(Body, LOCTEXT("WarnetPost", "Unggah ke Kicau"), [this, bReady]() { if (bReady) { Submit(); } });
 	Post->SetDanger(!bReady);
 	AddButton(Body, LOCTEXT("WarnetCancel", "Batal, belum siap"), [this]() { Close(); });
+
+	ButtonIndex = 0;
+	for (UWidget* Child : Body->GetAllChildren())
+	{
+		if (UGRMenuButton* Button = Cast<UGRMenuButton>(Child))
+		{
+			if (ButtonIndex++ == FocusIndex)
+			{
+				DefaultFocus = Button;
+			}
+		}
+	}
 }
 
 void UGRWarnetScreen::Submit()
@@ -644,7 +670,9 @@ void UGRStealthScreen::End(bool bWin)
 	EndBox->GetParent()->GetParent()->SetVisibility(ESlateVisibility::Visible);
 	if (bWin)
 	{
-		EndBox->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, FText::FromString(FString::Printf(TEXT("Lolos! %d bukti terbawa."), Taken.Num())), 24, GRStyle::ColorGood, true));
+		UTextBlock* Result = GRStyle::MakeText(WidgetTree, FText::FromString(FString::Printf(TEXT("Lolos! %d bukti terbawa."), Taken.Num())), 22, GRStyle::ColorGood, true);
+		Result->SetAutoWrapText(true);
+		EndBox->AddChildToVerticalBox(Result);
 		AddButton(EndBox, LOCTEXT("StealthOk", "Pulang diam-diam"), [this]()
 		{
 			UGRStorySubsystem* Story = StoryFor(this);
@@ -665,7 +693,9 @@ void UGRStealthScreen::End(bool bWin)
 	}
 	else
 	{
-		EndBox->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, LOCTEXT("StealthLose", "Ketahuan penjaga dapur!"), 24, GRStyle::ColorDanger, true));
+		UTextBlock* Result = GRStyle::MakeText(WidgetTree, LOCTEXT("StealthLose", "Ketahuan penjaga dapur!"), 22, GRStyle::ColorDanger, true);
+		Result->SetAutoWrapText(true);
+		EndBox->AddChildToVerticalBox(Result);
 		AddButton(EndBox, LOCTEXT("StealthRetry", "Coba lagi"), [this]() { Reset(); });
 		AddButton(EndBox, LOCTEXT("StealthGiveUp", "Kabur tanpa bukti"), [this]()
 		{

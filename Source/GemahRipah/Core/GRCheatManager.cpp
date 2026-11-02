@@ -22,6 +22,8 @@
 #include "Story/GRStorySubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "GemahRipah.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Containers/Ticker.h"
 
 UGameInstance* UGRCheatManager::GetGI() const
 {
@@ -234,6 +236,26 @@ void UGRCheatManager::GRMotor()
 	{
 		PC->HandleMotor();
 	}
+}
+
+void UGRCheatManager::GRTekan(const FString& KeyName, float Seconds)
+{
+	const FKey Key(*KeyName);
+	if (!Key.IsValid() || !FSlateApplication::IsInitialized())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GRTekan: tombol %s tidak dikenal"), *KeyName);
+		return;
+	}
+	FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(Key, FModifierKeysState(), 0, false, 0, 0));
+	// Core ticker, not the world timer: menus and minigames pause the world.
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Key](float)
+	{
+		if (FSlateApplication::IsInitialized())
+		{
+			FSlateApplication::Get().ProcessKeyUpEvent(FKeyEvent(Key, FModifierKeysState(), 0, false, 0, 0));
+		}
+		return false;
+	}), FMath::Max(Seconds, 0.05f));
 }
 
 void UGRCheatManager::GRPetaUlang()

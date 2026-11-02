@@ -81,6 +81,7 @@ Keputusan teknis:
 | `GRPetaUlang` | Hitung ulang gambar peta dari bangunan |
 | `GRCerita "aksi; aksi"` | Jalankan aksi cerita, mis. `GRCerita "quest Piring; teleport ibu_pkm"` |
 | `GRMotor` | Naik/turun motor (sama dengan F) |
+| `GRTekan W 1.5` | Tahan tombol selama 1,5 detik, untuk tes otomatis (jalan, minigame, menu) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
 
 ## Map
