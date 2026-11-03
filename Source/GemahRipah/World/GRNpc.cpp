@@ -44,6 +44,8 @@ AGRNpc::AGRNpc()
 	Move->bOrientRotationToMovement = true;
 	Move->RotationRate = FRotator(0.f, 360.f, 0.f);
 	Move->MaxWalkSpeed = 160.f;
+	// Same limit as Bayu (see AGRCharacter): wanderers must not climb onto chairs and tables.
+	Move->MaxStepHeight = 34.f;
 	Move->bRunPhysicsWithNoController = true;
 	AutoPossessAI = EAutoPossessAI::Disabled;
 
@@ -120,9 +122,12 @@ void AGRNpc::Setup(const FGRSpawnDef& Def)
 	bSeated = Def.Pose == TEXT("duduk") && !bSpn;
 	if (bSeated)
 	{
-		// Seated people stay put; head and labels drop with the pelvis.
+		// Seated people stay put; head and labels drop with the pelvis. The capsule overlaps the chair and
+		// desk (furniture parts are WorldDynamic): ignore them, or the movement component pushes the NPC
+		// out of the seat, onto it, or half into the desk.
 		WanderRadius = 0.f;
 		Patrol.Reset();
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 		Hat->SetRelativeLocation(FVector(-8.f, 0.f, 50.f));
 		NameText->SetRelativeLocation(FVector(0.f, 0.f, 85.f));
 		BarkText->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
@@ -186,11 +191,7 @@ bool AGRNpc::CanInteract_Implementation(AActor* Interactor) const
 
 void AGRNpc::Interact_Implementation(AActor* Interactor)
 {
-	if (Interactor && !bSeated)
-	{
-		const FVector ToPlayer = Interactor->GetActorLocation() - GetActorLocation();
-		SetActorRotation(FRotator(0.f, ToPlayer.Rotation().Yaw, 0.f));
-	}
+	// TickMovement turns standing NPCs toward the player while TalkPause runs (no snap here).
 	TalkPause = 6.f;
 	if (UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>())
 	{
@@ -291,7 +292,7 @@ void AGRNpc::TickMovement(float DeltaSeconds, const APawn* Player)
 		if (Player && !bSeated)
 		{
 			const FRotator Want(0.f, (Player->GetActorLocation() - GetActorLocation()).Rotation().Yaw, 0.f);
-			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Want, DeltaSeconds, 8.f));
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Want, DeltaSeconds, 6.f));
 		}
 		return;
 	}
@@ -332,7 +333,7 @@ void AGRNpc::TickMovement(float DeltaSeconds, const APawn* Player)
 	{
 		if (bChasing)
 		{
-			SetActorRotation(FRotator(0.f, To.Rotation().Yaw, 0.f));
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, To.Rotation().Yaw, 0.f), DeltaSeconds, 8.f));
 			return;
 		}
 		bHasTarget = false;

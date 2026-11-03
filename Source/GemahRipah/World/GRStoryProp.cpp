@@ -2,6 +2,7 @@
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryUtil.h"
 #include "World/GRPropModels.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -82,7 +83,28 @@ float AGRStoryProp::BuildParts(const TArray<FGRPropPart>& Parts)
 		Comp->SetStaticMesh(GRStoryUtil::LoadShape(Part.Shape));
 		Comp->SetRelativeLocationAndRotation(Part.Loc, Part.Rot);
 		Comp->SetRelativeScale3D(Part.Size / 100.f);
-		Comp->SetCollisionProfileName(Part.bCollide ? TEXT("BlockAllDynamic") : TEXT("NoCollision"));
+		// A low solid part with open space under it (seat, table top) collides as an invisible block down to
+		// the ground, 10 cm wider on each side. Two dining chairs 18 cm apart squeezed Bayu's capsule, and
+		// the way out of that overlap was up: onto the seats, over the table, down the other side.
+		const float PartBottom = Part.Loc.Z - Part.Size.Z * 0.5f;
+		const float PartTop = Part.Loc.Z + Part.Size.Z * 0.5f;
+		const bool bGrounded = Part.bCollide && PartBottom > 1.f && PartBottom < 90.f;
+		Comp->SetCollisionProfileName(Part.bCollide && !bGrounded ? TEXT("BlockAllDynamic") : TEXT("NoCollision"));
+		if (bGrounded)
+		{
+			UBoxComponent* Block = NewObject<UBoxComponent>(this);
+			Block->SetupAttachment(Mesh);
+			Block->SetBoxExtent(FVector(Part.Size.X * 0.5f + 10.f, Part.Size.Y * 0.5f + 10.f, PartTop * 0.5f));
+			Block->SetRelativeLocationAndRotation(FVector(Part.Loc.X, Part.Loc.Y, PartTop * 0.5f), FRotator(0.f, Part.Rot.Yaw, 0.f));
+			Block->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+			Block->CanCharacterStepUpOn = ECB_No;
+			Block->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+			Block->SetCanEverAffectNavigation(false);
+			Block->RegisterComponent();
+		}
+		// Furniture is not a step, and the camera passes through it instead of snapping in close behind a chair back.
+		Comp->CanCharacterStepUpOn = ECB_No;
+		Comp->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 		Comp->SetCanEverAffectNavigation(false);
 		UMaterialInstanceDynamic*& Material = Materials.FindOrAdd(Part.Color.ToFColor(true));
 		if (!Material)

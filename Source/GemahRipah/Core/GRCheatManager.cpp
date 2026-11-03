@@ -18,6 +18,8 @@
 #include "World/GRBed.h"
 #include "World/GRMapBounds.h"
 #include "World/GRMapSubsystem.h"
+#include "World/GRNpc.h"
+#include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "Story/GRStorySubsystem.h"
 #include "GameFramework/PlayerController.h"
@@ -270,6 +272,32 @@ void UGRCheatManager::GRPos(float X, float Y, float Yaw)
 	}
 	Pawn->TeleportTo(FVector(X, Y, 110.f), FRotator(0.f, Yaw, 0.f));
 	PC->SetControlRotation(FRotator(-15.f, Yaw, 0.f));
+}
+
+void UGRCheatManager::GRPosisi()
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	int32 Seated = 0;
+	int32 Moved = 0;
+	for (TActorIterator<AGRNpc> It(GetWorld()); It; ++It)
+	{
+		if (It->IsHidden() || !It->IsSeated())
+		{
+			continue;
+		}
+		++Seated;
+		const FVector Loc = It->GetActorLocation();
+		const float Drift = FVector::Dist2D(Loc, It->GetHome());
+		const float Turn = FMath::Abs(FRotator::NormalizeAxis(It->GetActorRotation().Yaw - It->GetHomeYaw()));
+		if (Drift > 5.f || Turn > 2.f || Loc.Z > 120.f)
+		{
+			++Moved;
+			UE_LOG(LogGemahRipah, Warning, TEXT("GRPosisi %s bergeser %.0f cm, berputar %.0f derajat, z %.0f"), *It->SpawnId, Drift, Turn, Loc.Z);
+		}
+	}
+	const FVector P = Pawn ? Pawn->GetActorLocation() : FVector::ZeroVector;
+	UE_LOG(LogGemahRipah, Warning, TEXT("GRPosisi pemain (%.0f, %.0f, %.0f) | NPC duduk %d, bergeser %d"), P.X, P.Y, P.Z, Seated, Moved);
 }
 
 void UGRCheatManager::GRTekan(const FString& KeyName, float Seconds)

@@ -37,4 +37,8 @@ private:
 	AActor* FindBestInteractable() const;
 
 	TWeakObjectPtr<AActor> FocusedActor;
+	float FocusTimer = 0.f;
+	/** Yaw Bayu turns toward after an interaction, while TurnTimeLeft runs. */
+	float TurnYaw = 0.f;
+	float TurnTimeLeft = 0.f;
 };

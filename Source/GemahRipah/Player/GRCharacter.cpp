@@ -28,6 +28,9 @@ AGRCharacter::AGRCharacter()
 	Move->JumpZVelocity = 500.f;
 	Move->AirControl = 0.35f;
 	Move->MaxWalkSpeed = WalkSpeed;
+	// Kerbs (12 cm) and stage steps (32 cm) yes, chair seats (46 cm) no: with the default 45 cm, the floor
+	// check took the edges of two chairs side by side for a step and Bayu walked over the dining table.
+	Move->MaxStepHeight = 34.f;
 	Move->MinAnalogWalkSpeed = 20.f;
 	Move->BrakingDecelerationWalking = 2000.f;
 	Move->BrakingDecelerationFalling = 1500.f;

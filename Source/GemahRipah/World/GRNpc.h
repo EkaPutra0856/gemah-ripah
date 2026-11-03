@@ -42,6 +42,9 @@ public:
 	bool SeesPlayer() const { return bSeesPlayer; }
 	/** Back to the spawn point and the start of the patrol. */
 	void ReturnHome();
+	bool IsSeated() const { return bSeated; }
+	FVector GetHome() const { return Home; }
+	float GetHomeYaw() const { return HomeYaw; }
 
 	/** World time when any SPN last saw the player while suspicious (HUD warning). */
 	static double LastSpottedTime;

@@ -5,14 +5,29 @@
 
 UGRInteractionComponent::UGRInteractionComponent()
 {
+	// Every frame for a smooth turn; the focus search itself runs ten times a second.
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.TickInterval = 0.1f;
 }
 
 void UGRInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (TurnTimeLeft > 0.f)
+	{
+		TurnTimeLeft -= DeltaTime;
+		if (AActor* Owner = GetOwner())
+		{
+			Owner->SetActorRotation(FMath::RInterpTo(Owner->GetActorRotation(), FRotator(0.f, TurnYaw, 0.f), DeltaTime, 10.f));
+		}
+	}
+
+	FocusTimer -= DeltaTime;
+	if (FocusTimer > 0.f)
+	{
+		return;
+	}
+	FocusTimer = 0.1f;
 	AActor* Best = FindBestInteractable();
 	if (Best != FocusedActor.Get())
 	{
@@ -78,13 +93,14 @@ bool UGRInteractionComponent::TryInteract()
 	{
 		return false;
 	}
-	// Turn to face whoever (or whatever) Bayu is talking to.
+	// Turn (over a few frames, not in one snap) to face whoever or whatever Bayu is talking to.
 	if (AActor* Owner = GetOwner())
 	{
 		const FVector ToTarget = Target->GetActorLocation() - Owner->GetActorLocation();
 		if (ToTarget.SizeSquared2D() > 1.f)
 		{
-			Owner->SetActorRotation(FRotator(0.f, ToTarget.Rotation().Yaw, 0.f));
+			TurnYaw = ToTarget.Rotation().Yaw;
+			TurnTimeLeft = 0.6f;
 		}
 	}
 	IGRInteractable::Execute_Interact(Target, GetOwner());

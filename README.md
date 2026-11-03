@@ -85,6 +85,7 @@ Keputusan teknis:
 | `GRBab bab2` | Lompat ke bab tertentu (bab sebelumnya dianggap selesai) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
 | `GRPos 8740 -9000 0` | Pindahkan pemain ke x, y (cm) menghadap yaw, untuk screenshot otomatis |
+| `GRPosisi` | Catat posisi pemain dan NPC duduk yang bergeser dari kursinya (cek tembus perabot) |
 
 ## Map
 

@@ -112,6 +112,9 @@ public:
 	/** Moves the player to x, y (cm) facing yaw degrees, for scripted screenshots. Example: GRPos 8740 -9000 0 */
 	UFUNCTION(Exec)
 	void GRPos(float X, float Y, float Yaw = 0.f);
+	/** Logs the player's position and any seated NPC that drifted off its seat (pushed by furniture). */
+	UFUNCTION(Exec)
+	void GRPosisi();
 
 private:
 	UGameInstance* GetGI() const;

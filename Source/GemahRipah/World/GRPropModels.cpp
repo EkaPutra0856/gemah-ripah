@@ -163,8 +163,9 @@ bool GRPropModels::Build(const FString& Model, const TArray<float>& Size, const 
 		const bool bPlastic = Model == TEXT("kursi_plastik");
 		const FLinearColor C = Main(bPlastic ? Hex(TEXT("#2E9E6A")) : Wood);
 		const FLinearColor Leg = bPlastic ? C : WoodDark;
-		P.bCollide = false;
+		// Only the seat is solid: it stops Bayu walking through the chair (seated NPCs ignore furniture).
 		P.Box(FVector(SeatX, 0.f, SeatZ), FVector(42.f, 42.f, 5.f), C);
+		P.bCollide = false;
 		for (int32 SX = -1; SX <= 1; SX += 2)
 		{
 			for (int32 SY = -1; SY <= 1; SY += 2)
@@ -190,8 +191,8 @@ bool GRPropModels::Build(const FString& Model, const TArray<float>& Size, const 
 	if (Model == TEXT("kursi_kantor"))
 	{
 		const FLinearColor C = Main(Hex(TEXT("#3B4352")));
-		P.bCollide = false;
 		P.Box(FVector(SeatX, 0.f, SeatZ + 1.f), FVector(46.f, 46.f, 8.f), C);
+		P.bCollide = false;
 		P.Box(FVector(SeatX - 27.f, 0.f, SeatZ + 38.f), FVector(7.f, 44.f, 50.f), C, FRotator(8.f, 0.f, 0.f));
 		P.Box(FVector(SeatX - 24.f, 0.f, SeatZ + 9.f), FVector(4.f, 8.f, 20.f), MetalDark);
 		P.Cyl(FVector(SeatX, 0.f, (SeatZ + 6.f) * 0.5f), FVector(6.f, 6.f, SeatZ - 6.f), Metal);
@@ -207,8 +208,8 @@ bool GRPropModels::Build(const FString& Model, const TArray<float>& Size, const 
 	if (Model == TEXT("bangku"))
 	{
 		const FVector S = SizeOr(40.f, 180.f, SeatZ);
-		P.bCollide = false;
 		P.Box(FVector(SeatX, 0.f, S.Z), FVector(S.X, S.Y, 5.f), Main(Wood));
+		P.bCollide = false;
 		for (int32 SY = -1; SY <= 1; SY += 2)
 		{
 			P.Box(FVector(SeatX, SY * (S.Y * 0.5f - 14.f), (S.Z - 2.5f) * 0.5f), FVector(S.X - 6.f, 5.f, S.Z - 2.5f), WoodDark);
