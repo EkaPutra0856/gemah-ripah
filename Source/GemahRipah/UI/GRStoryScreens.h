@@ -26,8 +26,12 @@ public:
 	UGRDialogScreen(const FObjectInitializer& ObjectInitializer);
 	static bool Open(class UGRUISubsystem* UI, const FString& DialogId);
 
+	/** Speaker id of the dialog line or cutscene caption on screen (empty when none): NPCs gesture on their lines. */
+	static FString ActiveSpeaker;
+
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeDestruct() override;
 	virtual void BuildScreen(UOverlay* Root) override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;

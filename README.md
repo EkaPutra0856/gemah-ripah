@@ -84,6 +84,7 @@ Keputusan teknis:
 | `GRTekan W 1.5` | Tahan tombol selama 1,5 detik, untuk tes otomatis (jalan, minigame, menu) |
 | `GRBab bab2` | Lompat ke bab tertentu (bab sebelumnya dianggap selesai) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
+| `GRPos 8740 -9000 0` | Pindahkan pemain ke x, y (cm) menghadap yaw, untuk screenshot otomatis |
 
 ## Map
 
@@ -120,6 +121,14 @@ Detail interaksi:
 - Meter dialog (`meter`, `meterLabel`, `meterColor` opsional, merah bila kosong) bergerak halus dan menampilkan perubahan terakhir (+5 / -8).
 - HUD menampilkan penanda tujuan misi dengan jarak. Bila tujuan di luar layar, penanda menempel di tepi layar dengan nama tujuan.
 - Hover mouse hanya mengambil fokus tombol bila mouse benar-benar bergerak, jadi tombol yang beranimasi masuk tidak merebut fokus keyboard.
+
+Perabot dan pose:
+
+- Ruangan tempat orang diajak bicara punya meja dan kursi: Kantor Kelurahan, Warnet Jaya, rumah Bayu, Pos Ronda, layanan Puskesmas, meja piket Pos SPN, fotokopi Pak Harso. Datanya di `Content/Data/furniture.json` (dibuat oleh `Tools/Python/make_furniture.py`) dan dipakai semua bab.
+- Spawn `prop` dengan `model` dirakit dari bentuk dasar (`World/GRPropModels.cpp`): `meja`, `meja_makan`, `meja_kantor`, `meja_pc`, `meja_kecil`, `kursi`, `kursi_kantor`, `kursi_plastik`, `bangku`, `rak`, `lemari`, `lemari_arsip`, `dapur`, `dispenser`, `pot`, `tenda`, `kotak_suara`, `bilik`, `motor`, `warung`, `lapak`, `stensil`, `papan`, `baliho`, `spanduk`, `jeruji`, `pintu`, `tiang`, `patok`, `sembako`, `panggung`, `ekskavator`. Atap tenda dan tenda warung hilang saat pemain berdiri di bawahnya.
+- NPC dengan `"pose": "duduk"` duduk di tempat (taruh `kursi` di posisi yang sama) dan tidak berputar atau berkeliling.
+- NPC bergerak tangan dan mengangguk saat baris dialognya tampil, juga saat bark sambil diam. Animasi `MM_GR_Talk`, `MM_GR_Sit`, `MM_GR_SitTalk` dibuat dari `MM_Idle` oleh `Tools/Python/make_talk_anims.py`.
+- Perabot di ruangan stealth memakai syarat `!menyusup` (variabel ini 1 selama level stealth berjalan). Syarat `bab>=3` memakai nomor bab.
 
 ## Bab 1 "Asap dan Piring"
 
@@ -173,7 +182,7 @@ Hasil: `suara_ratna` >= 50 memberi `ratna_menang`, selain itu `ratna_kalah` (gug
 
 Syarat (`if`, `suspicious`): gabungan `&&`, `||`, `!`, dan perbandingan `>= <= == != > <`.
 
-- Nilai bawaan: `day`, `hour`, `malam`, `uang`, `suara`, `diawasi`, `energi`, `order`, `orders_done`.
+- Nilai bawaan: `day`, `hour`, `malam`, `uang`, `suara`, `diawasi`, `energi`, `order`, `orders_done`, `bab` (nomor bab).
 - Variabel: nama bebas, `item.X` (jumlah barang), `q.Quest` (langkah quest, 100 = selesai), `ev.Id` (event sudah jalan), `baca.Id`, `order.Id`.
 
 Aksi (`do`, `end`, `win`, `lose`), dipisah `;`:

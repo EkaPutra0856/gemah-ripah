@@ -1,0 +1,561 @@
+{
+ "spawns": [
+  {
+   "id": "f_kel_darmo_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    8950,
+    -9000
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_darmo_meja",
+   "kind": "prop",
+   "model": "meja_kantor",
+   "pos": [
+    8855.0,
+    -9000.0
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_loket_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    8650,
+    -8400
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_loket_meja",
+   "kind": "prop",
+   "model": "meja_kantor",
+   "pos": [
+    8555.0,
+    -8400.0
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_arsip1",
+   "kind": "prop",
+   "model": "lemari_arsip",
+   "pos": [
+    9160,
+    -9350
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_arsip2",
+   "kind": "prop",
+   "model": "lemari_arsip",
+   "pos": [
+    9160,
+    -9290
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_rak",
+   "kind": "prop",
+   "model": "rak",
+   "pos": [
+    9165,
+    -8700
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_bangku",
+   "kind": "prop",
+   "model": "bangku",
+   "pos": [
+    8300,
+    -9780
+   ],
+   "yaw": 90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_dispenser",
+   "kind": "prop",
+   "model": "dispenser",
+   "pos": [
+    9160,
+    -8250
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_pot1",
+   "kind": "prop",
+   "model": "pot",
+   "pos": [
+    7870,
+    -8200
+   ],
+   "yaw": 0,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_kel_pot2",
+   "kind": "prop",
+   "model": "pot",
+   "pos": [
+    7870,
+    -9820
+   ],
+   "yaw": 0,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_warnet_kasir_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2250,
+    6650
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_kasir_meja",
+   "kind": "prop",
+   "model": "meja_kantor",
+   "pos": [
+    -2345.0,
+    6650.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc0_meja",
+   "kind": "prop",
+   "model": "meja_pc",
+   "pos": [
+    -2850,
+    5720
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc0_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795.0,
+    5720.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc1_meja",
+   "kind": "prop",
+   "model": "meja_pc",
+   "pos": [
+    -2850,
+    5840
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc1_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795.0,
+    5840.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc2_meja",
+   "kind": "prop",
+   "model": "meja_pc",
+   "pos": [
+    -2850,
+    5960
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc2_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795.0,
+    5960.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc3_meja",
+   "kind": "prop",
+   "model": "meja_pc",
+   "pos": [
+    -2850,
+    6080
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc3_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795.0,
+    6080.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc4_meja",
+   "kind": "prop",
+   "model": "meja_pc",
+   "pos": [
+    -2850,
+    6320
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc4_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795.0,
+    6320.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc5_meja",
+   "kind": "prop",
+   "model": "meja_pc",
+   "pos": [
+    -2850,
+    6440
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_pc5_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795.0,
+    6440.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_kursi7",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    -2795,
+    6200
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_dispenser",
+   "kind": "prop",
+   "model": "dispenser",
+   "pos": [
+    -2080,
+    5660
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_warnet_gamer1",
+   "kind": "npc",
+   "name": "Pelanggan Warnet",
+   "pos": [
+    -2795,
+    5840
+   ],
+   "yaw": 180,
+   "pose": "duduk",
+   "color": "#6C757D",
+   "barks": [
+    "Sstt, lagi push rank.",
+    "Paket data mahal, mending warnet.",
+    "Jangan buka situs aneh, Mas Joko diawasi."
+   ]
+  },
+  {
+   "id": "f_warnet_gamer2",
+   "kind": "npc",
+   "name": "Mahasiswa",
+   "pos": [
+    -2795,
+    6440
+   ],
+   "yaw": 180,
+   "pose": "duduk",
+   "color": "#2A9D8F",
+   "barks": [
+    "Skripsi bab dua, sudah tiga semester.",
+    "Wifi kampus diblokir, katanya demi keamanan."
+   ]
+  },
+  {
+   "id": "f_rumah_meja",
+   "kind": "prop",
+   "model": "meja_makan",
+   "pos": [
+    -8800,
+    -8680
+   ],
+   "yaw": 0,
+   "size": [
+    70,
+    120,
+    72
+   ]
+  },
+  {
+   "id": "f_rumah_kursi-1-8710",
+   "kind": "prop",
+   "model": "kursi",
+   "pos": [
+    -8880,
+    -8710
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_rumah_kursi-1-8650",
+   "kind": "prop",
+   "model": "kursi",
+   "pos": [
+    -8880,
+    -8650
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_rumah_kursi1-8710",
+   "kind": "prop",
+   "model": "kursi",
+   "pos": [
+    -8720,
+    -8710
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_rumah_kursi1-8650",
+   "kind": "prop",
+   "model": "kursi",
+   "pos": [
+    -8720,
+    -8650
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_rumah_dapur",
+   "kind": "prop",
+   "model": "dapur",
+   "pos": [
+    -9455,
+    -8650
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_rumah_lemari",
+   "kind": "prop",
+   "model": "lemari",
+   "pos": [
+    -9300,
+    -8460
+   ],
+   "yaw": -90
+  },
+  {
+   "id": "f_rumah_dinda_kursi",
+   "kind": "prop",
+   "model": "kursi",
+   "pos": [
+    -8850,
+    -9350
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_rumah_dinda_meja",
+   "kind": "prop",
+   "model": "meja",
+   "pos": [
+    -8765.0,
+    -9350.0
+   ],
+   "yaw": 0,
+   "size": [
+    50,
+    90,
+    68
+   ]
+  },
+  {
+   "id": "f_ronda_bangku",
+   "kind": "prop",
+   "model": "bangku",
+   "pos": [
+    -5650,
+    -12300
+   ],
+   "yaw": 90
+  },
+  {
+   "id": "f_ronda_meja",
+   "kind": "prop",
+   "model": "meja_kecil",
+   "pos": [
+    -5650,
+    -12200
+   ],
+   "yaw": 90
+  },
+  {
+   "id": "f_ronda_bangku2",
+   "kind": "prop",
+   "model": "bangku",
+   "pos": [
+    -6000,
+    -11880
+   ],
+   "yaw": -90
+  },
+  {
+   "id": "f_pkm_tenda",
+   "kind": "prop",
+   "model": "tenda",
+   "pos": [
+    7860,
+    22300
+   ],
+   "yaw": 0,
+   "size": [
+    300,
+    320,
+    240
+   ],
+   "color": "#2A9D8F"
+  },
+  {
+   "id": "f_pkm_dokter_kursi",
+   "kind": "prop",
+   "model": "kursi",
+   "pos": [
+    7900,
+    22300
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_pkm_dokter_meja",
+   "kind": "prop",
+   "model": "meja",
+   "pos": [
+    7805.0,
+    22300.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_pkm_antre0",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    7620,
+    21560
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_pkm_antre1",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    7620,
+    21620
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_pkm_antre2",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    7620,
+    21680
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_spn_wiryo_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    5850,
+    -4500
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_spn_wiryo_meja",
+   "kind": "prop",
+   "model": "meja_kantor",
+   "pos": [
+    5755.0,
+    -4500.0
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "f_harso_kursi",
+   "kind": "prop",
+   "model": "kursi_kantor",
+   "pos": [
+    1450,
+    -9250
+   ],
+   "yaw": 180,
+   "if": "bab>=3"
+  },
+  {
+   "id": "f_harso_meja",
+   "kind": "prop",
+   "model": "meja_kantor",
+   "pos": [
+    1355.0,
+    -9250.0
+   ],
+   "yaw": 180,
+   "size": [
+    60,
+    110,
+    75
+   ],
+   "if": "bab>=3"
+  }
+ ]
+}

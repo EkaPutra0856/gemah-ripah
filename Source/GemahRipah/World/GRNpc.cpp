@@ -3,6 +3,10 @@
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
 #include "UI/GRUISubsystem.h"
+#include "UI/GRStoryScreens.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Animation/AnimSequenceBase.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/CapsuleComponent.h"
@@ -54,6 +58,13 @@ AGRNpc::AGRNpc()
 	{
 		GetMesh()->SetAnimInstanceClass(MannyAnim.Class);
 	}
+	// Made from MM_Idle by Tools/Python/make_talk_anims.py.
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> TalkSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Talk.MM_GR_Talk"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> SitSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Sit.MM_GR_Sit"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> SitTalkSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_SitTalk.MM_GR_SitTalk"));
+	TalkAnim = TalkSeq.Object;
+	SitAnim = SitSeq.Object;
+	SitTalkAnim = SitTalkSeq.Object;
 
 	Hat = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hat"));
 	Hat->SetupAttachment(RootComponent);
@@ -104,6 +115,17 @@ void AGRNpc::Setup(const FGRSpawnDef& Def)
 	for (int32 i = 0; i + 1 < Def.Patrol.Num(); i += 2)
 	{
 		Patrol.Add(FVector(Def.Patrol[i], Def.Patrol[i + 1], Home.Z));
+	}
+
+	bSeated = Def.Pose == TEXT("duduk") && !bSpn;
+	if (bSeated)
+	{
+		// Seated people stay put; head and labels drop with the pelvis.
+		WanderRadius = 0.f;
+		Patrol.Reset();
+		Hat->SetRelativeLocation(FVector(-8.f, 0.f, 50.f));
+		NameText->SetRelativeLocation(FVector(0.f, 0.f, 85.f));
+		BarkText->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
 	}
 
 	NameText->SetText(FText::FromString(Def.Name));
@@ -164,7 +186,7 @@ bool AGRNpc::CanInteract_Implementation(AActor* Interactor) const
 
 void AGRNpc::Interact_Implementation(AActor* Interactor)
 {
-	if (Interactor)
+	if (Interactor && !bSeated)
 	{
 		const FVector ToPlayer = Interactor->GetActorLocation() - GetActorLocation();
 		SetActorRotation(FRotator(0.f, ToPlayer.Rotation().Yaw, 0.f));
@@ -198,6 +220,7 @@ void AGRNpc::Tick(float DeltaSeconds)
 		Flashlight->SetVisibility(bStealthGuard || (Clock && Clock->IsNight()));
 	}
 	TickBarks(DeltaSeconds, Player);
+	TickPose(Player);
 
 	if (Camera)
 	{
@@ -208,6 +231,43 @@ void AGRNpc::Tick(float DeltaSeconds)
 		BarkText->SetWorldRotation(Face);
 		NameText->SetHiddenInGame(Dist > NameRange);
 	}
+}
+
+void AGRNpc::TickPose(const APawn* Player)
+{
+	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
+	if (!Anim)
+	{
+		return;
+	}
+	// Gesture while it is this person's line: the one the player talked to, or a speaker with this spawn
+	// id prefix close by (dialogs started by zones and cutscenes). Barks count too while standing still.
+	const FString& Speaker = UGRDialogScreen::ActiveSpeaker;
+	bool bTalking = false;
+	if (!Speaker.IsEmpty() && Speaker != TEXT("bayu"))
+	{
+		const bool bNear = Player && FVector::DistSquared2D(Player->GetActorLocation(), GetActorLocation()) < FMath::Square(1500.f);
+		bTalking = TalkPause > 0.f || (bNear && SpawnId.StartsWith(Speaker));
+	}
+	else if (Speaker.IsEmpty())
+	{
+		bTalking = BarkHideTime > 0.f && GetVelocity().SizeSquared2D() < 100.f && !bSpn;
+	}
+	const int32 Want = (bSeated ? 2 : 0) + (bTalking ? 1 : 0);
+	const bool bPlaying = PoseMontage && Anim->Montage_IsPlaying(PoseMontage);
+	if (Want == PoseAnim && (Want == 0 || bPlaying))
+	{
+		return;
+	}
+	PoseAnim = Want;
+	UAnimSequenceBase* Seq = Want == 1 ? TalkAnim.Get() : Want == 2 ? SitAnim.Get() : Want == 3 ? SitTalkAnim.Get() : nullptr;
+	if (!Seq)
+	{
+		Anim->StopSlotAnimation(0.35f, TEXT("DefaultSlot"));
+		PoseMontage = nullptr;
+		return;
+	}
+	PoseMontage = Anim->PlaySlotAnimationAsDynamicMontage(Seq, TEXT("DefaultSlot"), 0.35f, 0.35f, 1.f, 10000);
 }
 
 void AGRNpc::PickWanderTarget()
@@ -228,7 +288,7 @@ void AGRNpc::TickMovement(float DeltaSeconds, const APawn* Player)
 		{
 			TalkPause -= DeltaSeconds;
 		}
-		if (Player)
+		if (Player && !bSeated)
 		{
 			const FRotator Want(0.f, (Player->GetActorLocation() - GetActorLocation()).Rotation().Yaw, 0.f);
 			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Want, DeltaSeconds, 8.f));

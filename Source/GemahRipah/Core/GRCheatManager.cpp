@@ -260,6 +260,18 @@ void UGRCheatManager::GRMotor()
 	}
 }
 
+void UGRCheatManager::GRPos(float X, float Y, float Yaw)
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+	Pawn->TeleportTo(FVector(X, Y, 110.f), FRotator(0.f, Yaw, 0.f));
+	PC->SetControlRotation(FRotator(-15.f, Yaw, 0.f));
+}
+
 void UGRCheatManager::GRTekan(const FString& KeyName, float Seconds)
 {
 	const FKey Key(*KeyName);

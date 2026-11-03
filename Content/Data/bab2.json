@@ -34,31 +34,36 @@
    "use": "energi 18; notif Melek lagi."
   },
   {
-   "id": "foto_lab", "icon": "item_foto",
+   "id": "foto_lab",
+   "icon": "item_foto",
    "name": "Foto hasil lab Puskesmas",
    "desc": "Hasil lab 23 siswa: bakteri E. coli tinggi. Ada stempel RAHASIA.",
    "bukti": true
   },
   {
-   "id": "foto_dapur", "icon": "item_foto",
+   "id": "foto_dapur",
+   "icon": "item_foto",
    "name": "Foto dapur PPR",
    "desc": "Ayam berbelatung di kotak bertuliskan 'Higienis 100%'.",
    "bukti": true
   },
   {
-   "id": "nota_anggaran", "icon": "item_dokumen",
+   "id": "nota_anggaran",
+   "icon": "item_dokumen",
    "name": "Nota anggaran PPR",
    "desc": "Di atas kertas Rp15.000 per porsi. Belanja nyata Rp6.200.",
    "bukti": true
   },
   {
-   "id": "daftar_korban", "icon": "item_dokumen",
+   "id": "daftar_korban",
+   "icon": "item_dokumen",
    "name": "Daftar siswa sakit",
    "desc": "23 nama siswa yang dirawat, dengan catatan tangan: 'jangan bocor'.",
    "bukti": true
   },
   {
-   "id": "rekaman_pungli", "icon": "item_rekaman",
+   "id": "rekaman_pungli",
+   "icon": "item_rekaman",
    "name": "Rekaman pungli kelurahan",
    "desc": "Suara Pak Darmo: 'Gratis itu kalau prosesnya dua minggu.'",
    "bukti": true
@@ -911,15 +916,11 @@
     -8400
    ],
    "yaw": 0,
-   "size": [
-    180,
-    50,
-    90
-   ],
    "color": "#2E8B57",
    "if": "!punya_motor",
    "prompt": "Ambil motor",
-   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor."
+   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor.",
+   "model": "motor"
   },
   {
    "id": "warung_ronda",
@@ -936,7 +937,8 @@
    ],
    "color": "#8B5A2B",
    "prompt": "Belanja di warung",
-   "do": "toko warung"
+   "do": "toko warung",
+   "model": "warung"
   },
   {
    "id": "lapak_tini",
@@ -953,7 +955,8 @@
    ],
    "color": "#C08552",
    "prompt": "Belanja",
-   "do": "toko pasar"
+   "do": "toko pasar",
+   "model": "lapak"
   },
   {
    "id": "pembeli1",
@@ -998,7 +1001,8 @@
    "color": "#E9C46A",
    "barks": [
     "Antre, antre. Yang bawa amplop antrenya beda."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "papan_kelurahan",
@@ -1015,7 +1019,8 @@
    ],
    "color": "#F1FAEE",
    "prompt": "Baca papan",
-   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)"
+   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)",
+   "model": "papan"
   },
   {
    "id": "dokter_umum",
@@ -1032,7 +1037,8 @@
    "barks": [
     "Antrean nomor 47!",
     "Pakai masker, Bu, Pak."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "pasien1",
@@ -1089,15 +1095,12 @@
     -2850,
     6200
    ],
-   "size": [
-    60,
-    100,
-    110
-   ],
    "color": "#3A6EA5",
    "if": "q.Pamflet!=1",
    "prompt": "Main warnet",
-   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol."
+   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol.",
+   "model": "meja_pc",
+   "yaw": 180
   },
   {
    "id": "spn_p1",
@@ -1292,7 +1295,9 @@
     -9350
    ],
    "dialog": "dinda_rumah",
-   "color": "#F2C14E"
+   "color": "#F2C14E",
+   "yaw": 0,
+   "pose": "duduk"
   },
   {
    "id": "z_pulang_pamflet",
@@ -1330,7 +1335,9 @@
    "if": "q.Galang==1",
    "dialog": "rt_galang",
    "marker": "!",
-   "markerColor": "#F2C94C"
+   "markerColor": "#F2C94C",
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "pak_rt_rapat",
@@ -1342,7 +1349,9 @@
    ],
    "color": "#D4A373",
    "if": "q.Galang==3",
-   "dialog": "rt_rapat_akhir"
+   "dialog": "rt_rapat_akhir",
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "pak_rt_umum",
@@ -1357,7 +1366,9 @@
    "dialog": "warga_umum",
    "barks": [
     "Ini arisan. Arisan bapak-bapak. Tidak ada rapat."
-   ]
+   ],
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "udin",
@@ -1432,7 +1443,8 @@
    ],
    "yaw": 180,
    "dialog": "joko_galang",
-   "color": "#90BE6D"
+   "color": "#90BE6D",
+   "pose": "duduk"
   },
   {
    "id": "rudi",
@@ -1458,13 +1470,9 @@
     2300,
     -8900
    ],
-   "size": [
-    180,
-    60,
-    110
-   ],
    "color": "#2E7D32",
-   "if": "q.Aksi==0"
+   "if": "q.Aksi==0",
+   "model": "motor"
   },
   {
    "id": "ratna",
@@ -1499,15 +1507,12 @@
     -2850,
     6200
    ],
-   "size": [
-    60,
-    100,
-    110
-   ],
    "color": "#3A6EA5",
    "if": "q.Pamflet==1",
    "prompt": "Desain pamflet (Rp5.000)",
-   "do": "uang -5000 Sewa warnet 1 jam; minigame pamflet"
+   "do": "uang -5000 Sewa warnet 1 jam; minigame pamflet",
+   "model": "meja_pc",
+   "yaw": 180
   },
   {
    "id": "tempel_pasar",
@@ -1714,7 +1719,8 @@
     220
    ],
    "color": "#F4F1DE",
-   "if": "q.Aksi==2"
+   "if": "q.Aksi==2",
+   "model": "spanduk"
   },
   {
    "id": "wiryo",
@@ -1726,7 +1732,9 @@
    ],
    "dialog": "wiryo_umum",
    "color": "#6C8EBF",
-   "if": "q.Aksi!=2"
+   "if": "q.Aksi!=2",
+   "yaw": 180,
+   "pose": "duduk"
   }
  ],
  "orders": [

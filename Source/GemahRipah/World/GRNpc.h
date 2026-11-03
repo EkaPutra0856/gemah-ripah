@@ -8,6 +8,8 @@
 class UTextRenderComponent;
 class USpotLightComponent;
 class UStaticMeshComponent;
+class UAnimSequenceBase;
+class UAnimMontage;
 struct FGRSpawnDef;
 
 /**
@@ -63,7 +65,21 @@ private:
 	void TickVision(float DeltaSeconds, APawn* Player);
 	void TickStealthVision(APawn* Player);
 	void TickBarks(float DeltaSeconds, const APawn* Player);
+	/** Sitting and talking gestures, layered over the locomotion blueprint through its default slot. */
+	void TickPose(const APawn* Player);
 	void PickWanderTarget();
+
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> TalkAnim;
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> SitAnim;
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> SitTalkAnim;
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> PoseMontage;
+	/** Playing pose: 0 none, 1 talk, 2 sit, 3 sit and talk. */
+	int32 PoseAnim = 0;
+	bool bSeated = false;
 
 	FString Prompt;
 	FString Actions;

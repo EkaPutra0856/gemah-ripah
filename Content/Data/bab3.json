@@ -34,31 +34,36 @@
    "use": "energi 18; notif Melek lagi."
   },
   {
-   "id": "foto_lab", "icon": "item_foto",
+   "id": "foto_lab",
+   "icon": "item_foto",
    "name": "Foto hasil lab Puskesmas",
    "desc": "Hasil lab 23 siswa: bakteri E. coli tinggi. Ada stempel RAHASIA.",
    "bukti": true
   },
   {
-   "id": "foto_dapur", "icon": "item_foto",
+   "id": "foto_dapur",
+   "icon": "item_foto",
    "name": "Foto dapur PPR",
    "desc": "Ayam berbelatung di kotak bertuliskan 'Higienis 100%'.",
    "bukti": true
   },
   {
-   "id": "nota_anggaran", "icon": "item_dokumen",
+   "id": "nota_anggaran",
+   "icon": "item_dokumen",
    "name": "Nota anggaran PPR",
    "desc": "Di atas kertas Rp15.000 per porsi. Belanja nyata Rp6.200.",
    "bukti": true
   },
   {
-   "id": "daftar_korban", "icon": "item_dokumen",
+   "id": "daftar_korban",
+   "icon": "item_dokumen",
    "name": "Daftar siswa sakit",
    "desc": "23 nama siswa yang dirawat, dengan catatan tangan: 'jangan bocor'.",
    "bukti": true
   },
   {
-   "id": "rekaman_pungli", "icon": "item_rekaman",
+   "id": "rekaman_pungli",
+   "icon": "item_rekaman",
    "name": "Rekaman pungli kelurahan",
    "desc": "Suara Pak Darmo: 'Gratis itu kalau prosesnya dua minggu.'",
    "bukti": true
@@ -70,30 +75,35 @@
    "bukti": true
   },
   {
-   "id": "kunci_kel", "icon": "item_kunci",
+   "id": "kunci_kel",
+   "icon": "item_kunci",
    "name": "Kunci cadangan Kelurahan",
    "desc": "Dititipkan ke Pos Ronda supaya aman. Dari siapa, tidak jelas."
   },
   {
-   "id": "laporan_palsu", "icon": "item_laporan",
+   "id": "laporan_palsu",
+   "icon": "item_laporan",
    "name": "Laporan warga No. 47",
    "desc": "Laporan atas Rudi. Pelapor: Sukirman, RT 05. RT 05 itu pemakaman umum.",
    "bukti": true
   },
   {
-   "id": "memo_target", "icon": "item_dokumen",
+   "id": "memo_target",
+   "icon": "item_dokumen",
    "name": "Memo target laporan",
    "desc": "'Target bulan ini: 50 laporan pasal penghinaan. Kelurahan terbaik dapat studi banding.'",
    "bukti": true
   },
   {
-   "id": "daftar_pantau", "icon": "item_laporan",
+   "id": "daftar_pantau",
+   "icon": "item_laporan",
    "name": "Daftar pantauan warga",
    "desc": "112 nama. Nomor 3: Bayu. Nomor 4: Ibu. Nomor 5: Dinda, 9 tahun.",
    "bukti": true
   },
   {
-   "id": "rekaman_tawar", "icon": "item_rekaman",
+   "id": "rekaman_tawar",
+   "icon": "item_rekaman",
    "name": "Rekaman 'biaya penangguhan'",
    "desc": "Suara Komandan Wiryo menyebut 'uang administrasi' dua juta rupiah.",
    "bukti": true
@@ -1073,15 +1083,11 @@
     -8400
    ],
    "yaw": 0,
-   "size": [
-    180,
-    50,
-    90
-   ],
    "color": "#2E8B57",
    "if": "!punya_motor",
    "prompt": "Ambil motor",
-   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor."
+   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor.",
+   "model": "motor"
   },
   {
    "id": "warung_ronda",
@@ -1098,7 +1104,8 @@
    ],
    "color": "#8B5A2B",
    "prompt": "Belanja di warung",
-   "do": "toko warung"
+   "do": "toko warung",
+   "model": "warung"
   },
   {
    "id": "lapak_tini",
@@ -1115,7 +1122,8 @@
    ],
    "color": "#C08552",
    "prompt": "Belanja",
-   "do": "toko pasar"
+   "do": "toko pasar",
+   "model": "lapak"
   },
   {
    "id": "pembeli1",
@@ -1161,7 +1169,8 @@
    ],
    "color": "#F1FAEE",
    "prompt": "Baca papan",
-   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)"
+   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)",
+   "model": "papan"
   },
   {
    "id": "dokter_umum",
@@ -1178,7 +1187,8 @@
    "barks": [
     "Antrean nomor 47!",
     "Pakai masker, Bu, Pak."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "pasien1",
@@ -1235,15 +1245,12 @@
     -2850,
     6200
    ],
-   "size": [
-    60,
-    100,
-    110
-   ],
    "color": "#3A6EA5",
    "if": "",
    "prompt": "Main warnet",
-   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol."
+   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol.",
+   "model": "meja_pc",
+   "yaw": 180
   },
   {
    "id": "spn_p1",
@@ -1438,7 +1445,9 @@
     -9350
    ],
    "dialog": "dinda_rumah",
-   "color": "#F2C14E"
+   "color": "#F2C14E",
+   "yaw": 0,
+   "pose": "duduk"
   },
   {
    "id": "z_pulang_radio",
@@ -1492,7 +1501,9 @@
    "dialog": "rt_kunci",
    "if": "q.Lapor==3",
    "marker": "!",
-   "markerColor": "#F2C94C"
+   "markerColor": "#F2C94C",
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "pak_rt_umum",
@@ -1507,7 +1518,9 @@
    "if": "q.Lapor!=3",
    "barks": [
     "Ronda malam ini sambil dengar radio. Radio apa? Ya radio."
-   ]
+   ],
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "udin",
@@ -1564,7 +1577,8 @@
    ],
    "yaw": 180,
    "dialog": "joko_b3",
-   "color": "#90BE6D"
+   "color": "#90BE6D",
+   "pose": "duduk"
   },
   {
    "id": "darmo",
@@ -1580,7 +1594,8 @@
    "if": "hour>=7 && hour<17",
    "barks": [
     "Loket laporan warga buka 24 jam. Loket lain menyesuaikan."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "kel_dalam",
@@ -1608,7 +1623,8 @@
    "color": "#6B4F2A",
    "if": "q.Lapor==4 && hour>=19",
    "prompt": "Masuk diam-diam (kunci cadangan)",
-   "do": "minigame arsip"
+   "do": "minigame arsip",
+   "model": "pintu"
   },
   {
    "id": "pintu_kel_siang",
@@ -1626,7 +1642,8 @@
    "color": "#6B4F2A",
    "if": "q.Lapor==4 && hour<19",
    "prompt": "Periksa pintu",
-   "do": "notif Kantor masih ramai. Hansip ganti shift pukul 19.00. Datang lagi nanti."
+   "do": "notif Kantor masih ramai. Hansip ganti shift pukul 19.00. Datang lagi nanti.",
+   "model": "pintu"
   },
   {
    "id": "wiryo",
@@ -1640,7 +1657,9 @@
    "color": "#6C8EBF",
    "barks": [
     "Kritik boleh. Asal tidak terdengar."
-   ]
+   ],
+   "yaw": 180,
+   "pose": "duduk"
   },
   {
    "id": "rudi_sel",
@@ -1655,7 +1674,8 @@
    "color": "#7FB069",
    "if": "q.Lapor==2",
    "marker": "!",
-   "markerColor": "#F2C94C"
+   "markerColor": "#F2C94C",
+   "pose": "duduk"
   },
   {
    "id": "rudi_sel_diam",
@@ -1671,6 +1691,22 @@
    "if": "q.Lapor!=2 && q.Radio<3",
    "barks": [
     "Bay, kalau ketemu Ibu, bilang aku sehat."
+   ],
+   "pose": "duduk"
+  },
+  {
+   "id": "sel_bangku",
+   "kind": "prop",
+   "model": "bangku",
+   "pos": [
+    6500,
+    -3850
+   ],
+   "yaw": 90,
+   "size": [
+    40,
+    140,
+    44
    ]
   },
   {
@@ -1686,7 +1722,8 @@
     340,
     240
    ],
-   "color": "#4A4E57"
+   "color": "#4A4E57",
+   "model": "jeruji"
   },
   {
    "id": "jeruji_kanan",
@@ -1701,7 +1738,8 @@
     340,
     240
    ],
-   "color": "#4A4E57"
+   "color": "#4A4E57",
+   "model": "jeruji"
   },
   {
    "id": "spn_jaga",
@@ -1723,24 +1761,25 @@
    "kind": "npc",
    "name": "Pak Harso (Fotokopi)",
    "pos": [
-    2300,
-    -9300
+    1450,
+    -9250
    ],
-   "yaw": 90,
+   "yaw": 180,
    "dialog": "harso_koran",
    "color": "#B5838D",
    "barks": [
     "Fotokopi, jilid, laminating!",
     "Dulu saya mencetak berita. Sekarang mencetak brosur pinjol."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "stensil",
    "kind": "prop",
    "name": "Mesin Stensil Pak Harso",
    "pos": [
-    2300,
-    -8900
+    1250,
+    -9030
    ],
    "size": [
     120,
@@ -1750,15 +1789,17 @@
    "color": "#3D405B",
    "if": "q.Koran==2",
    "prompt": "Susun Kabar Gang",
-   "do": "minigame koran"
+   "do": "minigame koran",
+   "model": "stensil",
+   "yaw": 90
   },
   {
    "id": "stensil_diam",
    "kind": "prop",
    "name": "Mesin Stensil Pak Harso",
    "pos": [
-    2300,
-    -8900
+    1250,
+    -9030
    ],
    "size": [
     120,
@@ -1768,7 +1809,9 @@
    "color": "#3D405B",
    "if": "q.Koran!=2",
    "prompt": "Lihat mesin",
-   "do": "notif Mesin stensil tua. Bau tintanya seperti tahun-tahun yang dilarang diingat."
+   "do": "notif Mesin stensil tua. Bau tintanya seperti tahun-tahun yang dilarang diingat.",
+   "model": "stensil",
+   "yaw": 90
   },
   {
    "id": "antena",
@@ -1786,7 +1829,8 @@
    "color": "#9A8C98",
    "if": "q.Radio==2 && hour>=19",
    "prompt": "Mulai siaran Radio Gang",
-   "do": "dialog siaran"
+   "do": "dialog siaran",
+   "model": "tiang"
   },
   {
    "id": "antena_siang",
@@ -1804,7 +1848,8 @@
    "color": "#9A8C98",
    "if": "q.Radio==2 && hour<19",
    "prompt": "Pasang antena",
-   "do": "notif Antena terpasang. Siaran paling aman setelah pukul 19.00, saat warga sudah di rumah."
+   "do": "notif Antena terpasang. Siaran paling aman setelah pukul 19.00, saat warga sudah di rumah.",
+   "model": "tiang"
   }
  ],
  "orders": [

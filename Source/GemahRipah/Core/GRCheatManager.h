@@ -109,6 +109,10 @@ public:
 	UFUNCTION(Exec)
 	void GRNotif(const FString& Message);
 
+	/** Moves the player to x, y (cm) facing yaw degrees, for scripted screenshots. Example: GRPos 8740 -9000 0 */
+	UFUNCTION(Exec)
+	void GRPos(float X, float Y, float Yaw = 0.f);
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;

@@ -82,6 +82,11 @@ bool AGRStealthLevel::Start(UWorld* World, const FString& MinigameId)
 	}
 	Active = Level;
 	Level->ResetRun();
+	if (UGRStorySubsystem* MutableStory = World->GetGameInstance()->GetSubsystem<UGRStorySubsystem>())
+	{
+		// Room furniture marked "!menyusup" makes way for the stealth grid.
+		MutableStory->SetVar(TEXT("menyusup"), 1);
+	}
 	UE_LOG(LogTemp, Log, TEXT("Stealth level %s started in %s, cell %.0f"), *MinigameId, *Room->GetName(), Level->Cell);
 	if (UGRStorySubsystem* MutableStory = World->GetGameInstance()->GetSubsystem<UGRStorySubsystem>())
 	{
@@ -462,6 +467,7 @@ void AGRStealthLevel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		{
 			Story->SetVar(FString::Printf(TEXT("sl.%d"), i), 0);
 		}
+		Story->SetVar(TEXT("menyusup"), 0);
 	}
 	if (Active.Get() == this)
 	{

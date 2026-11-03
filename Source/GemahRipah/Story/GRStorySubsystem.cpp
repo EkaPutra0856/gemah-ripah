@@ -40,6 +40,12 @@ void UGRStorySubsystem::Reload()
 	const FString File = Chapter && !Chapter->File.IsEmpty() ? Chapter->File : FString(TEXT("bab1.json"));
 	Data = FGRStoryFile();
 	UGRDataSubsystem::LoadJsonFile(File, Data);
+	// Furniture shared by every chapter (tables and chairs in the rooms where people talk).
+	FGRStoryFile Furniture;
+	if (UGRDataSubsystem::LoadJsonFile(TEXT("furniture.json"), Furniture))
+	{
+		Data.Spawns.Append(Furniture.Spawns);
+	}
 	UE_LOG(LogGRStory, Log, TEXT("%s: %d dialog, %d quest, %d spawn, %d event"), *File, Data.Dialogs.Num(), Data.Quests.Num(), Data.Spawns.Num(), Data.Events.Num());
 }
 
@@ -126,6 +132,11 @@ float UGRStorySubsystem::GetValue(const FString& Name) const
 	if (Name == TEXT("diawasi")) { return Status->GetDiawasi(); }
 	if (Name == TEXT("energi")) { return Energi; }
 	if (Name == TEXT("order")) { return ActiveOrder.IsEmpty() ? 0.f : 1.f; }
+	if (Name == TEXT("bab"))
+	{
+		// Chapter number, for spawns shared by every chapter (furniture.json).
+		return Chapters.Chapters.IndexOfByPredicate([this](const FGRChapterDef& C) { return C.Id == ChapterId; }) + 1.f;
+	}
 	return GetVar(Name);
 }
 

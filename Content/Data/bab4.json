@@ -988,15 +988,11 @@
     -8400
    ],
    "yaw": 0,
-   "size": [
-    180,
-    50,
-    90
-   ],
    "color": "#2E8B57",
    "if": "!punya_motor",
    "prompt": "Ambil motor",
-   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor."
+   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor.",
+   "model": "motor"
   },
   {
    "id": "warung_ronda",
@@ -1013,7 +1009,8 @@
    ],
    "color": "#8B5A2B",
    "prompt": "Belanja di warung",
-   "do": "toko warung"
+   "do": "toko warung",
+   "model": "warung"
   },
   {
    "id": "lapak_tini",
@@ -1030,7 +1027,8 @@
    ],
    "color": "#C08552",
    "prompt": "Belanja",
-   "do": "toko pasar"
+   "do": "toko pasar",
+   "model": "lapak"
   },
   {
    "id": "pembeli1",
@@ -1076,7 +1074,8 @@
    ],
    "color": "#F1FAEE",
    "prompt": "Baca papan",
-   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)"
+   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)",
+   "model": "papan"
   },
   {
    "id": "dokter_umum",
@@ -1093,7 +1092,8 @@
    "barks": [
     "Antrean nomor 47!",
     "Pakai masker, Bu, Pak."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "pasien1",
@@ -1150,15 +1150,12 @@
     -2850,
     6200
    ],
-   "size": [
-    60,
-    100,
-    110
-   ],
    "color": "#3A6EA5",
    "if": "",
    "prompt": "Main warnet",
-   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol."
+   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol.",
+   "model": "meja_pc",
+   "yaw": 180
   },
   {
    "id": "spn_p1",
@@ -1353,7 +1350,9 @@
     -9350
    ],
    "dialog": "dinda_rumah",
-   "color": "#F2C14E"
+   "color": "#F2C14E",
+   "yaw": 0,
+   "pose": "duduk"
   },
   {
    "id": "darmo",
@@ -1369,7 +1368,8 @@
    "if": "hour>=7 && hour<17",
    "barks": [
     "Sosialisasi itu wajib. Mendengarkan warga itu sunah."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "wiryo",
@@ -1383,22 +1383,25 @@
    "color": "#6C8EBF",
    "barks": [
     "Pembangunan itu tidak bisa dihalangi, Saudara. Kecuali oleh pembangunan lain."
-   ]
+   ],
+   "yaw": 180,
+   "pose": "duduk"
   },
   {
    "id": "harso",
    "kind": "npc",
    "name": "Pak Harso (Fotokopi)",
    "pos": [
-    2300,
-    -9300
+    1450,
+    -9250
    ],
-   "yaw": 90,
+   "yaw": 180,
    "dialog": "warga_umum",
    "color": "#B5838D",
    "barks": [
     "Kabar Gang edisi 2: 'Menara untuk Siapa?' Masih saya ketik."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "tini",
@@ -1458,7 +1461,8 @@
     140
    ],
    "color": "#FF7F11",
-   "if": "!gusur_ditunda"
+   "if": "!gusur_ditunda",
+   "model": "patok"
   },
   {
    "id": "patok2",
@@ -1474,7 +1478,8 @@
     140
    ],
    "color": "#FF7F11",
-   "if": "!gusur_ditunda"
+   "if": "!gusur_ditunda",
+   "model": "patok"
   },
   {
    "id": "patok3",
@@ -1490,7 +1495,8 @@
     140
    ],
    "color": "#FF7F11",
-   "if": "!gusur_ditunda"
+   "if": "!gusur_ditunda",
+   "model": "patok"
   },
   {
    "id": "hendro",
@@ -1533,7 +1539,9 @@
     500,
     300
    ],
-   "color": "#F4D35E"
+   "color": "#F4D35E",
+   "model": "baliho",
+   "yaw": 180
   },
   {
    "id": "warga_sos1",
@@ -1586,7 +1594,8 @@
     260,
     200
    ],
-   "color": "#7A9E7E"
+   "color": "#7A9E7E",
+   "model": "baliho"
   },
   {
    "id": "joko",
@@ -1598,7 +1607,8 @@
    ],
    "yaw": 180,
    "dialog": "joko_b4",
-   "color": "#90BE6D"
+   "color": "#90BE6D",
+   "pose": "duduk"
   },
   {
    "id": "pintu_pemasaran",
@@ -1616,7 +1626,8 @@
    "color": "#6B4F2A",
    "if": "q.Untung==2 && hour>=19 || q.Untung==2 && hour<4",
    "prompt": "Masuk diam-diam",
-   "do": "minigame pemasaran"
+   "do": "minigame pemasaran",
+   "model": "pintu"
   },
   {
    "id": "pintu_pemasaran_siang",
@@ -1634,7 +1645,8 @@
    "color": "#6B4F2A",
    "if": "q.Untung==2 && hour>=4 && hour<19",
    "prompt": "Periksa pintu",
-   "do": "notif Kantor pemasaran masih buka. Satpam ganti shift pukul 19.00."
+   "do": "notif Kantor pemasaran masih buka. Satpam ganti shift pukul 19.00.",
+   "model": "pintu"
   },
   {
    "id": "satpam_pemasaran",
@@ -1692,7 +1704,9 @@
    "dialog": "warga_umum",
    "barks": [
     "Pasar mau dijadikan menara. Pos ronda kapan? Jadi helipad?"
-   ]
+   ],
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "yati",
@@ -1745,13 +1759,10 @@
     -7900,
     12600
    ],
-   "size": [
-    600,
-    260,
-    320
-   ],
    "color": "#F2C14E",
-   "if": "q.Bertahan==3"
+   "if": "q.Bertahan==3",
+   "model": "ekskavator",
+   "yaw": 180
   },
   {
    "id": "ekskavator2",
@@ -1761,13 +1772,10 @@
     -7900,
     13500
    ],
-   "size": [
-    600,
-    260,
-    320
-   ],
    "color": "#F2C14E",
-   "if": "q.Bertahan==3"
+   "if": "q.Bertahan==3",
+   "model": "ekskavator",
+   "yaw": 180
   },
   {
    "id": "spn_pasar1",

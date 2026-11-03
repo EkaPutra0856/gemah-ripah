@@ -310,7 +310,7 @@ def build():
     room("RumahBayu", -9000, -9000, 1000, 1200, 320, "N", M["bayu"], M["lantai"])
     room_volume("RumahBayu", -9000, -9000, 1000, 1200)
     interactable(unreal.GRBed, "Kasur_Bayu", (-9300, -9400, 40), (2.0, 1.0, 0.4), "Tidur")
-    box("Meja_Bayu", (-8800, -8700, 40), (120, 80, 80), M["lantai"], "Bangunan")
+    # Furniture (dining table, kitchen, Dinda's desk) comes from Content/Data/furniture.json.
     text_label("RUMAH BAYU", (-8400, -9000, 380), 180, 70)
     spawn(unreal.PlayerStart, (-7800, -9000, 120), (0, 0, 0), "PlayerStart", "Pemain")
 

@@ -55,6 +55,7 @@ namespace
 // Dialog
 
 FString UGRDialogScreen::PendingId;
+FString UGRDialogScreen::ActiveSpeaker;
 
 UGRDialogScreen::UGRDialogScreen(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -292,6 +293,7 @@ void UGRDialogScreen::ShowNode(int32 Index)
 
 	NodeIndex = Index;
 	const FGRDialogNode& Node = Def->Nodes[Index];
+	ActiveSpeaker = Node.Speaker;
 	const FString DoActions = Node.Do;
 	const FGRSpeakerDef* Speaker = Story->FindSpeaker(Node.Speaker);
 	const FString SpeakerName = Speaker ? Speaker->Name : FString();
@@ -536,11 +538,18 @@ void UGRDialogScreen::Advance()
 
 void UGRDialogScreen::Finish()
 {
+	ActiveSpeaker.Reset();
 	if (!bFinished)
 	{
 		bFinished = true;
 		Close();
 	}
+}
+
+void UGRDialogScreen::NativeDestruct()
+{
+	ActiveSpeaker.Reset();
+	Super::NativeDestruct();
 }
 
 FReply UGRDialogScreen::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
@@ -690,6 +699,7 @@ void UGRCutsceneScreen::StartStep(int32 Index)
 	CaptionText->SetText(FText::FromString(Step.Text));
 	const FGRSpeakerDef* Speaker = Story->FindSpeaker(Step.Speaker);
 	SpeakerText->SetText(Speaker ? FText::FromString(Speaker->Name) : FText::GetEmpty());
+	UGRDialogScreen::ActiveSpeaker = Step.Speaker;
 	Story->Run(Step.Do);
 }
 
@@ -753,6 +763,7 @@ void UGRCutsceneScreen::Finish()
 		return;
 	}
 	bDone = true;
+	UGRDialogScreen::ActiveSpeaker.Reset();
 	if (APlayerController* PC = GetOwningPlayer())
 	{
 		if (PC->GetPawn())

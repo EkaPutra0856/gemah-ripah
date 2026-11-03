@@ -32,25 +32,35 @@ UStaticMesh* GRStoryUtil::LoadShape(const FString& Shape)
 	return LoadObject<UStaticMesh>(nullptr, Path);
 }
 
-void GRStoryUtil::ApplyColor(UMeshComponent* Mesh, const FLinearColor& Color)
+UMaterialInstanceDynamic* GRStoryUtil::MakeColorMaterial(UObject* Outer, const FLinearColor& Color, float LineFactor)
 {
 	static TWeakObjectPtr<UMaterialInterface> Parent;
 	if (!Parent.IsValid())
 	{
 		Parent = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/LevelPrototyping/Materials/M_PrototypeGrid.M_PrototypeGrid"));
 	}
-	if (!Mesh || !Parent.IsValid())
+	if (!Parent.IsValid())
 	{
-		return;
+		return nullptr;
 	}
-	UMaterialInstanceDynamic* Mid = UMaterialInstanceDynamic::Create(Parent.Get(), Mesh);
-	const FLinearColor Line = Color * 0.75f;
+	UMaterialInstanceDynamic* Mid = UMaterialInstanceDynamic::Create(Parent.Get(), Outer);
+	const FLinearColor Line = Color * LineFactor;
 	Mid->SetVectorParameterValue(TEXT("SurfaceColor"), Color);
 	Mid->SetVectorParameterValue(TEXT("TopSurfaceColor"), Color);
 	Mid->SetVectorParameterValue(TEXT("GridColor"), Line);
 	Mid->SetVectorParameterValue(TEXT("TopGridColor"), Line);
 	Mid->SetVectorParameterValue(TEXT("SubGridColor"), Line);
 	Mid->SetVectorParameterValue(TEXT("TopSubGridGridColor"), Line);
+	return Mid;
+}
+
+void GRStoryUtil::ApplyColor(UMeshComponent* Mesh, const FLinearColor& Color)
+{
+	UMaterialInstanceDynamic* Mid = Mesh ? MakeColorMaterial(Mesh, Color) : nullptr;
+	if (!Mid)
+	{
+		return;
+	}
 	for (int32 i = 0; i < FMath::Max(1, Mesh->GetNumMaterials()); ++i)
 	{
 		Mesh->SetMaterial(i, Mid);

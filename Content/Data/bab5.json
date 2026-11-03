@@ -897,15 +897,11 @@
     -8400
    ],
    "yaw": 0,
-   "size": [
-    180,
-    50,
-    90
-   ],
    "color": "#2E8B57",
    "if": "!punya_motor",
    "prompt": "Ambil motor",
-   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor."
+   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor.",
+   "model": "motor"
   },
   {
    "id": "warung_ronda",
@@ -922,7 +918,8 @@
    ],
    "color": "#8B5A2B",
    "prompt": "Belanja di warung",
-   "do": "toko warung"
+   "do": "toko warung",
+   "model": "warung"
   },
   {
    "id": "lapak_tini",
@@ -939,7 +936,8 @@
    ],
    "color": "#C08552",
    "prompt": "Belanja",
-   "do": "toko pasar"
+   "do": "toko pasar",
+   "model": "lapak"
   },
   {
    "id": "pembeli1",
@@ -985,7 +983,8 @@
    ],
    "color": "#F1FAEE",
    "prompt": "Baca papan",
-   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)"
+   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)",
+   "model": "papan"
   },
   {
    "id": "dokter_umum",
@@ -1002,7 +1001,8 @@
    "barks": [
     "Antrean nomor 47!",
     "Pakai masker, Bu, Pak."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "pasien1",
@@ -1228,7 +1228,9 @@
     -9350
    ],
    "dialog": "dinda_rumah",
-   "color": "#F2C14E"
+   "color": "#F2C14E",
+   "yaw": 0,
+   "pose": "duduk"
   },
   {
    "id": "darmo",
@@ -1244,7 +1246,8 @@
    "if": "hour>=7 && hour<17",
    "barks": [
     "Formulir C1 dicetak rangkap lima. Kejujuran rangkap satu."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "wiryo",
@@ -1258,22 +1261,25 @@
    "color": "#6C8EBF",
    "barks": [
     "Netralitas aparat itu mutlak, Saudara. Mutlak nomor satu. Eh, maksud saya, mutlak."
-   ]
+   ],
+   "yaw": 180,
+   "pose": "duduk"
   },
   {
    "id": "harso",
    "kind": "npc",
    "name": "Pak Harso (Fotokopi)",
    "pos": [
-    2300,
-    -9300
+    1450,
+    -9250
    ],
-   "yaw": 90,
+   "yaw": 180,
    "dialog": "harso_b5",
    "color": "#B5838D",
    "barks": [
     "Kabar Gang edisi terakhir: 'Jaga TPS-mu'."
-   ]
+   ],
+   "pose": "duduk"
   },
   {
    "id": "liong",
@@ -1333,7 +1339,9 @@
    "dialog": "warga_umum",
    "barks": [
     "Target RT saya 80 persen nomor satu. Saya target diri sendiri: tidur nyenyak."
-   ]
+   ],
+   "yaw": 90,
+   "pose": "duduk"
   },
   {
    "id": "yati",
@@ -1413,7 +1421,8 @@
     90
    ],
    "color": "#E9C46A",
-   "if": "q.Saksi<3"
+   "if": "q.Saksi<3",
+   "model": "sembako"
   },
   {
    "id": "pintu_logistik",
@@ -1431,7 +1440,8 @@
    "color": "#6B4F2A",
    "if": "q.Logistik==3 && hour>=20 || q.Logistik==3 && hour<4",
    "prompt": "Masuk diam-diam",
-   "do": "minigame logistik"
+   "do": "minigame logistik",
+   "model": "pintu"
   },
   {
    "id": "pintu_logistik_siang",
@@ -1449,7 +1459,8 @@
    "color": "#6B4F2A",
    "if": "q.Logistik==3 && hour>=4 && hour<20",
    "prompt": "Periksa pintu",
-   "do": "notif Masih ramai. Linmas berjaga sampai pukul 20.00, lalu tidur di pos depan."
+   "do": "notif Masih ramai. Linmas berjaga sampai pukul 20.00, lalu tidur di pos depan.",
+   "model": "pintu"
   },
   {
    "id": "gudang_dalam",
@@ -1471,7 +1482,8 @@
    ],
    "yaw": 180,
    "dialog": "joko_b5",
-   "color": "#90BE6D"
+   "color": "#90BE6D",
+   "pose": "duduk"
   },
   {
    "id": "pc_warnet_lapor",
@@ -1481,15 +1493,12 @@
     -2850,
     6200
    ],
-   "size": [
-    60,
-    100,
-    110
-   ],
    "color": "#3A6EA5",
    "if": "q.Logistik==4",
    "prompt": "Unggah bukti (Rp5.000)",
-   "do": "uang -5000 Sewa warnet 1 jam; minigame laporan"
+   "do": "uang -5000 Sewa warnet 1 jam; minigame laporan",
+   "model": "meja_pc",
+   "yaw": 180
   },
   {
    "id": "pc_warnet_umum",
@@ -1499,15 +1508,12 @@
     -2850,
     6200
    ],
-   "size": [
-    60,
-    100,
-    110
-   ],
    "color": "#3A6EA5",
    "if": "q.Logistik!=4",
    "prompt": "Main warnet",
-   "do": "notif Kamu scroll Kicau sebentar. Isinya debat capres... eh, cawalkot. Sama saja ributnya."
+   "do": "notif Kamu scroll Kicau sebentar. Isinya debat capres... eh, cawalkot. Sama saja ributnya.",
+   "model": "meja_pc",
+   "yaw": 180
   },
   {
    "id": "ratna",
@@ -1548,9 +1554,10 @@
    "size": [
     300,
     300,
-    220
+    230
    ],
-   "color": "#F4A261"
+   "color": "#F4A261",
+   "model": "tenda"
   },
   {
    "id": "relawan1",
@@ -1580,7 +1587,8 @@
     900,
     160
    ],
-   "color": "#D4AF37"
+   "color": "#D4AF37",
+   "model": "panggung"
   },
   {
    "id": "wiratama",
@@ -1651,32 +1659,29 @@
    "kind": "prop",
    "name": "TPS 07",
    "pos": [
-    8600,
+    8750,
     12400
    ],
    "size": [
     500,
     700,
-    260
+    250
    ],
-   "color": "#E5E5E5"
+   "color": "#2F6DB5",
+   "model": "tenda"
   },
   {
    "id": "kotak_suara",
    "kind": "prop",
    "name": "Kotak suara transparan",
    "pos": [
-    8950,
-    12100
-   ],
-   "size": [
-    70,
-    70,
-    70
+    8700,
+    12150
    ],
    "color": "#BFD7EA",
    "prompt": "Lihat kotak suara",
-   "do": "notif Transparan. Satu-satunya hal yang transparan di pemilu ini."
+   "do": "notif Transparan. Satu-satunya hal yang transparan di pemilu ini.",
+   "model": "kotak_suara"
   },
   {
    "id": "kpps",
@@ -1689,7 +1694,8 @@
    "yaw": 180,
    "dialog": "kepsek_umum",
    "color": "#B5838D",
-   "if": "q.Saksi<=3"
+   "if": "q.Saksi<=3",
+   "pose": "duduk"
   },
   {
    "id": "antre_tps1",
@@ -1757,6 +1763,98 @@
    "radius": 700,
    "if": "q.Saksi==4",
    "do": "done Saksi; cutscene penutup"
+  },
+  {
+   "id": "tps_meja",
+   "kind": "prop",
+   "model": "meja",
+   "pos": [
+    8905,
+    12500
+   ],
+   "yaw": 180,
+   "size": [
+    70,
+    160,
+    75
+   ]
+  },
+  {
+   "id": "tps_kursi",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    9000,
+    12500
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "tps_kursi2",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    9000,
+    12340
+   ],
+   "yaw": 180
+  },
+  {
+   "id": "tps_bilik1",
+   "kind": "prop",
+   "model": "bilik",
+   "pos": [
+    8600,
+    12620
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "tps_bilik2",
+   "kind": "prop",
+   "model": "bilik",
+   "pos": [
+    8600,
+    12460
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "posko_meja",
+   "kind": "prop",
+   "model": "meja",
+   "pos": [
+    2700,
+    3000
+   ],
+   "yaw": 0,
+   "size": [
+    60,
+    120,
+    72
+   ]
+  },
+  {
+   "id": "posko_kursi1",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    2640,
+    2960
+   ],
+   "yaw": 0,
+   "color": "#E76F51"
+  },
+  {
+   "id": "posko_kursi2",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    2640,
+    3040
+   ],
+   "yaw": 0,
+   "color": "#E76F51"
   }
  ],
  "orders": [

@@ -478,8 +478,15 @@ void AGRStoryDirector::Teleport(const FString& SpawnId)
 	{
 		const float Radius = i == 0 ? 0.f : (i <= 8 ? 200.f : 450.f);
 		const float Angle = i * PI / 4.f;
-		if (Player->TeleportTo(Base + FVector(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius, 0.f), Player->GetActorRotation()))
+		const FVector Spot = Base + FVector(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius, 0.f);
+		// Off the exact spot, face it: E then reaches the person or thing, not whatever was ahead before.
+		const FRotator Facing = i == 0 ? Player->GetActorRotation() : FRotator(0.f, (Base - Spot).Rotation().Yaw, 0.f);
+		if (Player->TeleportTo(Spot, Facing))
 		{
+			if (AController* Controller = Player->GetController(); Controller && i > 0)
+			{
+				Controller->SetControlRotation(FRotator(Controller->GetControlRotation().Pitch, Facing.Yaw, 0.f));
+			}
 			return;
 		}
 	}

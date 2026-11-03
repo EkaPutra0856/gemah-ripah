@@ -125,6 +125,10 @@ struct FGRSpawnDef
 	UPROPERTY() TArray<float> Patrol;
 	UPROPERTY() FString Marker;
 	UPROPERTY() FString MarkerColor = TEXT("#E8A33A");
+	/** Prop built from parts instead of one shape: "meja", "kursi", "tenda", "motor"... (see AGRStoryProp). */
+	UPROPERTY() FString Model;
+	/** NPC pose: "duduk" sits on the spot (put a "kursi" there) and never turns or wanders. */
+	UPROPERTY() FString Pose;
 };
 
 USTRUCT()
