@@ -78,6 +78,8 @@ struct FGRDialogDef
 	/** Optional story variable shown as a meter (0..100), e.g. interrogation pressure. */
 	UPROPERTY() FString Meter;
 	UPROPERTY() FString MeterLabel;
+	/** Meter colour (#RRGGBB); red when empty, for pressure-type meters. */
+	UPROPERTY() FString MeterColor;
 	UPROPERTY() TArray<FGRDialogNode> Nodes;
 };
 

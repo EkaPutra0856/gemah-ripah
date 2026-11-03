@@ -114,8 +114,14 @@ void UGRDialogScreen::BuildScreen(UOverlay* Root)
 		UVerticalBox* Box = WidgetTree->ConstructWidget<UVerticalBox>();
 		Phone->SetContent(Box);
 		const FGRSpeakerDef* First = Def->Nodes.Num() > 0 ? Story->FindSpeaker(Def->Nodes[0].Speaker) : nullptr;
+		UHorizontalBox* Header = WidgetTree->ConstructWidget<UHorizontalBox>();
+		Box->AddChildToVerticalBox(Header)->SetPadding(FMargin(4.f, 0.f, 0.f, 10.f));
+		if (UTexture2D* Face = First ? GRStyle::Icon(TEXT("portrait_") + First->Id) : nullptr)
+		{
+			Header->AddChildToHorizontalBox(GRStyle::MakeIcon(WidgetTree, Face, 44.f))->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
+		}
 		NameText = GRStyle::MakeText(WidgetTree, FText::FromString(FString::Printf(TEXT("Pesan  |  %s"), First ? *First->Name : TEXT("?"))), 20, GRStyle::ColorAccent, true);
-		Box->AddChildToVerticalBox(NameText)->SetPadding(FMargin(4.f, 0.f, 0.f, 10.f));
+		Header->AddChildToHorizontalBox(NameText)->SetVerticalAlignment(VAlign_Center);
 		ChatList = WidgetTree->ConstructWidget<UScrollBox>();
 		UVerticalBoxSlot* ListSlot = Box->AddChildToVerticalBox(ChatList);
 		ListSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -135,16 +141,21 @@ void UGRDialogScreen::BuildScreen(UOverlay* Root)
 			PortraitSlot->SetHorizontalAlignment(HAlign_Left);
 			PortraitSlot->SetVerticalAlignment(VAlign_Bottom);
 			PortraitSlot->SetPadding(FMargin(150.f, 0.f, 0.f, 250.f));
-			Portrait = GRStyle::MakePanel(WidgetTree, FLinearColor::White, FMargin(12.f), 16.f);
+			Portrait = GRStyle::MakePanel(WidgetTree, FLinearColor::White, FMargin(10.f), 16.f);
 			PortraitSize->SetContent(Portrait);
 			UVerticalBox* PortraitBox = WidgetTree->ConstructWidget<UVerticalBox>();
 			Portrait->SetContent(PortraitBox);
 			Portrait->SetVerticalAlignment(VAlign_Center);
 			Portrait->SetHorizontalAlignment(HAlign_Center);
+			// Painted face from Content/Data/Icons/portrait_<speaker>.png; the initial letter when there is none.
+			PortraitFaceBox = GRStyle::MakeIcon(WidgetTree, nullptr, 250.f);
+			PortraitFace = Cast<UImage>(Cast<USizeBox>(PortraitFaceBox)->GetContent());
+			PortraitBox->AddChildToVerticalBox(PortraitFaceBox)->SetHorizontalAlignment(HAlign_Center);
 			PortraitGlyph = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 120, FLinearColor(0.f, 0.f, 0.f, 0.55f), true);
 			PortraitBox->AddChildToVerticalBox(PortraitGlyph)->SetHorizontalAlignment(HAlign_Center);
-			PortraitName = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 16, FLinearColor(0.f, 0.f, 0.f, 0.7f), true);
-			PortraitBox->AddChildToVerticalBox(PortraitName)->SetHorizontalAlignment(HAlign_Center);
+			PortraitName = Wrapped(GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 15, FLinearColor(0.f, 0.f, 0.f, 0.75f), true));
+			PortraitName->SetJustification(ETextJustify::Center);
+			PortraitBox->AddChildToVerticalBox(PortraitName)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
 		}
 
 		USizeBox* Size = WidgetTree->ConstructWidget<USizeBox>();
@@ -156,8 +167,17 @@ void UGRDialogScreen::BuildScreen(UOverlay* Root)
 		SizeSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 40.f));
 		UBorder* Panel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanel, FMargin(30.f, 22.f), 10.f);
 		Size->SetContent(Panel);
+		UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+		Panel->SetContent(Row);
+		// Small face next to the subtitles (the "vn" look has the big portrait instead).
+		AvatarBox = GRStyle::MakeIcon(WidgetTree, nullptr, 84.f);
+		Avatar = Cast<UImage>(Cast<USizeBox>(AvatarBox)->GetContent());
+		AvatarBox->SetVisibility(ESlateVisibility::Collapsed);
+		UHorizontalBoxSlot* AvatarSlot = Row->AddChildToHorizontalBox(AvatarBox);
+		AvatarSlot->SetVerticalAlignment(VAlign_Top);
+		AvatarSlot->SetPadding(FMargin(0.f, 2.f, 20.f, 0.f));
 		UVerticalBox* Box = WidgetTree->ConstructWidget<UVerticalBox>();
-		Panel->SetContent(Box);
+		Row->AddChildToHorizontalBox(Box)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 		NameText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 22, GRStyle::ColorAccent, true);
 		Box->AddChildToVerticalBox(NameText)->SetPadding(FMargin(0.f, 0.f, 0.f, 8.f));
 		BodyText = Wrapped(GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 21, GRStyle::ColorText));
@@ -180,10 +200,16 @@ void UGRDialogScreen::BuildScreen(UOverlay* Root)
 		MeterSize->SetContent(MeterPanel);
 		UVerticalBox* MeterBox = WidgetTree->ConstructWidget<UVerticalBox>();
 		MeterPanel->SetContent(MeterBox);
-		MeterText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 15, GRStyle::ColorDanger, true);
-		MeterBox->AddChildToVerticalBox(MeterText);
+		const FLinearColor MeterColor = Def->MeterColor.IsEmpty() ? GRStyle::ColorDanger : GRStoryUtil::ParseColor(Def->MeterColor);
+		UHorizontalBox* MeterRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+		MeterBox->AddChildToVerticalBox(MeterRow);
+		MeterText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 15, MeterColor, true);
+		MeterRow->AddChildToHorizontalBox(MeterText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		MeterDeltaText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 16, GRStyle::ColorText, true);
+		MeterDeltaText->SetRenderOpacity(0.f);
+		MeterRow->AddChildToHorizontalBox(MeterDeltaText);
 		MeterBar = WidgetTree->ConstructWidget<UProgressBar>();
-		MeterBar->SetFillColorAndOpacity(GRStyle::ColorDanger);
+		MeterBar->SetFillColorAndOpacity(MeterColor);
 		MeterBox->AddChildToVerticalBox(MeterBar)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
 	}
 
@@ -199,8 +225,49 @@ void UGRDialogScreen::RefreshMeter()
 		return;
 	}
 	const int32 Value = FMath::Clamp(Story->GetVar(Def->Meter), 0, 100);
-	MeterBar->SetPercent(Value / 100.f);
-	MeterText->SetText(FText::FromString(FString::Printf(TEXT("%s: %d%%"), *Def->MeterLabel, Value)));
+	if (MeterShown < 0.f)
+	{
+		MeterShown = Value;
+	}
+	else if (Value != MeterValue)
+	{
+		// Show what the last line or choice did to the meter.
+		const int32 Delta = Value - MeterValue;
+		MeterDeltaText->SetText(FText::FromString(FString::Printf(TEXT("%+d"), Delta)));
+		MeterDeltaText->SetColorAndOpacity(Delta > 0 ? GRStyle::ColorGood : GRStyle::ColorDanger);
+		MeterDeltaTime = 1.6f;
+		Anim.Add(GRAnim::Pop(MeterDeltaText, 0.f, 0.5f, FVector2D(0.f, 8.f), 0.25f));
+	}
+	MeterValue = Value;
+	TickMeter(0.f);
+}
+
+void UGRDialogScreen::TickMeter(float DeltaTime)
+{
+	const UGRStorySubsystem* Story = GetStory();
+	const FGRDialogDef* Def = Story ? Story->FindDialog(DialogId) : nullptr;
+	if (!MeterBar || !Def || MeterShown < 0.f)
+	{
+		return;
+	}
+	MeterShown = FMath::Abs(MeterShown - MeterValue) < 0.5f ? MeterValue : FMath::FInterpTo(MeterShown, static_cast<float>(MeterValue), DeltaTime, 5.f);
+	MeterBar->SetPercent(MeterShown / 100.f);
+	MeterText->SetText(FText::FromString(FString::Printf(TEXT("%s: %d%%"), *Def->MeterLabel, FMath::RoundToInt(MeterShown))));
+	MeterDeltaTime = FMath::Max(0.f, MeterDeltaTime - DeltaTime);
+	MeterDeltaText->SetRenderOpacity(FMath::Clamp(MeterDeltaTime / 0.4f, 0.f, 1.f));
+}
+
+void UGRDialogScreen::PickChoice(int32 Index)
+{
+	// Number keys pick a choice once the line has finished typing.
+	if (!bHasChoices || bFinished || Reveal < FullText.Len() || !ChoiceBox->GetChildAt(Index))
+	{
+		return;
+	}
+	if (UGRMenuButton* Button = Cast<UGRMenuButton>(ChoiceBox->GetChildAt(Index)))
+	{
+		Button->OnClicked.ExecuteIfBound();
+	}
 }
 
 void UGRDialogScreen::ShowNode(int32 Index)
@@ -259,6 +326,17 @@ void UGRDialogScreen::ShowNode(int32 Index)
 			{
 				Anim.Add(GRAnim::Pop(Portrait->GetParent(), 0.f, 0.88f, FVector2D(-30.f, 10.f), 0.34f));
 			}
+			if (AvatarBox && Style != TEXT("vn"))
+			{
+				UTexture2D* Face = GRStyle::Icon(TEXT("portrait_") + Node.Speaker);
+				AvatarBox->SetVisibility(Face ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+				if (Face)
+				{
+					Avatar->SetBrushFromTexture(Face);
+					Avatar->SetColorAndOpacity(FLinearColor::White);
+					Anim.Add(GRAnim::Pop(AvatarBox, 0.f, 0.8f, FVector2D(-12.f, 0.f), 0.26f));
+				}
+			}
 		}
 		LastSpeaker = Node.Speaker;
 		NameText->SetText(FText::FromString(SpeakerName));
@@ -275,13 +353,21 @@ void UGRDialogScreen::ShowNode(int32 Index)
 			if (bShow)
 			{
 				Portrait->SetBrushColor(SpeakerColor);
+				UTexture2D* Face = GRStyle::Icon(TEXT("portrait_") + Node.Speaker);
+				PortraitFaceBox->SetVisibility(Face ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+				PortraitGlyph->SetVisibility(Face ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+				if (Face)
+				{
+					PortraitFace->SetBrushFromTexture(Face);
+					PortraitFace->SetColorAndOpacity(FLinearColor::White);
+				}
 				PortraitGlyph->SetText(FText::FromString(SpeakerName.Left(1)));
 				PortraitName->SetText(FText::FromString(Speaker->Role.IsEmpty() ? SpeakerName : Speaker->Role));
 			}
 		}
 	}
 
-	HintText->SetText(bHasChoices ? FText::GetEmpty() : LOCTEXT("DialogHint", "E / Spasi / klik: lanjut"));
+	HintText->SetText(bHasChoices ? LOCTEXT("DialogChoiceHint", "Angka 1-5 / panah + Enter / klik: pilih") : LOCTEXT("DialogHint", "E / Spasi / klik: lanjut"));
 	Story->Run(DoActions);
 	RefreshMeter();
 
@@ -306,6 +392,7 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	{
 		return;
 	}
+	TickMeter(InDeltaTime);
 	const bool bWasRevealing = Reveal < FullText.Len() + 0.5f;
 	if (Reveal < FullText.Len())
 	{
@@ -328,19 +415,25 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		{
 			BodyText->SetText(FText::FromString(FullText.Left(Shown)));
 		}
-		if (PortraitGlyph)
+		// The face bobs while its speaker is "talking".
+		HintTime += InDeltaTime;
+		FWidgetTransform Talk;
+		Talk.Translation = FVector2D(0.f, -4.f * FMath::Abs(FMath::Sin(HintTime * 14.f)));
+		for (UWidget* Face : { static_cast<UWidget*>(PortraitGlyph), static_cast<UWidget*>(PortraitFaceBox), static_cast<UWidget*>(AvatarBox) })
 		{
-			// The portrait bobs while its speaker is "talking".
-			HintTime += InDeltaTime;
-			FWidgetTransform Talk;
-			Talk.Translation = FVector2D(0.f, -4.f * FMath::Abs(FMath::Sin(HintTime * 14.f)));
-			PortraitGlyph->SetRenderTransform(Talk);
+			if (Face)
+			{
+				Face->SetRenderTransform(Talk);
+			}
 		}
 		return;
 	}
-	if (PortraitGlyph)
+	for (UWidget* Face : { static_cast<UWidget*>(PortraitGlyph), static_cast<UWidget*>(PortraitFaceBox), static_cast<UWidget*>(AvatarBox) })
 	{
-		PortraitGlyph->SetRenderTransform(FWidgetTransform());
+		if (Face)
+		{
+			Face->SetRenderTransform(FWidgetTransform());
+		}
 	}
 	// Text done: the "continue" hint breathes so the player knows to press on.
 	HintTime += InDeltaTime;
@@ -353,6 +446,7 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	{
 		UGRStorySubsystem* Story = GetStory();
 		const FGRDialogDef* Def = Story->FindDialog(DialogId);
+		int32 Number = 0;
 		for (const FGRDialogChoice& Choice : Def->Nodes[NodeIndex].Choices)
 		{
 			if (!Story->Check(Choice.If))
@@ -360,7 +454,7 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 				continue;
 			}
 			const FGRDialogChoice Copy = Choice;
-			AddButton(ChoiceBox, FText::FromString(Choice.Text), [this, Copy]()
+			AddButton(ChoiceBox, FText::FromString(FString::Printf(TEXT("%d.  %s"), ++Number, *Choice.Text)), [this, Copy]()
 			{
 				if (bFinished)
 				{
@@ -451,6 +545,16 @@ void UGRDialogScreen::Finish()
 
 FReply UGRDialogScreen::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
+	static const FKey NumberKeys[] = { EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four, EKeys::Five };
+	static const FKey NumPadKeys[] = { EKeys::NumPadOne, EKeys::NumPadTwo, EKeys::NumPadThree, EKeys::NumPadFour, EKeys::NumPadFive };
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(NumberKeys); ++Index)
+	{
+		if (InKeyEvent.GetKey() == NumberKeys[Index] || InKeyEvent.GetKey() == NumPadKeys[Index])
+		{
+			PickChoice(Index);
+			return FReply::Handled();
+		}
+	}
 	if (IsAdvanceKey(InKeyEvent.GetKey()) && !bHasChoices)
 	{
 		Advance();

@@ -35,7 +35,7 @@
   },
   {
    "id": "amplop",
-   "icon": "item_surat",
+   "icon": "item_amplop",
    "name": "Amplop 'uang transpor'",
    "desc": "Isinya Rp50.000 dan stiker nomor 1. Transpor ke mana, tidak dijelaskan."
   },
@@ -48,7 +48,7 @@
   },
   {
    "id": "surat_tercoblos",
-   "icon": "item_surat",
+   "icon": "item_surat_suara",
    "name": "Surat suara sudah tercoblos",
    "bukti": true,
    "desc": "Satu bundel surat suara cadangan. Semuanya sudah dicoblos di nomor 1. Rapi sekali, pakai penggaris."
@@ -689,6 +689,7 @@
    "id": "wiratama_kampanye",
    "style": "vn",
    "meter": "sorak",
+   "meterColor": "#D4AF37",
    "meterLabel": "Sorakan massa",
    "nodes": [
     {
@@ -729,6 +730,7 @@
    "id": "hitung",
    "style": "vn",
    "meter": "suara_ratna",
+   "meterColor": "#F4A261",
    "meterLabel": "Perolehan Bu Ratna di TPS 07",
    "nodes": [
     {

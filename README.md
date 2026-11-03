@@ -112,6 +112,15 @@ Daftar bab ada di `Content/Data/chapters.json`: nomor, file cerita, judul, ringk
 
 Ikon UI (aplikasi ponsel, bab, status, HUD, menu, barang, notifikasi) adalah tile berwarna buatan Google Gemini di `Content/Data/Icons` (128 px). Sumbernya di `Tools/IconSheets`, dipotong dengan `Tools/Python/slice_icon_sheet.py`. Dimuat saat game berjalan, tanpa impor ke editor. Barang memakai `item_<id>`, atau field `icon` di data barang.
 
+Potret tokoh juga dari Gemini: `Content/Data/Icons/portrait_<id speaker>.png` (256 px). Dialog `vn` menampilkannya besar di kartu, dialog `3d` sebagai avatar di samping teks, pesan `chat` di judul. Tanpa file potret, kartu menampilkan huruf awal nama.
+
+Detail interaksi:
+
+- Pilihan dialog bernomor dan bisa dipilih dengan tombol 1-5 (atau panah + Enter, atau klik).
+- Meter dialog (`meter`, `meterLabel`, `meterColor` opsional, merah bila kosong) bergerak halus dan menampilkan perubahan terakhir (+5 / -8).
+- HUD menampilkan penanda tujuan misi dengan jarak. Bila tujuan di luar layar, penanda menempel di tepi layar dengan nama tujuan.
+- Hover mouse hanya mengambil fokus tombol bila mouse benar-benar bergerak, jadi tombol yang beranimasi masuk tidak merebut fokus keyboard.
+
 ## Bab 1 "Asap dan Piring"
 
 Seluruh isi bab ada di `Content/Data/bab1.json`. Ubah teks, quest, NPC, atau minigame tanpa compile, lalu `GRReloadData`.

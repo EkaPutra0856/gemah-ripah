@@ -24,6 +24,10 @@ public:
 	void SetIcon(const FString& Glyph, const FLinearColor& Color, UTexture2D* Texture = nullptr);
 	UButton* GetButton() const { return Button; }
 
+	/** Hover only takes keyboard focus once the mouse really moves, so buttons animating in under a resting cursor don't steal it. */
+	static void IgnoreHoverUntilMouseMoves();
+	static bool IsMouseResting();
+
 	FSimpleDelegate OnClicked;
 
 protected:

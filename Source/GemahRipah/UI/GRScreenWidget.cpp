@@ -50,6 +50,7 @@ UGRUISubsystem* UGRScreenWidget::GetUI() const
 
 void UGRScreenWidget::OnShown()
 {
+	UGRMenuButton::IgnoreHoverUntilMouseMoves();
 	if (!bIntroPlayed)
 	{
 		bIntroPlayed = true;

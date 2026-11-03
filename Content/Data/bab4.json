@@ -75,7 +75,7 @@
   },
   {
    "id": "maket_foto",
-   "icon": "item_foto",
+   "icon": "item_maket",
    "name": "Foto maket asli",
    "bukti": true,
    "desc": "Mal, apartemen, helipad. Pasarnya ada: los kecil di basement, sebelah parkir motor."
@@ -593,6 +593,7 @@
    "id": "sosialisasi",
    "style": "vn",
    "meter": "marah",
+   "meterColor": "#F2994A",
    "meterLabel": "Kemarahan warga",
    "nodes": [
     {

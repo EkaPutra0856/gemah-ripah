@@ -922,6 +922,7 @@
    "id": "siaran",
    "style": "vn",
    "meter": "pendengar",
+   "meterColor": "#6EC878",
    "meterLabel": "Pendengar Radio Gang 107,7",
    "nodes": [
     {

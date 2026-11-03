@@ -28,6 +28,10 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
+#include "Story/GRStoryDirector.h"
 
 #define LOCTEXT_NAMESPACE "GemahRipah"
 
@@ -75,6 +79,26 @@ void UGRHUDWidget::NativeOnInitialized()
 
 	UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>();
 	WidgetTree->RootWidget = Root;
+
+	// Objective waypoint: a diamond over the current target with its distance. Positioned every tick, under the other panels.
+	USizeBox* WaypointSize = WidgetTree->ConstructWidget<USizeBox>();
+	WaypointSize->SetWidthOverride(140.f);
+	Place(Root, WaypointSize, HAlign_Left, VAlign_Top, FMargin(0.f));
+	UVerticalBox* WaypointBox = WidgetTree->ConstructWidget<UVerticalBox>();
+	WaypointSize->SetContent(WaypointBox);
+	USizeBox* DiamondSize = WidgetTree->ConstructWidget<USizeBox>();
+	DiamondSize->SetWidthOverride(18.f);
+	DiamondSize->SetHeightOverride(18.f);
+	WaypointBox->AddChildToVerticalBox(DiamondSize)->SetHorizontalAlignment(HAlign_Center);
+	WaypointDiamond = GRStyle::MakePanel(WidgetTree, GRStyle::ColorAccent, FMargin(0.f), 4.f);
+	WaypointDiamond->SetRenderTransformAngle(45.f);
+	DiamondSize->SetContent(WaypointDiamond);
+	WaypointText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 14, GRStyle::ColorAccent, true);
+	WaypointText->SetShadowOffset(FVector2D(1.f, 1.f));
+	WaypointText->SetShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.8f));
+	WaypointBox->AddChildToVerticalBox(WaypointText)->SetHorizontalAlignment(HAlign_Center);
+	Waypoint = WaypointSize;
+	Waypoint->SetVisibility(ESlateVisibility::Collapsed);
 
 	// Top-left: money, meters, active rules.
 	UBorder* StatusPanel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanelSoft, FMargin(18.f, 14.f), 8.f);
@@ -436,9 +460,68 @@ void UGRHUDWidget::ShowBanner(const FText& Title, const FText& Body, const FLine
 	BannerEndTime = FPlatformTime::Seconds() + Duration;
 }
 
+void UGRHUDWidget::UpdateWaypoint(float DeltaTime)
+{
+	APlayerController* PC = GetOwningPlayer();
+	const AGRStoryDirector* Director = AGRStoryDirector::Get(this);
+	const ULocalPlayer* LP = GetOwningLocalPlayer();
+	const UGRUISubsystem* UI = LP ? LP->GetSubsystem<UGRUISubsystem>() : nullptr;
+	FVector Target;
+	FText Label;
+	// Hidden in menus, dialogs, cutscenes and the stealth rooms (those have their own goals).
+	if (!PC || !PC->PlayerCameraManager || !PC->GetPawn() || !Director || (UI && UI->HasScreens())
+		|| AGRStealthLevel::GetActive(GetWorld()) || !Director->GetTrackedTarget(Target, Label))
+	{
+		Waypoint->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	const float Meters = FVector::Dist2D(PC->GetPawn()->GetActorLocation(), Target) / 100.f;
+	if (Meters < 4.f)
+	{
+		Waypoint->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+	Target.Z += 260.f;
+	const float Scale = FMath::Max(UWidgetLayoutLibrary::GetViewportScale(this), 0.01f);
+	const FVector2D View = UWidgetLayoutLibrary::GetViewportSize(this) / Scale;
+	const FVector2D Half = View * 0.5f;
+	constexpr float Margin = 70.f;
+	const FVector Local = PC->PlayerCameraManager->GetCameraRotation().UnrotateVector(Target - PC->PlayerCameraManager->GetCameraLocation());
+	FVector2D Pos = FVector2D::ZeroVector;
+	FVector2D Screen;
+	bool bOnScreen = Local.X > 1.f && PC->ProjectWorldLocationToScreen(Target, Screen, true);
+	if (bOnScreen)
+	{
+		Pos = Screen / Scale;
+		bOnScreen = Pos.X > Margin && Pos.X < View.X - Margin && Pos.Y > Margin && Pos.Y < View.Y - Margin;
+	}
+	if (!bOnScreen)
+	{
+		// Off-screen or behind the camera: pin it to the screen edge in the target's direction.
+		FVector2D Dir = FVector2D(Local.Y, -Local.Z).GetSafeNormal();
+		if (Dir.IsNearlyZero())
+		{
+			Dir = FVector2D(0.f, 1.f);
+		}
+		const FVector2D Box = Half - FVector2D(Margin, Margin);
+		const float T = FMath::Min(Box.X / FMath::Max(FMath::Abs(Dir.X), 0.001f), Box.Y / FMath::Max(FMath::Abs(Dir.Y), 0.001f));
+		Pos = Half + Dir * T;
+	}
+	WaypointTime += DeltaTime;
+	Waypoint->SetVisibility(ESlateVisibility::HitTestInvisible);
+	Waypoint->SetRenderTranslation(Pos - FVector2D(70.f, 9.f));
+	Waypoint->SetRenderOpacity(bOnScreen ? 1.f : 0.8f);
+	const float Pulse = 1.f + 0.18f * FMath::Sin(WaypointTime * 5.f);
+	WaypointDiamond->SetRenderScale(FVector2D(Pulse, Pulse));
+	const FString Distance = Meters >= 1000.f ? FString::Printf(TEXT("%.1f km"), Meters / 1000.f) : FString::Printf(TEXT("%d m"), FMath::RoundToInt(Meters));
+	WaypointText->SetText(FText::FromString(bOnScreen ? Distance : Label.ToString() + TEXT("\n") + Distance));
+	WaypointText->SetJustification(ETextJustify::Center);
+}
+
 void UGRHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+	UpdateWaypoint(InDeltaTime);
 
 	// Real time, so toasts and banners still expire while the game is paused.
 	const double Now = FPlatformTime::Seconds();

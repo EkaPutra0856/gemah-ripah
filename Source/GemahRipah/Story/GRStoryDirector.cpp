@@ -304,6 +304,17 @@ void AGRStoryDirector::UpdateTargetMarker()
 	}
 }
 
+bool AGRStoryDirector::GetTrackedTarget(FVector& OutLocation, FText& OutLabel) const
+{
+	if (!TargetMarker || !TargetMarker->Marker->bTracked)
+	{
+		return false;
+	}
+	OutLocation = TargetMarker->GetActorLocation();
+	OutLabel = TargetMarker->Marker->Label;
+	return true;
+}
+
 AActor* AGRStoryDirector::FindSpawnedActor(const FString& SpawnId) const
 {
 	const TObjectPtr<AActor>* Found = Spawned.Find(SpawnId);

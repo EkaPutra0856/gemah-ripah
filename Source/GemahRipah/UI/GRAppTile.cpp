@@ -1,5 +1,6 @@
 #include "UI/GRAppTile.h"
 #include "UI/GRUIStyle.h"
+#include "UI/GRMenuButton.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -131,6 +132,10 @@ void UGRAppTile::HandleClicked()
 
 void UGRAppTile::HandleHovered()
 {
+	if (UGRMenuButton::IsMouseResting())
+	{
+		return;
+	}
 	if (GetOwningPlayer())
 	{
 		Button->SetUserFocus(GetOwningPlayer());

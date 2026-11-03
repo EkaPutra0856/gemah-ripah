@@ -13,3 +13,10 @@ Urutan nama per lembar (kiri ke kanan, atas ke bawah, `-` = tidak dipakai):
 
 Di lembar 1, dua tile (burung mirip logo merek asli, koran bertulisan) diganti versi lembar 2.
 Di lembar 3, tile selebaran bertulisan diganti versi lembar 4.
+
+Potret tokoh (dipotong 256 px, nama file `portrait_<id speaker>.png`, dipakai layar dialog):
+
+- `gemini_portraits1.jpg`: portrait_bayu, portrait_ibu, portrait_dinda, portrait_rudi, portrait_darmo, portrait_dokter, portrait_kepsek, portrait_ratna, portrait_tini, portrait_wiryo, portrait_intel, portrait_spn, portrait_rt, portrait_warga, portrait_joko, portrait_satpam
+- `gemini_portraits2.jpg`: portrait_sari, portrait_staf, portrait_yati, portrait_harso, portrait_hakim, portrait_hendro, portrait_liong, portrait_ijah, portrait_wiratama, portrait_jefri, item_amplop, item_surat_suara, item_maket, -, -, -
+
+Di lembar potret 2, tile sertifikat (ada teks dan lambang) tidak dipakai; kotak suara dan patok belum dipakai.

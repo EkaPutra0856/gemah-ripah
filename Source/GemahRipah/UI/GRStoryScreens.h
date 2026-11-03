@@ -5,6 +5,7 @@
 #include "GRStoryScreens.generated.h"
 
 class UBorder;
+class UImage;
 class UProgressBar;
 class UScrollBox;
 class UTextBlock;
@@ -39,6 +40,8 @@ private:
 	void Advance();
 	void Finish();
 	void RefreshMeter();
+	void TickMeter(float DeltaTime);
+	void PickChoice(int32 Index);
 	void AddBubble(class UWidget* Bubble, bool bMine);
 	UGRStorySubsystem* GetStory() const;
 
@@ -54,6 +57,10 @@ private:
 	float HintTime = 0.f;
 	bool bHasChoices = false;
 	bool bFinished = false;
+	/** Meter animates towards its value and shows the last change (+5 / -8) for a moment. */
+	float MeterShown = -1.f;
+	int32 MeterValue = 0;
+	float MeterDeltaTime = 0.f;
 
 	UPROPERTY() TObjectPtr<UTextBlock> NameText;
 	UPROPERTY() TObjectPtr<UTextBlock> BodyText;
@@ -62,8 +69,13 @@ private:
 	UPROPERTY() TObjectPtr<UBorder> Portrait;
 	UPROPERTY() TObjectPtr<UTextBlock> PortraitGlyph;
 	UPROPERTY() TObjectPtr<UTextBlock> PortraitName;
+	UPROPERTY() TObjectPtr<UWidget> PortraitFaceBox;
+	UPROPERTY() TObjectPtr<UImage> PortraitFace;
+	UPROPERTY() TObjectPtr<UWidget> AvatarBox;
+	UPROPERTY() TObjectPtr<UImage> Avatar;
 	UPROPERTY() TObjectPtr<UProgressBar> MeterBar;
 	UPROPERTY() TObjectPtr<UTextBlock> MeterText;
+	UPROPERTY() TObjectPtr<UTextBlock> MeterDeltaText;
 	UPROPERTY() TObjectPtr<UScrollBox> ChatList;
 };
 

@@ -8,6 +8,25 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Image.h"
 #include "Components/SizeBox.h"
+#include "Framework/Application/SlateApplication.h"
+
+namespace
+{
+	FVector2D RestingCursor(-1.f, -1.f);
+}
+
+void UGRMenuButton::IgnoreHoverUntilMouseMoves()
+{
+	if (FSlateApplication::IsInitialized())
+	{
+		RestingCursor = FSlateApplication::Get().GetCursorPos();
+	}
+}
+
+bool UGRMenuButton::IsMouseResting()
+{
+	return FSlateApplication::IsInitialized() && FVector2D::Distance(FSlateApplication::Get().GetCursorPos(), RestingCursor) < 2.f;
+}
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
 
@@ -129,6 +148,10 @@ void UGRMenuButton::HandleClicked()
 
 void UGRMenuButton::HandleHovered()
 {
+	if (IsMouseResting())
+	{
+		return;
+	}
 	// Keep mouse and keyboard/gamepad focus in sync.
 	FocusButton();
 }

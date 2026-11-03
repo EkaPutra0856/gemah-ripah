@@ -49,6 +49,7 @@ private:
 
 	void RefreshStatus();
 	void RefreshRules();
+	void UpdateWaypoint(float DeltaTime);
 	void ShowBanner(const FText& Title, const FText& Body, const FLinearColor& Color, float Duration);
 	UProgressBar* MakeMeter(UVerticalBox* Parent, const FText& Label, const TCHAR* IconName, const FLinearColor& Color, UTextBlock*& OutValue);
 
@@ -75,6 +76,9 @@ private:
 	UPROPERTY() TObjectPtr<UTextBlock> BannerTitle;
 	UPROPERTY() TObjectPtr<UTextBlock> BannerBody;
 	UPROPERTY() TObjectPtr<UVerticalBox> ToastList;
+	UPROPERTY() TObjectPtr<UWidget> Waypoint;
+	UPROPERTY() TObjectPtr<UBorder> WaypointDiamond;
+	UPROPERTY() TObjectPtr<UTextBlock> WaypointText;
 
 	struct FToast
 	{
@@ -90,6 +94,7 @@ private:
 	float UangFlash = 0.f;
 	FLinearColor UangFlashColor = FLinearColor::White;
 
+	float WaypointTime = 0.f;
 	double BannerEndTime = 0.0;
 	double DistrictPopupStart = -100.0;
 	double NextClockRefresh = 0.0;

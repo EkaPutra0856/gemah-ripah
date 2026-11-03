@@ -31,6 +31,9 @@ public:
 
 	static AGRStoryDirector* Get(const UObject* WorldContext);
 
+	/** Where the current objective is (the target marker), if there is one. */
+	bool GetTrackedTarget(FVector& OutLocation, FText& OutLabel) const;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
