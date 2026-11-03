@@ -2,7 +2,7 @@
 
 Game open world satir di Unreal Engine 5.8. Pemain adalah Bayu, pengemudi ojol di Kota Sentosa, Republik Gemah Ripah (negara fiktif), yang mengejar keadilan dan kebebasan.
 
-Bab yang bisa dimainkan: Bab 1 "Asap dan Piring", Bab 2 "Turun ke Jalan", Bab 3 "Pasal Karet", dan Bab 4 "Proyek Mercusuar". Bab 5 sudah ada di Peta Bab sebagai "segera hadir".
+Semua bab bisa dimainkan: Bab 1 "Asap dan Piring", Bab 2 "Turun ke Jalan", Bab 3 "Pasal Karet", Bab 4 "Proyek Mercusuar", dan Bab 5 "Suara Rakyat" (tamat).
 
 ## Kebutuhan
 
@@ -149,6 +149,16 @@ Isi di `Content/Data/bab4.json`. Pemkot dan Dewan mengumumkan Menara Gemilang (8
 3. Pasar Bertahan: ajak Bu Tini, Koh Liong, dan Mak Ijah bertahan, tidur, lalu jaga gerbang pasar pagi harinya. Dialog `eksekusi` memakai meter ketegangan: siaran langsung, duduk di depan ekskavator, atau bicara baik-baik, lalu dokumen dibacakan.
 
 Hasil: variabel `tekanan` (dokumen yang dibawa ke Sari, tiga pedagang bertahan, siaran langsung; berkurang bila ketegangan terlalu tinggi) menentukan pembongkaran ditunda (`gusur_ditunda`) atau los ikan dirobohkan (`pasar_rusak`). Penutup memberi petunjuk Bab 5 (Ketua Dewan maju jadi Wali Kota, kertas suara dicetak PT yang sama).
+
+## Bab 5 "Suara Rakyat"
+
+Isi di `Content/Data/bab5.json`. Pemilu Wali Kota: Wiratama Gemilang (Ketua Dewan, No. 1) melawan Bu Ratna (guru honorer dari Bab 1, calon independen No. 2).
+
+1. Serangan Fajar: Ibu menerima amplop "uang transpor" (dikembalikan atau dipakai), lalu Bang Jefri dari tim sukses menawari Bayu Rp300.000 untuk mengoordinir ojol. Bayu bisa merekamnya, menolak, atau menerima. Kampanye akbar No. 1 di dekat Tugu bisa didatangi (dialog `wiratama_kampanye`).
+2. Surat Suara Gemilang: Pak Harso membocorkan surat suara cadangan yang sudah dicoblos, Pak Darmo sengaja "lupa" mengunci gudang, lalu Bayu menyusup ke gudang logistik Kantor Kelurahan setelah pukul 20.00 (minigame `logistik`, penjaga Linmas yang patroli kolom). Buktinya diunggah dari Warnet Jaya (minigame `laporan`, viral >= 100 memberi `laporan_viral`).
+3. Saksi Rakyat: Bayu menjadi saksi Bu Ratna, tidur, lalu menjaga TPS 07 di depan SDN Sentosa 1. Dialog `hitung` memakai meter `suara_ratna` yang naik atau turun karena pilihan dari semua bab: `suara`, `tolak_amplop`, `rudi_bebas` (Bab 3), `gusur_ditunda` (Bab 4), `guru_dilindungi` (Bab 1), `laporan_viral`, keberatan atas surat suara tercoblos, dan rekaman Bang Jefri.
+
+Hasil: `suara_ratna` >= 50 memberi `ratna_menang`, selain itu `ratna_kalah` (gugatan sengketa). Layar akhir merangkum hasil setiap bab, lalu TAMAT.
 
 ### Bahasa cerita
 
