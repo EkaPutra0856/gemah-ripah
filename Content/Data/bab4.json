@@ -1,0 +1,2234 @@
+{
+ "title": "Bab 4: Proyek Mercusuar",
+ "start": "cutscene pembuka",
+ "onCaught": "cutscene ditangkap",
+ "onFaint": "notifburuk Bayu pingsan karena lelah dan asap.; uang -20000 Biaya klinik; tidur",
+ "onMorning": "jika q.Bertahan==2 ? step Bertahan 3; jika q.Bertahan==3 ? notif Ekskavator datang pagi ini. Jaga gerbang Pasar Sentosa!",
+ "suspicious": "jam_malam && hour>=21 || jam_malam && hour<4",
+ "items": [
+  {
+   "id": "beras",
+   "name": "Beras 2 kg",
+   "desc": "Untuk makan keluarga sehari."
+  },
+  {
+   "id": "obat",
+   "name": "Obat Dinda",
+   "desc": "Obat mual dan vitamin dari apotek pasar."
+  },
+  {
+   "id": "masker",
+   "name": "Masker N95 (KW)",
+   "desc": "Selama punya satu, napas lebih lega dan lelah karena asap berkurang."
+  },
+  {
+   "id": "nasi_bungkus",
+   "name": "Nasi bungkus",
+   "desc": "Nasi, tempe, sambal. Menambah energi.",
+   "use": "energi 40; notif Kenyang. Energi bertambah."
+  },
+  {
+   "id": "kopi",
+   "name": "Kopi sachet",
+   "desc": "Tiga ribu rupiah semangat.",
+   "use": "energi 18; notif Melek lagi."
+  },
+  {
+   "id": "laporan_palsu",
+   "icon": "item_laporan",
+   "name": "Laporan warga No. 47",
+   "desc": "Laporan atas Rudi. Pelapor: Sukirman, RT 05. RT 05 itu pemakaman umum.",
+   "bukti": true
+  },
+  {
+   "id": "memo_target",
+   "icon": "item_dokumen",
+   "name": "Memo target laporan",
+   "desc": "'Target bulan ini: 50 laporan pasal penghinaan. Kelurahan terbaik dapat studi banding.'",
+   "bukti": true
+  },
+  {
+   "id": "daftar_pantau",
+   "icon": "item_laporan",
+   "name": "Daftar pantauan warga",
+   "desc": "112 nama. Nomor 3: Bayu. Nomor 4: Ibu. Nomor 5: Dinda, 9 tahun.",
+   "bukti": true
+  },
+  {
+   "id": "rekaman_tawar",
+   "icon": "item_rekaman",
+   "name": "Rekaman 'biaya penangguhan'",
+   "desc": "Suara Komandan Wiryo menyebut 'uang administrasi' dua juta rupiah.",
+   "bukti": true
+  },
+  {
+   "id": "surat_relokasi",
+   "icon": "item_surat",
+   "name": "Surat relokasi pedagang",
+   "desc": "Pedagang dipindah ke 'Lokasi Strategis'. Alamatnya: menyusul."
+  },
+  {
+   "id": "brosur",
+   "icon": "item_pamflet",
+   "name": "Brosur Menara Gemilang",
+   "desc": "'Menjulang untuk Rakyat'. Harga unit mulai 4 miliar. Cicilan 300 tahun."
+  },
+  {
+   "id": "maket_foto",
+   "icon": "item_foto",
+   "name": "Foto maket asli",
+   "bukti": true,
+   "desc": "Mal, apartemen, helipad. Pasarnya ada: los kecil di basement, sebelah parkir motor."
+  },
+  {
+   "id": "sertifikat",
+   "icon": "item_surat",
+   "name": "Salinan sertifikat lahan pasar",
+   "bukti": true,
+   "desc": "Lahan pasar sudah atas nama PT Gemilang Mercusuar Abadi sejak dua tahun lalu. Sosialisasinya minggu lalu."
+  },
+  {
+   "id": "daftar_unit",
+   "icon": "item_laporan",
+   "name": "Daftar pemesan penthouse",
+   "bukti": true,
+   "desc": "Tiga anggota dewan dan satu 'Ibu Wali'. Uang muka: dari pos 'kajian kelayakan'."
+  }
+ ],
+ "shop": [
+  {
+   "item": "beras",
+   "place": "pasar",
+   "price": 15000,
+   "priceStepPerDay": 2500
+  },
+  {
+   "item": "obat",
+   "place": "pasar",
+   "price": 25000,
+   "priceStepPerDay": 0
+  },
+  {
+   "item": "masker",
+   "place": "pasar",
+   "price": 10000,
+   "priceStepPerDay": 4000
+  },
+  {
+   "item": "nasi_bungkus",
+   "place": "pasar",
+   "price": 12000,
+   "priceStepPerDay": 1000
+  },
+  {
+   "item": "kopi",
+   "place": "warung",
+   "price": 5000,
+   "priceStepPerDay": 1000
+  },
+  {
+   "item": "nasi_bungkus",
+   "place": "warung",
+   "price": 13000,
+   "priceStepPerDay": 1000
+  },
+  {
+   "item": "masker",
+   "place": "warung",
+   "price": 12000,
+   "priceStepPerDay": 4000
+  }
+ ],
+ "quests": [
+  {
+   "id": "Patok",
+   "title": "Patok Oranye",
+   "desc": "Patok proyek muncul di Pasar Sentosa. Tidak ada yang bertanya ke pedagang.",
+   "steps": [
+    "Temui Bu Tini di Pasar Sentosa.",
+    "Datangi sosialisasi proyek di depan Kantor Kelurahan.",
+    "Lihat sendiri 'Lokasi Strategis' relokasi di belakang Perumahan Sentosa Indah.",
+    "Kabari Bu Tini di pasar."
+   ],
+   "targets": [
+    "tini",
+    "hendro",
+    "lokasi_relokasi",
+    "tini"
+   ]
+  },
+  {
+   "id": "Untung",
+   "title": "Siapa yang Untung?",
+   "desc": "Menara setinggi itu pasti ada yang memesan. Cari namanya.",
+   "steps": [
+    "Telusuri pemilik proyek bersama Mas Joko di Warnet Jaya.",
+    "Menyusup ke Kantor Pemasaran Menara Gemilang (bekas Dapur PPR) setelah pukul 19.00.",
+    "Tunjukkan dokumennya ke Sari di Pos Ronda."
+   ],
+   "targets": [
+    "joko",
+    "pintu_pemasaran",
+    "sari"
+   ]
+  },
+  {
+   "id": "Bertahan",
+   "title": "Pasar Bertahan",
+   "desc": "Ekskavator datang besok. Pasar hanya bertahan kalau pedagangnya bertahan.",
+   "steps": [
+    "Ajak pedagang bertahan ({bertahan}/3): Bu Tini, Koh Liong, Mak Ijah di Pasar Sentosa.",
+    "Pulang dan tidur. Ekskavator datang besok pagi.",
+    "Jaga gerbang Pasar Sentosa.",
+    "Pulang ke rumah."
+   ],
+   "targets": [
+    "tini",
+    "rumah",
+    "z_pasar_jaga",
+    "rumah"
+   ]
+  }
+ ],
+ "speakers": [
+  {
+   "id": "bayu",
+   "name": "Bayu",
+   "role": "Bayu, ojol",
+   "color": "#5FD3C8"
+  },
+  {
+   "id": "ibu",
+   "name": "Bu Sri",
+   "role": "Ibu Bayu",
+   "color": "#C77DBA"
+  },
+  {
+   "id": "dinda",
+   "name": "Dinda",
+   "role": "Adik Bayu",
+   "color": "#F2C14E"
+  },
+  {
+   "id": "rudi",
+   "name": "Rudi",
+   "role": "Teman ojol",
+   "color": "#7FB069"
+  },
+  {
+   "id": "darmo",
+   "name": "Pak Darmo",
+   "role": "Pegawai kelurahan",
+   "color": "#E9C46A"
+  },
+  {
+   "id": "dokter",
+   "name": "dr. Lestari",
+   "role": "Dokter Puskesmas",
+   "color": "#9AD1D4"
+  },
+  {
+   "id": "kepsek",
+   "name": "Pak Hartono",
+   "role": "Kepala sekolah",
+   "color": "#B5838D"
+  },
+  {
+   "id": "tini",
+   "name": "Bu Tini",
+   "role": "Pedagang beras",
+   "color": "#E76F51"
+  },
+  {
+   "id": "wiryo",
+   "name": "Komandan Wiryo",
+   "role": "SPN",
+   "color": "#6C8EBF"
+  },
+  {
+   "id": "intel",
+   "name": "Pria Berkemeja",
+   "role": "Tidak menyebut nama",
+   "color": "#8D99AE"
+  },
+  {
+   "id": "spn",
+   "name": "Petugas SPN",
+   "role": "SPN",
+   "color": "#6C8EBF"
+  },
+  {
+   "id": "rt",
+   "name": "Pak RT Darto",
+   "role": "Ketua RT",
+   "color": "#D4A373"
+  },
+  {
+   "id": "warga",
+   "name": "Pak Udin",
+   "role": "Warga",
+   "color": "#A8DADC"
+  },
+  {
+   "id": "joko",
+   "name": "Mas Joko",
+   "role": "Penjaga warnet",
+   "color": "#90BE6D"
+  },
+  {
+   "id": "sari",
+   "name": "Sari",
+   "role": "Mahasiswi, relawan LBH",
+   "color": "#F28482"
+  },
+  {
+   "id": "yati",
+   "name": "Bu Yati",
+   "role": "Warga, penjual gorengan",
+   "color": "#E5989B"
+  },
+  {
+   "id": "harso",
+   "name": "Pak Harso",
+   "role": "Mantan wartawan, tukang fotokopi",
+   "color": "#B5838D"
+  },
+  {
+   "id": "hendro",
+   "name": "Pak Hendro",
+   "role": "Humas PT Gemilang",
+   "color": "#E9D8A6"
+  },
+  {
+   "id": "liong",
+   "name": "Koh Liong",
+   "role": "Pedagang kelontong",
+   "color": "#94D2BD"
+  },
+  {
+   "id": "ijah",
+   "name": "Mak Ijah",
+   "role": "Pedagang sayur",
+   "color": "#BB9457"
+  }
+ ],
+ "dialogs": [
+  {
+   "id": "dokter_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "dokter",
+     "text": "Puskesmas penuh. Kalau tidak darurat, pakai masker dan banyak minum air.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "darmo_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "darmo",
+     "text": "Pelayanan sudah tutup. Eh, buka. Tergantung.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "kepsek_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "kepsek",
+     "text": "Sekolah kami sekolah Adiwiyata. Asap pun kami anggap kabut pendidikan.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "warga_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "viral>=1",
+     "speaker": "warga",
+     "text": "Bay! Unggahanmu sampai ke grup WA keluarga saya. Yang biasanya cuma kirim stiker selamat pagi.",
+     "next": "end"
+    },
+    {
+     "speaker": "warga",
+     "text": "Asapnya parah, Bay. Tapi di TV katanya baik. Mungkin TV saya yang rusak.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "sari_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "sari",
+     "text": "Hafalkan nomor LBH: 0812-SENTOSA. Kalau ditangkap, diam dan sebut nomor itu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "piket",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "spn",
+     "text": "Jam besuk sampai sore. Barang bawaan diperiksa. Rasa simpati juga.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "dinda_rumah",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "dinda",
+     "text": "Kak, di sekolah ada lomba baru: lomba menulis surat terima kasih untuk Pak Wali. Hadiahnya tidak diperiksa.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "tini_pesan",
+   "style": "chat",
+   "nodes": [
+    {
+     "speaker": "tini",
+     "text": "Mas Bayu, ini Tini. Pagi ini ada orang pasang patok oranye di tengah pasar. Katanya untuk 'pengukuran'."
+    },
+    {
+     "speaker": "tini",
+     "text": "Ngukur apa, saya tanya. Katanya ngukur masa depan. Mas ke pasar, ya.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "tini_b4",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "tini",
+     "text": "Mas! Lokasinya gimana?",
+     "if": "q.Patok==4",
+     "next": "lapor"
+    },
+    {
+     "speaker": "tini",
+     "text": "Pedagang sudah saya kumpulkan, Mas. Kami tidak pindah.",
+     "if": "q.Bertahan==1 && !tahan_tini",
+     "next": "tahan"
+    },
+    {
+     "speaker": "tini",
+     "text": "Mas lihat sendiri patoknya. Ini lapak saya dari zaman Bapak saya. Patoknya di tengah timbangan.",
+     "if": "q.Patok==1",
+     "next": "patok"
+    },
+    {
+     "speaker": "tini",
+     "text": "Beras, Mas? Selagi lapaknya masih ada.",
+     "do": "toko pasar",
+     "next": "end"
+    },
+    {
+     "speaker": "tini",
+     "text": "Tadi pagi datang surat. Pasar dikosongkan tujuh hari lagi. Pedagang dipindah ke 'Lokasi Strategis'.",
+     "id": "patok",
+     "do": "item surat_relokasi 1"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Strategis buat siapa, Bu?",
+     "choices": [
+      {
+       "text": "Siapa yang mau bangun?",
+       "next": "siapa"
+      },
+      {
+       "text": "Ibu sudah lihat lokasinya?",
+       "next": "siapa"
+      }
+     ]
+    },
+    {
+     "speaker": "tini",
+     "text": "Katanya Menara Gemilang. Menara kebanggaan kota. Hari ini ada sosialisasi di depan kelurahan. Mas datang, ya. Saya takut bicara.",
+     "id": "siapa",
+     "do": "step Patok 2; notif Sosialisasi proyek di depan Kantor Kelurahan.",
+     "next": "end"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Rawa, Bu. Ada papan 'Pasar Modern', tapi yang jualan cuma biawak.",
+     "id": "lapor"
+    },
+    {
+     "speaker": "tini",
+     "text": "Ya Allah. Empat puluh tahun Mak Ijah jualan sayur di sini, mau dipindah ke rawa.",
+     "choices": [
+      {
+       "text": "Kita cari tahu siapa yang sebenarnya untung, Bu.",
+       "do": "suara 3",
+       "next": "untung"
+      },
+      {
+       "text": "Bu, kita jangan pindah dulu.",
+       "do": "suara 3",
+       "next": "untung"
+      }
+     ]
+    },
+    {
+     "speaker": "tini",
+     "text": "Mas Joko di warnet katanya bisa cari apa saja di internet. Kecuali kerja tetap.",
+     "id": "untung",
+     "do": "done Patok; quest Untung; notif Temui Mas Joko di Warnet Jaya.",
+     "next": "end"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Bu Tini, besok ekskavator datang. Ibu tetap di lapak?",
+     "id": "tahan"
+    },
+    {
+     "speaker": "tini",
+     "text": "Saya duduk di atas karung beras. Kalau mau digusur, gusur sama berasnya. Harganya mahal.",
+     "do": "set tahan_tini 1; add bertahan 1; notifbaik Bu Tini bertahan.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "liong_b4",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "liong",
+     "text": "Rolling door sudah saya gembok dari dalam. Saya juga di dalam. Itu masalahnya.",
+     "if": "tahan_liong",
+     "next": "end"
+    },
+    {
+     "speaker": "liong",
+     "text": "Mas, toko saya sudah 3 generasi. Kakek saya buka waktu jalan ini masih tanah.",
+     "if": "q.Bertahan==1",
+     "choices": [
+      {
+       "text": "Koh, kalau semua pedagang bertahan bareng, mereka susah gusur.",
+       "do": "set tahan_liong 1; add bertahan 1",
+       "next": "ya"
+      },
+      {
+       "text": "Koh mau pindah ke rawa?",
+       "do": "set tahan_liong 1; add bertahan 1",
+       "next": "ya"
+      }
+     ]
+    },
+    {
+     "speaker": "liong",
+     "text": "Mi instan, sabun, korek, rokok ketengan. Semua ada, kecuali kepastian.",
+     "next": "end"
+    },
+    {
+     "speaker": "liong",
+     "text": "Ikut. Saya buka toko besok jam lima. Biar ekskavatornya antre beli kopi dulu.",
+     "id": "ya",
+     "do": "notifbaik Koh Liong bertahan.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "ijah_b4",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "ijah",
+     "text": "Besok Mak bawa cobek. Bukan buat melawan. Buat bikin sambal, biar petugasnya kepedesan.",
+     "if": "tahan_ijah",
+     "next": "end"
+    },
+    {
+     "speaker": "ijah",
+     "text": "Nak, Mak jualan di sini dari umur dua puluh. Anak Mak lima, sekolah dari kangkung.",
+     "if": "q.Bertahan==1",
+     "choices": [
+      {
+       "text": "Mak, besok kita jaga pasar bareng-bareng.",
+       "do": "set tahan_ijah 1; add bertahan 1",
+       "next": "ya"
+      },
+      {
+       "text": "(Beli seikat kangkung dulu.)",
+       "do": "uang -3000 Kangkung; set tahan_ijah 1; add bertahan 1",
+       "next": "ya"
+      }
+     ]
+    },
+    {
+     "speaker": "ijah",
+     "text": "Kangkung, bayam, cabai! Harga naik, senyum Mak tetap gratis.",
+     "next": "end"
+    },
+    {
+     "speaker": "ijah",
+     "text": "Iya, Nak. Mak sudah tua. Mau digusur ke mana lagi? Ke kuburan juga antre.",
+     "id": "ya",
+     "do": "notifbaik Mak Ijah bertahan.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "sosialisasi",
+   "style": "vn",
+   "meter": "marah",
+   "meterLabel": "Kemarahan warga",
+   "nodes": [
+    {
+     "speaker": "hendro",
+     "text": "Selamat pagi, siang, sore, Bapak-Ibu warga Sentosa. Pokoknya selamat! Saya Hendro, dari PT Gemilang Mercusuar Abadi.",
+     "do": "set marah 20"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Menara Gemilang akan setinggi 88 lantai. Ada mal, apartemen, helipad. Dan tentu saja, pasar! Pasar modern, ber-AC, di lokasi strategis."
+    },
+    {
+     "speaker": "bayu",
+     "text": "(Ini saatnya bertanya.)",
+     "choices": [
+      {
+       "text": "Lokasi strategisnya di mana, Pak? Alamat lengkap.",
+       "do": "add marah 10",
+       "next": "alamat"
+      },
+      {
+       "text": "Pedagang dapat ganti rugi berapa?",
+       "do": "add marah 10",
+       "next": "ganti"
+      },
+      {
+       "text": "Kenapa sosialisasinya setelah patok dipasang?",
+       "do": "add marah 15; suara 3",
+       "next": "patok"
+      }
+     ]
+    },
+    {
+     "speaker": "hendro",
+     "text": "Alamatnya... di belakang Perumahan Sentosa Indah. Lahannya luas, alami, dekat air.",
+     "id": "alamat",
+     "next": "jawab"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Ganti rugi diberikan dalam bentuk 'kesempatan'. Kesempatan menjadi bagian dari kota modern.",
+     "id": "ganti",
+     "next": "jawab"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Patok itu bukan keputusan. Patok itu doa. Doa yang ditanam di tanah.",
+     "id": "patok",
+     "next": "jawab"
+    },
+    {
+     "speaker": "darmo",
+     "text": "Pertanyaannya cukup, ya. Waktu kita terbatas. Snack-nya juga.",
+     "id": "jawab"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Silakan ambil brosur. Yang bertanya terlalu banyak, nanti kami data untuk 'pendampingan'.",
+     "do": "item brosur 1; step Patok 3; notif Lihat sendiri lokasi relokasi di belakang Perumahan Sentosa Indah.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "joko_b4",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "joko",
+     "text": "Bro, nama Rendy Gemilang sudah viral. Aku cuma bilang: aku nggak tahu apa-apa. Aku cuma operator.",
+     "if": "q.Untung>=2",
+     "next": "end"
+    },
+    {
+     "speaker": "joko",
+     "text": "Bro! Menara Gemilang? Ayo cari. Situs pengadaan pemerintah itu terbuka. Cuma lambat, kayak birokrasinya.",
+     "if": "q.Untung==1",
+     "next": "cari1"
+    },
+    {
+     "speaker": "joko",
+     "text": "Sejam lima ribu. Jangan cari nama pejabat, nanti servernya pingsan.",
+     "next": "end"
+    },
+    {
+     "speaker": "joko",
+     "text": "Kata kunci pertama apa, bro?",
+     "id": "cari1",
+     "choices": [
+      {
+       "text": "\"Menara Gemilang pemenang tender\"",
+       "next": "hasil1"
+      },
+      {
+       "text": "\"cara cepat kaya tanpa kerja\"",
+       "next": "salah1"
+      }
+     ]
+    },
+    {
+     "speaker": "joko",
+     "text": "Hasil teratas: iklan pinjol dan seminar motivasi. Mirip, tapi bukan.",
+     "id": "salah1",
+     "next": "cari1"
+    },
+    {
+     "speaker": "joko",
+     "text": "Pemenang tender: PT Gemilang Mercusuar Abadi. Satu-satunya peserta. Menang dengan selisih 100%.",
+     "id": "hasil1",
+     "choices": [
+      {
+       "text": "Cek akta: siapa direkturnya?",
+       "next": "hasil2"
+      },
+      {
+       "text": "Cek ulasan Google kantornya.",
+       "next": "salah2"
+      }
+     ]
+    },
+    {
+     "speaker": "joko",
+     "text": "Ulasan bintang lima semua. Semuanya ditulis akun bernama 'Rendy G'. Mencurigakan, tapi lucu.",
+     "id": "salah2",
+     "next": "hasil1"
+    },
+    {
+     "speaker": "joko",
+     "text": "Direktur: Rendy Gemilang, 24 tahun. Komisaris: Ny. Gemilang. Alamat kantor... sama dengan alamat Dapur PPR.",
+     "id": "hasil2"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Dapur PPR yang menu basi itu?",
+     "choices": [
+      {
+       "text": "Keluarga yang sama. Dapur ditutup, ganti jadi kantor pemasaran menara.",
+       "do": "set tahu_rendy 1; suara 3",
+       "next": "rencana"
+      }
+     ]
+    },
+    {
+     "speaker": "joko",
+     "text": "Kantor pemasarannya buka sampai jam tujuh. Malamnya cuma satpam. Dokumen asli pasti di sana, bro. Maket, sertifikat, daftar pembeli.",
+     "id": "rencana",
+     "do": "step Untung 2; notif Kantor Pemasaran Menara Gemilang. Masuk setelah pukul 19.00.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "sari_b4",
+   "style": "vn",
+   "nodes": [
+    {
+     "speaker": "sari",
+     "text": "Kamu bawa apa, Bay?",
+     "if": "q.Untung==3 && item.maket_foto>=1 || q.Untung==3 && item.sertifikat>=1 || q.Untung==3 && item.daftar_unit>=1",
+     "next": "bukti"
+    },
+    {
+     "speaker": "sari",
+     "text": "Bay, kalau pasar digusur, LBH siap dampingi pedagang. Tapi kita butuh bukti, bukan cuma marah.",
+     "next": "end"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Maket asli. Pasarnya cuma los kecil di basement, sebelah parkir motor.",
+     "id": "bukti",
+     "if": "item.maket_foto>=1",
+     "do": "add tekanan 1; set bukti_maket 1"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Sertifikat lahannya sudah atas nama PT sejak dua tahun lalu.",
+     "if": "item.sertifikat>=1",
+     "do": "add tekanan 1; set bukti_sertifikat 1"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Dan penthouse-nya dipesan tiga anggota dewan dan Ibu Wali.",
+     "if": "item.daftar_unit>=1",
+     "do": "add tekanan 1; set bukti_unit 1"
+    },
+    {
+     "speaker": "sari",
+     "text": "Jadi 'sosialisasi' itu cuma formalitas. Tanahnya sudah dijual sebelum pedagang ditanya."
+    },
+    {
+     "speaker": "sari",
+     "text": "Ekskavator datang lusa... eh, besok. Kalau pedagang bertahan dan dokumen ini dibacakan di depan kamera, mereka akan berpikir dua kali.",
+     "choices": [
+      {
+       "text": "Aku ajak pedagang bertahan.",
+       "next": "akhir"
+      },
+      {
+       "text": "Aku siarkan langsung di Kicau besok.",
+       "do": "set rencana_live 1",
+       "next": "akhir"
+      }
+     ]
+    },
+    {
+     "speaker": "sari",
+     "text": "Mulai dari Bu Tini, Koh Liong, dan Mak Ijah. Kalau tiga orang itu bertahan, yang lain ikut.",
+     "id": "akhir",
+     "do": "done Untung; quest Bertahan; notif Ajak pedagang bertahan.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "ibu_rumah",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "ibu",
+     "text": "Besok jangan di depan ekskavator, Bay. Di samping. Ibu cuma punya satu anak laki-laki.",
+     "if": "q.Bertahan==2",
+     "next": "end"
+    },
+    {
+     "speaker": "ibu",
+     "text": "Pasar mau digusur? Ibu belanja di situ sejak sebelum kamu lahir. Bu Tini yang kasih utang waktu Bapakmu sakit.",
+     "if": "q.Patok>=1 && q.Bertahan==0",
+     "next": "end"
+    },
+    {
+     "speaker": "ibu",
+     "text": "Kalau pasarnya pindah ke rawa, Ibu belanja naik perahu?",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "hendro_umum",
+   "style": "3d",
+   "nodes": [
+    {
+     "speaker": "hendro",
+     "text": "Ambil brosurnya, Mas. Kertasnya bagus. Lebih bagus dari masa depan pedagang.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "eksekusi",
+   "style": "vn",
+   "meter": "ketegangan",
+   "meterLabel": "Ketegangan di Pasar Sentosa",
+   "nodes": [
+    {
+     "speaker": "",
+     "text": "Pukul tujuh pagi. Dua ekskavator kuning berhenti di gerbang pasar. Di belakangnya, barisan SPN dan spanduk 'MENUJU KOTA GEMILANG'.",
+     "do": "set ketegangan 30"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Selamat pagi, Bapak-Ibu! Hari ini kita memulai babak baru. Silakan pindah dengan tertib. Truk pengangkut sudah disiapkan. Gratis!"
+    },
+    {
+     "speaker": "tini",
+     "text": "Kami tidak pindah! Lokasi strategis kalian itu rawa!",
+     "if": "bertahan>=3",
+     "do": "add ketegangan 10; add tekanan 1"
+    },
+    {
+     "speaker": "liong",
+     "text": "Toko saya dikunci dari dalam. Kuncinya saya telan. Bercanda. Tapi saya tetap di sini.",
+     "if": "tahan_liong"
+    },
+    {
+     "speaker": "bayu",
+     "text": "(Semua mata menoleh ke Bayu.)",
+     "choices": [
+      {
+       "text": "(Siarkan langsung di Kicau.) Warga Sentosa, lihat apa yang terjadi di pasar kalian!",
+       "do": "add ketegangan 5; add tekanan 1; set live 1; suara 5",
+       "next": "dokumen"
+      },
+      {
+       "text": "(Duduk di depan ekskavator bersama pedagang.)",
+       "do": "add ketegangan 15; suara 5; set duduk 1",
+       "next": "dokumen"
+      },
+      {
+       "text": "Pak Hendro, kita bicara baik-baik.",
+       "do": "add ketegangan -10",
+       "next": "dokumen"
+      }
+     ]
+    },
+    {
+     "speaker": "bayu",
+     "text": "Pak Hendro, ini foto maket asli. Pasarnya di basement, sebelah parkir motor.",
+     "id": "dokumen",
+     "if": "bukti_maket",
+     "do": "add ketegangan 5; suara 5"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Dan sertifikat lahan ini sudah atas nama PT Bapak sejak dua tahun lalu. Sosialisasinya minggu lalu.",
+     "if": "bukti_sertifikat",
+     "do": "suara 5"
+    },
+    {
+     "speaker": "bayu",
+     "text": "Penthouse-nya dipesan tiga anggota dewan dan Ibu Wali. Rakyat dapat basement.",
+     "if": "bukti_unit",
+     "do": "add ketegangan 10; suara 10"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Itu... dokumen internal. Bocor. Eh, palsu. Eh, saya hanya humas. Saya tidak berwenang membaca."
+    },
+    {
+     "speaker": "wiryo",
+     "text": "Cukup. Kerumunan tanpa izin. Bubar, atau kami bersihkan.",
+     "if": "ketegangan>=70",
+     "do": "add tekanan -1"
+    },
+    {
+     "speaker": "",
+     "text": "Ponsel Pak Hendro berdering. Ia menjauh, menunduk, mengangguk berkali-kali.",
+     "id": "telepon"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Iya, Pak... baik, Pak... ditunda, Pak. Bapak-Ibu! Demi kondusivitas, pembongkaran DITUNDA untuk kajian lanjutan.",
+     "if": "tekanan>=4",
+     "do": "set gusur_ditunda 1; suara 15; step Bertahan 4; notifbaik Pembongkaran ditunda! Pulang ke rumah.",
+     "next": "end"
+    },
+    {
+     "speaker": "hendro",
+     "text": "Iya, Pak... siap, Pak. Bapak-Ibu, pembongkaran tahap satu tetap berjalan. Los ikan dulu. Ikannya sudah dipindah. Kemarin.",
+     "do": "set pasar_rusak 1; diawasi 10; step Bertahan 4; notifburuk Ekskavator merobohkan los ikan. Pulang ke rumah.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "tini_menang",
+   "style": "chat",
+   "nodes": [
+    {
+     "speaker": "tini",
+     "text": "Mas Bayu, pasar buka lagi sore ini. Ramai. Orang datang cuma buat foto di depan patok yang dicabut."
+    },
+    {
+     "speaker": "tini",
+     "text": "Ditunda itu bukan batal, kata Sari. Tapi hari ini kami jualan. Itu sudah menang.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "tini_kalah",
+   "style": "chat",
+   "nodes": [
+    {
+     "speaker": "tini",
+     "text": "Mas, los ikan sudah rata. Pedagang ikan jualan di trotoar. Tadi didenda karena jualan di trotoar."
+    },
+    {
+     "speaker": "tini",
+     "text": "Tapi videomu ditonton jutaan orang. Ada yang kirim beras. Kami masih di sini.",
+     "next": "end"
+    }
+   ]
+  }
+ ],
+ "spawns": [
+  {
+   "id": "rumah",
+   "kind": "zone",
+   "name": "Rumah Bayu",
+   "pos": [
+    -9000,
+    -9000
+   ],
+   "radius": 650
+  },
+  {
+   "id": "motor_halaman",
+   "kind": "prop",
+   "name": "Motor Bayu",
+   "pos": [
+    -7700,
+    -8400
+   ],
+   "yaw": 0,
+   "size": [
+    180,
+    50,
+    90
+   ],
+   "color": "#2E8B57",
+   "if": "!punya_motor",
+   "prompt": "Ambil motor",
+   "do": "set punya_motor 1; notifbaik Tekan F untuk naik atau turun motor."
+  },
+  {
+   "id": "warung_ronda",
+   "kind": "prop",
+   "name": "Warung Kopi Pos Ronda",
+   "pos": [
+    -6000,
+    -12000
+   ],
+   "size": [
+    220,
+    120,
+    100
+   ],
+   "color": "#8B5A2B",
+   "prompt": "Belanja di warung",
+   "do": "toko warung"
+  },
+  {
+   "id": "lapak_tini",
+   "kind": "prop",
+   "name": "Lapak Bu Tini",
+   "pos": [
+    -9850,
+    13450
+   ],
+   "size": [
+    150,
+    260,
+    90
+   ],
+   "color": "#C08552",
+   "prompt": "Belanja",
+   "do": "toko pasar"
+  },
+  {
+   "id": "pembeli1",
+   "kind": "npc",
+   "name": "Pembeli",
+   "pos": [
+    -10500,
+    12000
+   ],
+   "wander": 500,
+   "color": "#999999",
+   "barks": [
+    "Cabai naik, bawang naik, gaji nggak naik.",
+    "Minyak goreng sekarang dijual per sendok?"
+   ]
+  },
+  {
+   "id": "pembeli2",
+   "kind": "npc",
+   "name": "Pembeli",
+   "pos": [
+    -11500,
+    14500
+   ],
+   "wander": 500,
+   "color": "#BBBBBB",
+   "barks": [
+    "Katanya inflasi terkendali. Yang terkendali dompet saya."
+   ]
+  },
+  {
+   "id": "papan_kelurahan",
+   "kind": "prop",
+   "name": "Papan Pengumuman",
+   "pos": [
+    7950,
+    -9600
+   ],
+   "size": [
+    30,
+    220,
+    160
+   ],
+   "color": "#F1FAEE",
+   "prompt": "Baca papan",
+   "do": "notif PELAYANAN SKTM GRATIS. TIDAK MENERIMA IMBALAN DALAM BENTUK APAPUN. (Di bawahnya ditempel kode QRIS.)"
+  },
+  {
+   "id": "dokter_umum",
+   "kind": "npc",
+   "name": "dr. Lestari",
+   "pos": [
+    7900,
+    22300
+   ],
+   "yaw": 180,
+   "if": "",
+   "dialog": "dokter_umum",
+   "color": "#9AD1D4",
+   "barks": [
+    "Antrean nomor 47!",
+    "Pakai masker, Bu, Pak."
+   ]
+  },
+  {
+   "id": "pasien1",
+   "kind": "npc",
+   "name": "Orang tua murid",
+   "pos": [
+    7700,
+    21000
+   ],
+   "if": "q.Piring>=1",
+   "wander": 200,
+   "color": "#999999",
+   "barks": [
+    "Anak saya juga makan PPR...",
+    "Katanya kurang sarapan. Anak saya sarapan!"
+   ]
+  },
+  {
+   "id": "kepsek_umum",
+   "kind": "npc",
+   "name": "Pak Hartono (Kepsek)",
+   "pos": [
+    9150,
+    12600
+   ],
+   "yaw": 180,
+   "if": "",
+   "dialog": "kepsek_umum",
+   "color": "#B5838D",
+   "barks": [
+    "Prestasi sekolah kami: nol kasus. Nol dilaporkan."
+   ]
+  },
+  {
+   "id": "murid",
+   "kind": "npc",
+   "name": "Murid SD",
+   "pos": [
+    9000,
+    13800
+   ],
+   "wander": 300,
+   "color": "#E0FBFC",
+   "barks": [
+    "Menu besok katanya ayam lagi...",
+    "Aku bawa bekal dari rumah aja."
+   ]
+  },
+  {
+   "id": "pc_warnet_umum",
+   "kind": "prop",
+   "name": "PC Nomor 7",
+   "pos": [
+    -2850,
+    6200
+   ],
+   "size": [
+    60,
+    100,
+    110
+   ],
+   "color": "#3A6EA5",
+   "if": "",
+   "prompt": "Main warnet",
+   "do": "notif Kamu scroll Kicau sebentar. Isinya debat soal asap dan iklan pinjol."
+  },
+  {
+   "id": "spn_p1",
+   "kind": "spn",
+   "name": "Petugas SPN",
+   "pos": [
+    700,
+    -12000
+   ],
+   "patrol": [
+    700,
+    -15000,
+    700,
+    15000
+   ],
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_p2",
+   "kind": "spn",
+   "name": "Petugas SPN",
+   "pos": [
+    -12000,
+    -700
+   ],
+   "patrol": [
+    -15000,
+    -700,
+    15000,
+    -700
+   ],
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_p3",
+   "kind": "spn",
+   "name": "Petugas SPN",
+   "pos": [
+    12000,
+    17600
+   ],
+   "if": "",
+   "patrol": [
+    9000,
+    17600,
+    19000,
+    17600
+   ],
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_r1",
+   "kind": "spn",
+   "name": "Razia SPN",
+   "pos": [
+    1400,
+    -1500
+   ],
+   "yaw": -45,
+   "if": "razia && hour>=19 || razia && hour<5",
+   "color": "#22305A"
+  },
+  {
+   "id": "spn_r2",
+   "kind": "spn",
+   "name": "Razia SPN",
+   "pos": [
+    -1400,
+    1500
+   ],
+   "yaw": 135,
+   "if": "razia && hour>=19 || razia && hour<5",
+   "color": "#22305A"
+  },
+  {
+   "id": "op_pasar",
+   "kind": "zone",
+   "name": "Gerbang Pasar Sentosa",
+   "pos": [
+    -8800,
+    13000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_ruko",
+   "kind": "zone",
+   "name": "Ruko Sentosa Blok A",
+   "pos": [
+    1700,
+    -9000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_sekolah",
+   "kind": "zone",
+   "name": "Depan SDN Sentosa 1",
+   "pos": [
+    9000,
+    11000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_tugu",
+   "kind": "zone",
+   "name": "Tugu Gemah Ripah",
+   "pos": [
+    1700,
+    2500
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_dewan",
+   "kind": "zone",
+   "name": "Gerbang Gedung Dewan",
+   "pos": [
+    36400,
+    1500
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_kelurahan",
+   "kind": "zone",
+   "name": "Kantor Kelurahan",
+   "pos": [
+    7300,
+    -9000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_puskesmas",
+   "kind": "zone",
+   "name": "Puskesmas Sentosa",
+   "pos": [
+    7700,
+    21000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_warnet",
+   "kind": "zone",
+   "name": "Warnet Jaya",
+   "pos": [
+    -1700,
+    6700
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_gang",
+   "kind": "zone",
+   "name": "Gang Melati",
+   "pos": [
+    -1700,
+    -16500
+   ],
+   "radius": 300
+  },
+  {
+   "id": "op_perum",
+   "kind": "zone",
+   "name": "Perumahan Sentosa Indah",
+   "pos": [
+    1700,
+    21000
+   ],
+   "radius": 300
+  },
+  {
+   "id": "ibu_rumah",
+   "kind": "npc",
+   "name": "Ibu",
+   "pos": [
+    -9150,
+    -8700
+   ],
+   "dialog": "ibu_rumah",
+   "color": "#C77DBA"
+  },
+  {
+   "id": "dinda_rumah",
+   "kind": "npc",
+   "name": "Dinda",
+   "pos": [
+    -8850,
+    -9350
+   ],
+   "dialog": "dinda_rumah",
+   "color": "#F2C14E"
+  },
+  {
+   "id": "darmo",
+   "kind": "npc",
+   "name": "Pak Darmo (Kelurahan)",
+   "pos": [
+    8950,
+    -9000
+   ],
+   "yaw": 180,
+   "dialog": "darmo_umum",
+   "color": "#E9C46A",
+   "if": "hour>=7 && hour<17",
+   "barks": [
+    "Sosialisasi itu wajib. Mendengarkan warga itu sunah."
+   ]
+  },
+  {
+   "id": "wiryo",
+   "kind": "npc",
+   "name": "Komandan Wiryo (SPN)",
+   "pos": [
+    5850,
+    -4500
+   ],
+   "dialog": "warga_umum",
+   "color": "#6C8EBF",
+   "barks": [
+    "Pembangunan itu tidak bisa dihalangi, Saudara. Kecuali oleh pembangunan lain."
+   ]
+  },
+  {
+   "id": "harso",
+   "kind": "npc",
+   "name": "Pak Harso (Fotokopi)",
+   "pos": [
+    2300,
+    -9300
+   ],
+   "yaw": 90,
+   "dialog": "warga_umum",
+   "color": "#B5838D",
+   "barks": [
+    "Kabar Gang edisi 2: 'Menara untuk Siapa?' Masih saya ketik."
+   ]
+  },
+  {
+   "id": "tini",
+   "kind": "npc",
+   "name": "Bu Tini (Beras)",
+   "pos": [
+    -9600,
+    13000
+   ],
+   "dialog": "tini_b4",
+   "color": "#E76F51",
+   "barks": [
+    "Beras! Selagi pasarnya masih ada!"
+   ]
+  },
+  {
+   "id": "liong",
+   "kind": "npc",
+   "name": "Koh Liong (Kelontong)",
+   "pos": [
+    -10300,
+    13700
+   ],
+   "yaw": 0,
+   "dialog": "liong_b4",
+   "color": "#94D2BD",
+   "barks": [
+    "Mi instan, sabun, korek! Kepastian habis."
+   ]
+  },
+  {
+   "id": "ijah",
+   "kind": "npc",
+   "name": "Mak Ijah (Sayur)",
+   "pos": [
+    -10600,
+    12500
+   ],
+   "yaw": 45,
+   "dialog": "ijah_b4",
+   "color": "#BB9457",
+   "barks": [
+    "Kangkung, bayam, cabai!"
+   ]
+  },
+  {
+   "id": "patok1",
+   "kind": "prop",
+   "name": "Patok Proyek",
+   "pos": [
+    -9300,
+    12700
+   ],
+   "size": [
+    25,
+    25,
+    140
+   ],
+   "color": "#FF7F11",
+   "if": "!gusur_ditunda"
+  },
+  {
+   "id": "patok2",
+   "kind": "prop",
+   "name": "Patok Proyek",
+   "pos": [
+    -10000,
+    13200
+   ],
+   "size": [
+    25,
+    25,
+    140
+   ],
+   "color": "#FF7F11",
+   "if": "!gusur_ditunda"
+  },
+  {
+   "id": "patok3",
+   "kind": "prop",
+   "name": "Patok Proyek",
+   "pos": [
+    -10900,
+    13900
+   ],
+   "size": [
+    25,
+    25,
+    140
+   ],
+   "color": "#FF7F11",
+   "if": "!gusur_ditunda"
+  },
+  {
+   "id": "hendro",
+   "kind": "npc",
+   "name": "Pak Hendro (PT Gemilang)",
+   "pos": [
+    7300,
+    -8400
+   ],
+   "yaw": 180,
+   "dialog": "sosialisasi",
+   "color": "#E9D8A6",
+   "if": "q.Patok==2",
+   "marker": "!",
+   "markerColor": "#F2C94C"
+  },
+  {
+   "id": "hendro_umum",
+   "kind": "npc",
+   "name": "Pak Hendro (PT Gemilang)",
+   "pos": [
+    7300,
+    -8400
+   ],
+   "yaw": 180,
+   "dialog": "hendro_umum",
+   "color": "#E9D8A6",
+   "if": "q.Patok>=3 && q.Bertahan<3"
+  },
+  {
+   "id": "baliho_menara",
+   "kind": "prop",
+   "name": "Baliho 'MENARA GEMILANG: MENJULANG UNTUK RAKYAT'",
+   "pos": [
+    6900,
+    -7800
+   ],
+   "size": [
+    40,
+    500,
+    300
+   ],
+   "color": "#F4D35E"
+  },
+  {
+   "id": "warga_sos1",
+   "kind": "npc",
+   "name": "Warga",
+   "pos": [
+    6900,
+    -8700
+   ],
+   "wander": 120,
+   "dialog": "warga_umum",
+   "color": "#A8DADC",
+   "if": "q.Patok==2"
+  },
+  {
+   "id": "warga_sos2",
+   "kind": "npc",
+   "name": "Pedagang Pasar",
+   "pos": [
+    6800,
+    -8200
+   ],
+   "wander": 120,
+   "dialog": "warga_umum",
+   "color": "#E76F51",
+   "if": "q.Patok==2"
+  },
+  {
+   "id": "lokasi_relokasi",
+   "kind": "zone",
+   "name": "'Lokasi Strategis' Relokasi",
+   "pos": [
+    1700,
+    21000
+   ],
+   "radius": 500,
+   "if": "q.Patok==3",
+   "do": "step Patok 4; diawasi -5; notif Rawa. Ada papan 'PASAR MODERN'. Yang jualan cuma biawak. Kabari Bu Tini."
+  },
+  {
+   "id": "papan_relokasi",
+   "kind": "prop",
+   "name": "Papan 'LOKASI PASAR MODERN (SEGERA)'",
+   "pos": [
+    2100,
+    21300
+   ],
+   "size": [
+    30,
+    260,
+    200
+   ],
+   "color": "#7A9E7E"
+  },
+  {
+   "id": "joko",
+   "kind": "npc",
+   "name": "Mas Joko (Warnet)",
+   "pos": [
+    -2250,
+    6650
+   ],
+   "yaw": 180,
+   "dialog": "joko_b4",
+   "color": "#90BE6D"
+  },
+  {
+   "id": "pintu_pemasaran",
+   "kind": "prop",
+   "name": "Pintu belakang Kantor Pemasaran",
+   "pos": [
+    18980,
+    20500
+   ],
+   "size": [
+    40,
+    160,
+    230
+   ],
+   "color": "#6B4F2A",
+   "if": "q.Untung==2 && hour>=19 || q.Untung==2 && hour<4",
+   "prompt": "Masuk diam-diam",
+   "do": "minigame pemasaran"
+  },
+  {
+   "id": "pintu_pemasaran_siang",
+   "kind": "prop",
+   "name": "Pintu belakang Kantor Pemasaran",
+   "pos": [
+    18980,
+    20500
+   ],
+   "size": [
+    40,
+    160,
+    230
+   ],
+   "color": "#6B4F2A",
+   "if": "q.Untung==2 && hour>=4 && hour<19",
+   "prompt": "Periksa pintu",
+   "do": "notif Kantor pemasaran masih buka. Satpam ganti shift pukul 19.00."
+  },
+  {
+   "id": "satpam_pemasaran",
+   "kind": "npc",
+   "name": "Satpam Proyek",
+   "pos": [
+    18800,
+    19500
+   ],
+   "yaw": 180,
+   "dialog": "hendro_umum",
+   "color": "#577590",
+   "if": "hour>=6 && hour<19",
+   "barks": [
+    "Showroom buka. Yang tidak beli unit, lihat dari luar."
+   ]
+  },
+  {
+   "id": "sari",
+   "kind": "npc",
+   "name": "Sari (LBH)",
+   "pos": [
+    -5000,
+    -12650
+   ],
+   "yaw": 135,
+   "dialog": "sari_b4",
+   "color": "#F28482",
+   "marker": "!",
+   "markerColor": "#F2C94C",
+   "if": "q.Untung==3"
+  },
+  {
+   "id": "sari_santai",
+   "kind": "npc",
+   "name": "Sari (LBH)",
+   "pos": [
+    -5000,
+    -12650
+   ],
+   "yaw": 135,
+   "dialog": "sari_umum",
+   "color": "#F28482",
+   "if": "q.Untung!=3"
+  },
+  {
+   "id": "pak_rt_umum",
+   "kind": "npc",
+   "name": "Pak RT Darto",
+   "pos": [
+    -5650,
+    -12300
+   ],
+   "color": "#D4A373",
+   "dialog": "warga_umum",
+   "barks": [
+    "Pasar mau dijadikan menara. Pos ronda kapan? Jadi helipad?"
+   ]
+  },
+  {
+   "id": "yati",
+   "kind": "npc",
+   "name": "Bu Yati",
+   "pos": [
+    -6350,
+    -11750
+   ],
+   "wander": 150,
+   "dialog": "warga_umum",
+   "color": "#E5989B",
+   "barks": [
+    "Gorengan! Belinya di pasar, jualnya di sini. Kalau pasar hilang, gorengan saya ikut hilang."
+   ]
+  },
+  {
+   "id": "rudi",
+   "kind": "npc",
+   "name": "Rudi (Ojol)",
+   "pos": [
+    2700,
+    -9500
+   ],
+   "yaw": 90,
+   "dialog": "warga_umum",
+   "color": "#7FB069",
+   "barks": [
+    "Orderan ke pasar sepi, bro. Semua takut ke sana.",
+    "Kalau besok ada aksi, ojol siap jadi ambulans."
+   ]
+  },
+  {
+   "id": "z_pasar_jaga",
+   "kind": "zone",
+   "name": "Gerbang Pasar Sentosa",
+   "pos": [
+    -8800,
+    13000
+   ],
+   "radius": 600,
+   "if": "q.Bertahan==3 && hour>=6 && !ev.eksekusi",
+   "do": "set ev.eksekusi 1; cutscene ekskavator"
+  },
+  {
+   "id": "ekskavator1",
+   "kind": "prop",
+   "name": "Ekskavator",
+   "pos": [
+    -7900,
+    12600
+   ],
+   "size": [
+    600,
+    260,
+    320
+   ],
+   "color": "#F2C14E",
+   "if": "q.Bertahan==3"
+  },
+  {
+   "id": "ekskavator2",
+   "kind": "prop",
+   "name": "Ekskavator",
+   "pos": [
+    -7900,
+    13500
+   ],
+   "size": [
+    600,
+    260,
+    320
+   ],
+   "color": "#F2C14E",
+   "if": "q.Bertahan==3"
+  },
+  {
+   "id": "spn_pasar1",
+   "kind": "spn",
+   "name": "Barikade SPN",
+   "pos": [
+    -8300,
+    12300
+   ],
+   "color": "#22305A",
+   "if": "q.Bertahan==3"
+  },
+  {
+   "id": "spn_pasar2",
+   "kind": "spn",
+   "name": "Barikade SPN",
+   "pos": [
+    -8300,
+    13800
+   ],
+   "color": "#22305A",
+   "if": "q.Bertahan==3"
+  },
+  {
+   "id": "z_pulang_pasar",
+   "kind": "zone",
+   "name": "Rumah Bayu",
+   "pos": [
+    -9000,
+    -9000
+   ],
+   "radius": 700,
+   "if": "q.Bertahan==4",
+   "do": "done Bertahan; cutscene penutup"
+  }
+ ],
+ "orders": [
+  {
+   "id": "o_nasi",
+   "title": "Nasi Padang 2 bungkus",
+   "customer": "Mbak Rina (bintang 4,9)",
+   "from": "op_pasar",
+   "to": "op_ruko",
+   "fare": 18000,
+   "time": 75
+  },
+  {
+   "id": "o_paket",
+   "title": "Paket skincare",
+   "customer": "Kak Lala",
+   "from": "op_tugu",
+   "to": "op_perum",
+   "fare": 16000,
+   "time": 60
+  },
+  {
+   "id": "o_dokumen",
+   "title": "Map dokumen 'SANGAT RAHASIA'",
+   "customer": "Staf Kelurahan",
+   "from": "op_kelurahan",
+   "to": "op_dewan",
+   "fare": 25000,
+   "time": 70
+  },
+  {
+   "id": "o_kopi",
+   "title": "Es kopi 10 gelas (rapat dewan)",
+   "customer": "Ajudan Dewan (tip: 0)",
+   "from": "op_ruko",
+   "to": "op_dewan",
+   "fare": 40000,
+   "time": 80,
+   "if": "day>=2"
+  },
+  {
+   "id": "o_masker",
+   "title": "Masker 1 dus untuk murid",
+   "customer": "Bu Guru Ratna",
+   "from": "op_pasar",
+   "to": "op_sekolah",
+   "fare": 20000,
+   "time": 90,
+   "if": "day>=2"
+  },
+  {
+   "id": "o_obat",
+   "title": "Obat batuk",
+   "customer": "Pak Yusuf (lansia)",
+   "from": "op_puskesmas",
+   "to": "op_gang",
+   "fare": 15000,
+   "time": 90
+  },
+  {
+   "id": "o_galon",
+   "title": "Galon air 2 buah",
+   "customer": "Mas Joko",
+   "from": "op_gang",
+   "to": "op_warnet",
+   "fare": 14000,
+   "time": 70
+  }
+ ],
+ "events": [
+  {
+   "id": "e_pemasaran_malam",
+   "if": "q.Untung==2 && hour>=19 && !ev.hint_pemasaran",
+   "do": "set ev.hint_pemasaran 1; notif Sudah pukul 19.00. Kantor Pemasaran Menara Gemilang tutup."
+  },
+  {
+   "id": "e_bertahan_cukup",
+   "if": "q.Bertahan==1 && bertahan>=3",
+   "do": "step Bertahan 2; add tekanan 1; notifbaik Tiga pedagang bertahan. Pulang dan tidur, besok pagi jaga pasar."
+  },
+  {
+   "id": "e_capek",
+   "if": "energi<30",
+   "do": "notif Energi tinggal sedikit. Makan, minum kopi, atau tidur."
+  }
+ ],
+ "cutscenes": [
+  {
+   "id": "pembuka",
+   "steps": [
+    {
+     "t": 0.05,
+     "fade": 1
+    },
+    {
+     "t": 5,
+     "cam": [
+      -9600,
+      14500,
+      900,
+      -14,
+      -100
+     ],
+     "cam2": [
+      -9300,
+      13800,
+      850,
+      -14,
+      -95
+     ],
+     "fade": 0,
+     "title": "BAB 4: PROYEK MERCUSUAR",
+     "text": "Seminggu setelah sidang Rudi. Di Pasar Sentosa, patok-patok oranye tumbuh lebih cepat dari harga cabai."
+    },
+    {
+     "t": 5.5,
+     "cam": [
+      30000,
+      -6000,
+      1500,
+      -6,
+      23
+     ],
+     "cam2": [
+      33000,
+      -3000,
+      1800,
+      -5,
+      15
+     ],
+     "text": "Pemkot dan Dewan mengumumkan Menara Gemilang: 88 lantai, simbol kemajuan. Lokasinya tepat di atas pasar."
+    },
+    {
+     "t": 5,
+     "cam": [
+      -4800,
+      -11000,
+      700,
+      -15,
+      -128
+     ],
+     "cam2": [
+      -5200,
+      -11500,
+      650,
+      -15,
+      -122
+     ],
+     "text": "Tidak ada yang bertanya kepada pedagang. Mereka cuma diberi surat dan tenggat tujuh hari."
+    },
+    {
+     "t": 1,
+     "fade": 1
+    }
+   ],
+   "end": "teleport rumah; set bertahan 0; set tekanan 0; quest Patok; pesan tini_pesan; notif Bab 4 dimulai. J: jurnal | Tab: ponsel"
+  },
+  {
+   "id": "ditangkap",
+   "steps": [
+    {
+     "t": 0.6,
+     "fade": 1
+    },
+    {
+     "t": 4.5,
+     "cam": [
+      5000,
+      -5200,
+      600,
+      -10,
+      40
+     ],
+     "cam2": [
+      5400,
+      -5000,
+      550,
+      -10,
+      45
+     ],
+     "fade": 0,
+     "text": "Bayu dibawa ke Pos SPN. Komandan Wiryo hanya menghela napas: 'Kamu lagi.' Ditahan semalam, lalu dilepas dengan 'pembinaan'."
+    },
+    {
+     "t": 1,
+     "fade": 1
+    }
+   ],
+   "end": "diawasi -40; uang -50000 Denda pembinaan; tidur"
+  },
+  {
+   "id": "ekskavator",
+   "steps": [
+    {
+     "t": 0.6,
+     "fade": 1
+    },
+    {
+     "t": 4.5,
+     "cam": [
+      -6500,
+      13000,
+      900,
+      -16,
+      180
+     ],
+     "cam2": [
+      -7000,
+      13000,
+      800,
+      -14,
+      180
+     ],
+     "fade": 0,
+     "text": "Deru mesin terdengar dari ujung jalan. Pedagang berdiri di depan lapak masing-masing, bergandengan tangan."
+    },
+    {
+     "t": 1,
+     "fade": 1
+    }
+   ],
+   "end": "dialog eksekusi"
+  },
+  {
+   "id": "penutup",
+   "steps": [
+    {
+     "t": 0.8,
+     "fade": 1
+    },
+    {
+     "t": 5,
+     "cam": [
+      -9600,
+      14500,
+      900,
+      -14,
+      -100
+     ],
+     "cam2": [
+      -9300,
+      13800,
+      850,
+      -14,
+      -95
+     ],
+     "fade": 0,
+     "text": "Sore itu, Pasar Sentosa sunyi, lalu pelan-pelan ramai lagi. Orang datang untuk belanja, dan untuk melihat apa yang hampir hilang."
+    },
+    {
+     "t": 5.5,
+     "cam": [
+      30000,
+      -6000,
+      1500,
+      -6,
+      23
+     ],
+     "cam2": [
+      33000,
+      -3000,
+      1800,
+      -5,
+      15
+     ],
+     "text": "Seminggu kemudian, baliho baru menutupi gedung Dewan: Ketua Dewan maju menjadi Wali Kota. Pemilu tinggal sebulan."
+    },
+    {
+     "t": 5,
+     "cam": [
+      5000,
+      -2800,
+      700,
+      -14,
+      -40
+     ],
+     "cam2": [
+      5400,
+      -3200,
+      650,
+      -14,
+      -46
+     ],
+     "text": "Kertas suaranya sudah dipesan. Dari PT Gemilang Mercusuar Abadi."
+    },
+    {
+     "t": 3.5,
+     "fade": 1,
+     "title": "BAB 4 SELESAI",
+     "text": "Proyek Mercusuar"
+    }
+   ],
+   "end": "jika gusur_ditunda ? pesan tini_menang; jika !gusur_ditunda ? pesan tini_kalah; selesai"
+  }
+ ],
+ "kicau": [
+  {
+   "id": "k4_1",
+   "author": "Humas Kota Sentosa",
+   "handle": "HumasSentosa",
+   "official": true,
+   "likes": 210,
+   "text": "Menara Gemilang: 88 lantai kebanggaan warga. Warga yang tidak bangga bisa mengajukan keberatan di lantai 88."
+  },
+  {
+   "id": "k4_2",
+   "author": "Cinta Sentosa 88",
+   "handle": "cinta_sentosa_88",
+   "likes": 15,
+   "text": "Pasar tradisional itu kumuh. Saya lebih suka belanja di mal. Yang belum dibangun. Tapi pasti bagus."
+  },
+  {
+   "id": "k4_3",
+   "if": "q.Untung>=2",
+   "author": "Info Sentosa",
+   "handle": "infosentosa",
+   "likes": 6100,
+   "text": "Direktur PT Gemilang Mercusuar Abadi: Rendy Gemilang, 24 tahun. Alamat kantornya sama dengan Dapur PPR. Kebetulan yang sangat efisien."
+  },
+  {
+   "id": "k4_4",
+   "if": "live",
+   "author": "Bayu",
+   "handle": "bayu_ojol",
+   "likes": 48000,
+   "text": "LIVE dari Pasar Sentosa. Ekskavator di depan, pedagang di belakang, kamera di tengah. Tonton sebelum dihapus."
+  },
+  {
+   "id": "k4_5",
+   "if": "gusur_ditunda",
+   "author": "Sari",
+   "handle": "sari_lbh",
+   "likes": 12000,
+   "text": "Pembongkaran Pasar Sentosa DITUNDA. Bukan batal. Tapi hari ini pedagang jualan. Terima kasih semua yang datang."
+  }
+ ],
+ "berita": [
+  {
+   "id": "b4_1",
+   "source": "Gemah TV",
+   "title": "Menara Gemilang Ditargetkan Rampung Sebelum Pemilu",
+   "body": "Kontraktor optimistis. Wartawan bertanya kenapa harus sebelum pemilu. Konferensi pers ditutup lebih awal."
+  },
+  {
+   "id": "b4_2",
+   "source": "Sentosa Pos",
+   "title": "Lokasi Relokasi Pedagang Dinilai 'Dekat Alam'",
+   "body": "Dinas menyebut lahan relokasi kaya keanekaragaman hayati. Warga menyebutnya rawa."
+  },
+  {
+   "id": "b4_3",
+   "if": "q.Bertahan>=4",
+   "source": "Sentosa Pos",
+   "title": "Ketua Dewan Umumkan Maju Pilkada: 'Saya Terpanggil'",
+   "body": "Ia berjanji membangun lebih banyak menara. Ditanya soal pasar, ia menjawab: 'Pasar ada di hati saya.'"
+  }
+ ],
+ "needs": [
+  {
+   "item": "beras",
+   "if": "day>=2",
+   "ok": "notif Ibu memasak nasi. Keluarga sarapan.",
+   "fail": "notifburuk Beras habis. Keluarga sarapan air teh. Energimu berkurang.; energi -30; suara -2"
+  }
+ ],
+ "barks": [
+  {
+   "text": "Kalau pasar jadi menara, saya beli cabai di lantai berapa?"
+  },
+  {
+   "text": "Katanya ada helipad. Buat apa? Biar pejabat tidak kena macet waktu kabur."
+  },
+  {
+   "if": "q.Bertahan>=2",
+   "text": "Besok saya ke pasar. Bukan belanja. Jaga."
+  }
+ ],
+ "minigames": [
+  {
+   "id": "pemasaran",
+   "title": "Kantor Pemasaran: Menyusup",
+   "help": "Ambil dokumen di meja kuning (E). Senter satpam = pandangan mereka, sembunyi di balik maket dan rak brosur. Keluar lewat pintu (lantai hijau).",
+   "win": "step Untung 3; suara 5; notifbaik Kamu keluar lewat pintu belakang. Bawa dokumennya ke Sari di Pos Ronda.",
+   "lose": "diawasi 20; notifburuk Alarm showroom berbunyi. Kamu kabur lewat selokan. Coba lagi nanti.",
+   "guard": "Satpam Proyek",
+   "room": "Minigame.DapurPPR",
+   "loot": [
+    "sertifikat",
+    "daftar_unit",
+    "maket_foto"
+   ],
+   "grid": [
+    "B..C..B",
+    ".C...C.",
+    "G......",
+    "##.#.##",
+    "......G",
+    ".C...C.",
+    "...B...",
+    "...P...",
+    "...X..."
+   ]
+  }
+ ],
+ "ending": [
+  {
+   "if": "gusur_ditunda",
+   "text": "Pembongkaran Pasar Sentosa ditunda. Pedagang kembali berjualan, walau patoknya masih di gudang proyek.",
+   "else": "Ekskavator merobohkan los ikan. Pasar terluka, tapi pedagangnya masih bertahan."
+  },
+  {
+   "if": "bukti_unit",
+   "text": "Daftar pemesan penthouse beredar. Tiga anggota dewan mendadak 'lupa pernah memesan'.",
+   "else": "Siapa pemesan penthouse masih jadi rahasia."
+  },
+  {
+   "if": "bertahan>=3",
+   "text": "Bu Tini, Koh Liong, dan Mak Ijah bertahan di lapak mereka. Pedagang lain ikut menyusul.",
+   "else": "Tidak semua pedagang berani bertahan."
+  },
+  {
+   "if": "live",
+   "text": "Siaran langsungmu ditonton jutaan orang. Nama Rendy Gemilang jadi bahan meme.",
+   "else": "Tidak ada siaran langsung. Kejadian pagi itu hanya diingat yang hadir."
+  },
+  {
+   "text": "Ketua Dewan maju jadi Wali Kota. Pemilu tinggal sebulan, dan kertas suaranya dicetak oleh PT yang sama.",
+   "color": "#6EC878"
+  }
+ ]
+}

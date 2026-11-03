@@ -2,7 +2,7 @@
 
 Game open world satir di Unreal Engine 5.8. Pemain adalah Bayu, pengemudi ojol di Kota Sentosa, Republik Gemah Ripah (negara fiktif), yang mengejar keadilan dan kebebasan.
 
-Bab yang bisa dimainkan: Bab 1 "Asap dan Piring", Bab 2 "Turun ke Jalan", dan Bab 3 "Pasal Karet". Bab 4 dan 5 sudah ada di Peta Bab sebagai "segera hadir".
+Bab yang bisa dimainkan: Bab 1 "Asap dan Piring", Bab 2 "Turun ke Jalan", Bab 3 "Pasal Karet", dan Bab 4 "Proyek Mercusuar". Bab 5 sudah ada di Peta Bab sebagai "segera hadir".
 
 ## Kebutuhan
 
@@ -139,6 +139,16 @@ Isi di `Content/Data/bab3.json`. Pasal Penghinaan Pejabat berlaku dan Rudi ditah
 3. Radio Gang 107,7: pemancar rakitan dari Mas Joko, antena di Pos Ronda, siaran malam dengan meter pendengar. Pulang sebelum SPN menemukan sinyal.
 
 Hasil: Rudi bebas lewat praperadilan bila pendengar cukup dan laporan palsunya terbongkar; kalau tidak, ia hanya ditangguhkan. Penutup memberi petunjuk Bab 4 (patok proyek di Pasar Sentosa).
+
+## Bab 4 "Proyek Mercusuar"
+
+Isi di `Content/Data/bab4.json`. Pemkot dan Dewan mengumumkan Menara Gemilang (88 lantai) tepat di atas Pasar Sentosa. Pedagang diberi surat relokasi dan tenggat tujuh hari.
+
+1. Patok Oranye: Bu Tini menunjukkan surat relokasi, Bayu datang ke sosialisasi Pak Hendro (Humas PT Gemilang Mercusuar Abadi) di depan kelurahan, lalu melihat sendiri "Lokasi Strategis" di belakang Perumahan Sentosa Indah: rawa.
+2. Siapa yang Untung?: riset bersama Mas Joko di warnet (dialog teka-teki kata kunci) menemukan Rendy Gemilang, 24 tahun, direktur PT, beralamat sama dengan Dapur PPR. Setelah pukul 19.00 Bayu menyusup ke Kantor Pemasaran (minigame `pemasaran`, ruangan bekas Dapur PPR, satpam proyek) dan mengambil foto maket asli, sertifikat lahan, dan daftar pemesan penthouse. Dokumen ditunjukkan ke Sari.
+3. Pasar Bertahan: ajak Bu Tini, Koh Liong, dan Mak Ijah bertahan, tidur, lalu jaga gerbang pasar pagi harinya. Dialog `eksekusi` memakai meter ketegangan: siaran langsung, duduk di depan ekskavator, atau bicara baik-baik, lalu dokumen dibacakan.
+
+Hasil: variabel `tekanan` (dokumen yang dibawa ke Sari, tiga pedagang bertahan, siaran langsung; berkurang bila ketegangan terlalu tinggi) menentukan pembongkaran ditunda (`gusur_ditunda`) atau los ikan dirobohkan (`pasar_rusak`). Penutup memberi petunjuk Bab 5 (Ketua Dewan maju jadi Wali Kota, kertas suara dicetak PT yang sama).
 
 ### Bahasa cerita
 

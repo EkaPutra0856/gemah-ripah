@@ -9,10 +9,10 @@
     { "id": "bab3", "number": 3, "file": "bab3.json", "title": "Pasal Karet", "subtitle": "Satu pamflet, satu pasal, satu teman ditahan.",
       "summary": "Rudi ditahan dengan pasal penghinaan pejabat. Bayu membongkar laporan palsu dari kelurahan, lalu bicara lewat koran stensilan dan radio warga.",
       "icon": "bab3", "color": "#5AB4EB", "pos": [0.58, 0.68], "place": "Kelurahan Sentosa" },
-    { "id": "bab4", "number": 4, "file": "", "title": "Proyek Mercusuar", "subtitle": "Pasar Sentosa mau digusur demi menara kebanggaan.",
+    { "id": "bab4", "number": 4, "file": "bab4.json", "title": "Proyek Mercusuar", "subtitle": "Pasar Sentosa mau digusur demi menara kebanggaan.",
       "summary": "Ekskavator datang sebelum sosialisasi. Bu Tini dan pedagang pasar bertahan, Bayu mencari siapa yang untung.",
-      "icon": "bab4", "color": "#9B6BD6", "pos": [0.74, 0.3], "place": "Kota Gemilang" },
-    { "id": "bab5", "number": 5, "file": "", "title": "Suara Rakyat", "subtitle": "Pemilu tinggal seminggu. Hasilnya sudah dicetak.",
+      "icon": "bab4", "color": "#9B6BD6", "pos": [0.74, 0.3], "place": "Pasar Sentosa" },
+    { "id": "bab5", "number": 5, "file": "", "title": "Suara Rakyat", "subtitle": "Pemilu tinggal sebulan. Kertas suaranya sudah dicetak.",
       "summary": "Akhir perjalanan Bayu: semua yang ia kumpulkan menentukan apakah warga Gemah Ripah masih punya suara.",
       "icon": "bab5", "color": "#6EC878", "pos": [0.88, 0.7], "place": "Ibu Kota" }
   ]
