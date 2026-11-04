@@ -27,8 +27,8 @@ Semua bab bisa dimainkan: Bab 1 "Asap dan Piring", Bab 2 "Turun ke Jalan", Bab 3
 | `Data/` | `GRDataSubsystem`: membaca JSON di `Content/Data/` (aturan, tips loading, kredit) |
 | `Player/` | `GRCharacter` (kamera orang ketiga ala Genshin, lari, zoom), `GRInteractionComponent` |
 | `Interaction/` | Interface `GRInteractable` dan `GRInteractableActor` (interaksi berbasis data untuk prototipe) |
-| `World/` | `GRNpc` (warga dan petugas SPN: jalan-jalan, patroli, celetukan, pandangan senter), `GRTraffic` (lalu lintas: mobil dan angkot lajur kiri, bundaran Tugu, tabrakan berfisika), `GRStealthLevel` (minigame menyusup di ruangan asli: rak, bukti, satpam dari grid JSON), `GRStoryProp` (benda atau zona dari data), `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
-| `Story/` | Sistem cerita berbasis data: `GRStoryTypes` (struktur `bab1.json`), `GRStorySubsystem` (variabel, syarat, aksi, quest, energi, order ojol, kotak pesan, dompet), `GRStoryDirector` (memunculkan NPC/prop/zona, memasang lalu lintas, event, membuka dialog/cutscene/minigame) |
+| `World/` | `GRNpc` (warga dan petugas SPN: jalan-jalan, patroli, celetukan, pandangan senter), `GRTraffic` (lalu lintas: mobil dan angkot lajur kiri, bundaran Tugu, tabrakan berfisika), `GRCrowd` (warga kota: jalan di trotoar, nyeberang, ngobrol, duduk di bangku, joging, pedagang gerobak), `GRStealthLevel` (minigame menyusup di ruangan asli: rak, bukti, satpam dari grid JSON), `GRStoryProp` (benda atau zona dari data), `GRMapSubsystem` (kawasan, penanda, jejak bangunan untuk peta), `GRDistrictVolume`, `GRMapMarkerComponent`/`GRMapMarker`, `GRMapBounds`, `GRDayNightController` (matahari, bulan, kabut asap, lampu jalan), `GRBed` (tidur) |
+| `Story/` | Sistem cerita berbasis data: `GRStoryTypes` (struktur `bab1.json`), `GRStorySubsystem` (variabel, syarat, aksi, quest, energi, order ojol, kotak pesan, dompet), `GRStoryDirector` (memunculkan NPC/prop/zona, memasang lalu lintas dan warga, event, membuka dialog/cutscene/minigame) |
 | `Camera/` | `GRTopDownRoomVolume`: kamera berpindah ke top-down saat pemain masuk ruangan |
 | `Systems/` | Subsystem yang bertahan antar-map: status (uang, Suara, Diawasi), aturan ("Pengumuman Pemerintah"), progres (flag cerita, kota), save (otomatis + 3 slot), alur game (game baru, lanjut, menu), notifikasi |
 | `UI/` | UMG dibangun di C++: tumpukan layar (`GRUISubsystem`), menu utama, jeda, simpan/muat, pengaturan, kredit, konfirmasi, HUD (`GRHUDWidget`), loading screen (Slate). Layar cerita di `GRStoryScreens` (dialog, cutscene, toko, jurnal, akhir bab), `GRPhoneScreens` (ponsel, minigame warnet, minigame menyusup) dan `GRChapterScreens` (Peta Bab). Animasi UI lewat `GRUIAnim` (tween opacity/geser/skala) |
@@ -65,6 +65,8 @@ Motor: makin kencang, makin lebar beloknya, dan motor miring ke dalam tikungan. 
 
 Lalu lintas: mobil dan angkot berjalan di lajur kiri, memutari Tugu searah jarum jam (mendahulukan yang sudah di bundaran), lalu putar balik di pinggir kota. Mereka menjaga jarak, berhenti untuk Bayu dan orang di jalan, membunyikan klakson, lalu menyalip pelan motor parkir atau orang yang diam di lajur. Menabrak mobil: di bawah 16 km/j motor memantul dan kamera bergetar; sampai 27 km/j energi -3; di atas itu Bayu terpental (ragdoll), motor jatuh, energi -8, lalu Bayu bangun di samping motor. Mobil yang ditabrak terdorong secara fisika (bisa menyenggol mobil lain), lalu sopirnya kembali ke lajur.
 
+Warga kota: sekitar 36 orang hidup di sekitar Bayu pada siang hari (16 menjelang malam, 6 larut malam). Mereka berjalan di trotoar dan gang, kadang menyeberang saat tidak ada mobil dekat, ngobrol berdua atau bertiga, duduk di bangku trotoar, joging pagi dan sore, atau mendorong gerobak bakso, sate, dawet, gorengan, siomay, dan nasi goreng malam hari. Obrolan memakai celetukan bab yang sedang berjalan. Tekan E untuk menyapa. Mereka melompat minggir kalau Bayu ngebut ke arah mereka dengan motor, dan menjauh dari NPC cerita supaya adegan dan tombol E tetap milik cerita. Warga muncul di luar pandangan kamera dan didaur ulang saat jauh. Baju, celana, kulit, dan sepatu diwarnai oleh material `M_GR_Warga` (dibuat `Tools/Python/make_warga_material.py`; hapus file `.uasset`-nya dulu sebelum menjalankan ulang).
+
 ## Perintah debug (konsol `~`, saat Play)
 
 | Perintah | Fungsi |
@@ -95,6 +97,8 @@ Lalu lintas: mobil dan angkot berjalan di lajur kiri, memutari Tugu searah jarum
 | `GRKamera 90 -10 380` | Arahkan kamera dari yaw/pitch relatif terhadap Bayu pada jarak tertentu, untuk screenshot otomatis |
 | `GRMobil 1600 90 10` | Taruh mobil terdekat 16 m di depan Bayu, diputar 90 derajat, diam 10 detik (uji tabrakan) |
 | `GRLalin` | Catat posisi, kecepatan, dan status semua mobil, serta mobil yang tumpang tindih |
+| `GRWarga` | Catat jumlah warga per kegiatan, warga di dekat Bayu, dan alasan titik sekitar ditolak |
+| `GRWargaBaris` | Jejerkan warga diam di depan Bayu dan dudukkan dua di bangku terdekat (cek tampilan) |
 
 ## Map
 

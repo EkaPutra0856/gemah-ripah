@@ -125,6 +125,14 @@ public:
 	UFUNCTION(Exec)
 	void GRLalin();
 
+	/** Logs the townspeople: how many are out, what they are doing, and who is near Bayu. */
+	UFUNCTION(Exec)
+	void GRWarga();
+
+	/** Lines up townspeople in front of Bayu, standing still, for screenshots of clothes and headwear. */
+	UFUNCTION(Exec)
+	void GRWargaBaris();
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;

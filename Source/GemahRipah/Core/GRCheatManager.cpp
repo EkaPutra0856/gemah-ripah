@@ -21,6 +21,7 @@
 #include "World/GRMapBounds.h"
 #include "World/GRMapSubsystem.h"
 #include "World/GRNpc.h"
+#include "World/GRCrowd.h"
 #include "World/GRTraffic.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
@@ -317,6 +318,22 @@ void UGRCheatManager::GRLalin()
 	if (const AGRTraffic* Traffic = AGRTraffic::Get(GetOuterAPlayerController()))
 	{
 		Traffic->LogCars();
+	}
+}
+
+void UGRCheatManager::GRWarga()
+{
+	if (const AGRCrowd* Crowd = AGRCrowd::Get(GetOuterAPlayerController()))
+	{
+		Crowd->LogCrowd();
+	}
+}
+
+void UGRCheatManager::GRWargaBaris()
+{
+	if (AGRCrowd* Crowd = AGRCrowd::Get(GetOuterAPlayerController()))
+	{
+		Crowd->Lineup();
 	}
 }
 

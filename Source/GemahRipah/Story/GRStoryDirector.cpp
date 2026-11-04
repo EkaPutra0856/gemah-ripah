@@ -12,6 +12,7 @@
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRNpc.h"
 #include "World/GRStoryProp.h"
+#include "World/GRCrowd.h"
 #include "World/GRTraffic.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -69,6 +70,7 @@ void AGRStoryDirector::BeginPlay()
 
 	SpawnAll();
 	GetWorld()->SpawnActor<AGRTraffic>(AGRTraffic::StaticClass(), FTransform::Identity);
+	GetWorld()->SpawnActor<AGRCrowd>(AGRCrowd::StaticClass(), FTransform::Identity);
 	RequestHandle = Story->OnRequest.AddUObject(this, &AGRStoryDirector::HandleRequest);
 	GetGameInstance()->GetSubsystem<UGRStatusSubsystem>()->OnDiawasiMaxed.AddDynamic(this, &AGRStoryDirector::HandleDiawasiMaxed);
 	RefreshSpawns();
