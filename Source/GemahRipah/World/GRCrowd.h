@@ -8,6 +8,8 @@
 #include "GRCrowd.generated.h"
 
 class AGRCrowd;
+class AGRTrafficCar;
+class UAnimMontage;
 class UAnimSequenceBase;
 class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
@@ -35,6 +37,13 @@ public:
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void Interact_Implementation(AActor* Interactor) override;
 
+	/**
+	 * Hit at Closing cm/s along Direction by Culprit (Bayu, or a car). A hard hit throws them down as a ragdoll, a
+	 * light one shoves them; either way they get up angry at Culprit. Diawasi > 0 puts it on Bayu's record (What
+	 * says what happened, or a fitting line is picked). False while they are already down or were just hit.
+	 */
+	bool KnockedBy(AActor* Culprit, float Closing, const FVector& Direction, float Diawasi, const TCHAR* What = nullptr);
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
 	TObjectPtr<UStaticMeshComponent> Headwear;
@@ -49,15 +58,25 @@ protected:
 private:
 	friend class AGRCrowd;
 
-	enum class EMode : uint8 { Walk, Pause, Chat, Sit };
+	enum class EMode : uint8 { Walk, Pause, Chat, Sit, Down, Angry };
 	enum class ERole : uint8 { Stroller, Jogger, Vendor };
+	/** Who is shouting: the one who was hit, a driver whose car Bayu rammed, or someone watching. */
+	enum class EAnger : uint8 { Victim, Shoved, Driver, Bystander };
 
 	/** Body, clothes, headwear and (for vendors) the pushcart, all from the seed. */
 	void Dress(int32 Seed, ERole InRole, bool bNight);
 	void Activate(const FVector& Feet, float Yaw);
 	void Deactivate();
-	void Say(const FString& Text, float Duration);
-	void PlayPose(UAnimSequenceBase* Anim);
+	void Say(const FString& Text, float Duration, const FColor& Color = FColor::White);
+	/** Faces At and tells them off for Duration seconds (MM_GR_Marah), then goes back to what they were doing. */
+	void GetAngry(AActor* At, float Duration, EAnger Kind);
+	void TickAngry(float DeltaSeconds);
+	void StartFall(const FVector& Velocity);
+	/** Lying in a heap, then blending from the ragdoll back into the standing pose. */
+	void TickDown(float DeltaSeconds);
+	void StopRagdoll();
+	/** Loops Anim over the whole body (nullptr: back to the walk/idle blend); Rate also updates a pose already playing. */
+	void PlayPose(UAnimSequenceBase* Anim, float Rate = 1.f);
 	/** Picks where to walk next: on along the pavement, across the road, or somewhere in sight in the open. */
 	void NextTarget(bool bBlocked);
 	void SitDown(int32 InBench, int32 InSeat);
@@ -95,8 +114,21 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAnimSequenceBase> SitTalkAnim;
 
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> AngryAnim;
+
+	/** Vendors: both hands on the cart's handlebar, standing and walking. */
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> CartAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> CartWalkAnim;
+
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimSequenceBase> CurrentPose;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> CurrentMontage;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UStaticMeshComponent>> CartParts;
@@ -130,6 +162,13 @@ private:
 	float FurnitureIgnore = 0.f;
 	/** +1 walks away from the Tugu along the pavement, -1 toward it. */
 	float StripDir = 1.f;
+	/** Angry mode: time left, and until the next shout. */
+	float AngryTime = 0.f;
+	float ShoutTimer = 0.f;
+	/** Knocked down this long (lying, then getting up). */
+	float DownTime = 0.f;
+	float HitCooldown = 0.f;
+	float ShoveCooldown = 0.f;
 	int32 Group = -1;
 	int32 Bench = -1;
 	int32 Seat = 0;
@@ -137,6 +176,17 @@ private:
 	bool bCrossing = false;
 	/** Someone in the group just raised a topic: answer it. */
 	bool bReply = false;
+	bool bRagdoll = false;
+	bool bGettingUp = false;
+	/** Walks up to whoever they are angry with (onlookers mostly shout from where they stand). */
+	bool bApproach = false;
+	EAnger Anger = EAnger::Victim;
+	TWeakObjectPtr<AActor> AngryAt;
+	/** Got out of this car to have a word with Bayu; gets back in afterwards. */
+	TWeakObjectPtr<AGRTrafficCar> DriverCar;
+	/** The driver's door, in the car's frame. */
+	FVector DriverDoor = FVector::ZeroVector;
+	FName MeshProfile;
 	FString Cry;
 };
 
@@ -160,8 +210,17 @@ public:
 	/** Cheat GRWarga: how many people are out and what they are doing. */
 	void LogCrowd() const;
 
-	/** Cheat GRWargaBaris: a row of townspeople standing still in front of Bayu, for checking their looks. */
+	/** Cheat GRWargaBaris: a row of townspeople standing still in front of Bayu (no dodging, the vendor pushes the cart a few steps), for checking their looks. */
 	void Lineup();
+
+	/**
+	 * Bayu caused trouble at Where: Diawasi rises, more for each incident in a short time, people nearby turn and
+	 * shout, and the third in a row is a riot (the street crowds round him).
+	 */
+	void ReportIncident(float Diawasi, const FVector& Where, const FString& What);
+
+	/** The driver of a car Bayu rammed gets out to tell him off; false if there is no room at the door. */
+	bool DriverOut(AGRTrafficCar* Car);
 
 private:
 	friend class AGRWarga;
@@ -222,6 +281,9 @@ private:
 	/** Story people on the streets, for walkers to step around. */
 	TArray<TWeakObjectPtr<AActor>> StoryPeople;
 	mutable FRandomStream Rng;
+	/** World time of Bayu's recent incidents, for escalating Diawasi. */
+	TArray<double> Incidents;
+	double LastRiot = -1e9;
 	FVector LastPlayerPos = FVector(1e9f);
 	float Timer = 0.f;
 	float KeepOutTimer = 0.f;

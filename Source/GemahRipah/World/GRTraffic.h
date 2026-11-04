@@ -43,6 +43,9 @@ public:
 	/** Bayu on the scooter rams the car at Closing cm/s. */
 	void HitByRider(float Closing, const FVector& Direction, const FVector& Point);
 
+	/** Stands still (the driver got out) for Seconds; 0 drives on. */
+	void HoldForDriver(float Seconds) { HoldTime = Seconds; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Komponen")
 	TObjectPtr<UBoxComponent> Body;
@@ -101,6 +104,8 @@ private:
 	float HoldTime = 0.f;
 
 	bool bKnocked = false;
+	/** This knock is Bayu's doing: the driver gets out once the car stops, and whoever it hits is on his record. */
+	bool bRammed = false;
 	float KnockTime = 0.f;
 	float ShoutTime = 0.f;
 	float HitCooldown = 0.f;

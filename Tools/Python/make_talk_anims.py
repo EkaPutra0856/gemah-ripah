@@ -8,6 +8,8 @@ Creates in /Game/GemahRipah/Anims:
   MM_GR_Sit      seated idle (for NPCs behind desks / on benches)
   MM_GR_SitTalk  seated with gestures
   MM_GR_Ride     Bayu on the "motor" prop model (World/GRPropModels.cpp), solved with two-bone IK
+  MM_GR_Marah    standing, shaking a fist and jabbing a finger (townspeople hit by Bayu, World/GRCrowd.cpp)
+  MM_GR_Gerobak, MM_GR_GerobakJalan   a vendor holding the handlebar of their cart, standing and walking (two-bone IK)
 Rotations are applied in mesh (component) space: the mannequin faces +Y, up is +Z, its left side is +X.
 """
 import math
@@ -139,6 +141,24 @@ def build(name, deltas_fn, sit):
     ctrl.close_bracket(True)
     unreal.EditorAssetLibrary.save_loaded_asset(seq)
     LOG.append("%s: %d keys" % (name, keys))
+
+
+def angry_deltas(t):
+    """Leaning in, right fist shaken at head height, left hand jabbing, head shaking.
+    MM_Idle runs about 7.5 s, so 11 pumps per loop is roughly one and a half a second."""
+    w = 2 * math.pi * t
+    pump = math.sin(11 * w)
+    return {
+        "spine_03": [(X, -8 + 2.5 * pump)],
+        "head": [(X, -4 + 3 * pump), (Z, 9 * math.sin(7 * w))],
+        # Upper arm almost level ahead, forearm up: the fist ends in front of the face.
+        "upperarm_r": [(X, 80 + 10 * pump), (Y, 18)],
+        "lowerarm_r": [(X, 55 + 18 * math.sin(11 * w + 0.6))],
+        "hand_r": [(X, -15)],
+        # The other arm points at whoever is being told off, on the off-beat.
+        "upperarm_l": [(X, 60 - 8 * pump), (Y, -12)],
+        "lowerarm_l": [(X, 20 - 10 * pump)],
+    }
 
 
 def sit_talk_deltas(t):
@@ -324,39 +344,84 @@ def ride_frame(pose, yaw_fix, orig_cs, t):
         shoulder = cs["upperarm_" + side][1]
         fwd = (0.0, math.cos(math.radians(25)), -math.sin(math.radians(25)))  # knuckles forward, a little down
         palm = (0.0, -math.sin(math.radians(25)), -math.cos(math.radians(25)))
-        grip = (sx * RIDE_GRIP[0], RIDE_GRIP[1], RIDE_GRIP[2])
-        wrist = vsub(vsub(grip, vmul(fwd, 5.0)), vmul(palm, 4.5))
-        pose.two_bone("upperarm_" + side, "lowerarm_" + side, "hand_" + side, wrist, vadd(shoulder, (sx * 30.0, -5.0, -25.0)))
-
-        # Palm down on the grip, pinky to the outside; the forearm takes half of the roll so the wrist does not twist.
-        cs = pose.cs()
-        old_f = vsub(cs["middle_01_" + side][1], cs["hand_" + side][1])
-        old_a = vsub(cs["pinky_01_" + side][1], cs["index_01_" + side][1])
-        turn = qbasis(old_f, old_a, fwd, (sx, 0.0, 0.0))
-        hand_q = qmul(turn, cs["hand_" + side][0])
-        axis = vnorm(vsub(cs["hand_" + side][1], cs["lowerarm_" + side][1]))
-        twist = 2 * math.degrees(math.atan2(vdot(turn[:3], axis), turn[3]))
-        twist = (twist + 180.0) % 360.0 - 180.0
-        pose.rotate("lowerarm_" + side, axis_angle(axis, twist * 0.5))
-        pose.set_rotation("hand_" + side, hand_q)
-
-        # Fingers wrap round the grip: pick the curl direction that moves a fingertip toward the palm side.
-        cs = pose.cs()
-        across = (sx, 0.0, 0.0)
-        p1, tip = cs["index_01_" + side][1], cs["index_03_" + side][1]
-        moved = vsub(vadd(p1, qrot(axis_angle(across, 20.0), vsub(tip, p1))), tip)
-        sign = 1.0 if vdot(moved, palm) > 0 else -1.0
-        for finger in RIDE_FINGERS:
-            for joint, deg in (("01", 45.0), ("02", 45.0), ("03", 25.0)):
-                pose.rotate("%s_%s_%s" % (finger, joint, side), axis_angle(across, sign * deg))
+        hold_bar(pose, side, sx, (sx * RIDE_GRIP[0], RIDE_GRIP[1], RIDE_GRIP[2]), fwd, palm, vadd(shoulder, (sx * 30.0, -5.0, -25.0)))
     for bone, other in (("ik_foot_l", "foot_l"), ("ik_foot_r", "foot_r"), ("ik_hand_gun", "hand_r"), ("ik_hand_l", "hand_l"), ("ik_hand_r", "hand_r")):
         pose.match(bone, other)
 
 
-def build_ride(name):
+def hold_bar(pose, side, sx, grip, fwd, palm, pole):
+    """One hand on a bar running across the body at grip: knuckles along fwd, palm facing palm, elbow toward pole."""
+    wrist = vsub(vsub(grip, vmul(fwd, 5.0)), vmul(palm, 4.5))
+    pose.two_bone("upperarm_" + side, "lowerarm_" + side, "hand_" + side, wrist, pole)
+
+    # Palm down on the grip, pinky to the outside; the forearm takes half of the roll so the wrist does not twist.
+    cs = pose.cs()
+    old_f = vsub(cs["middle_01_" + side][1], cs["hand_" + side][1])
+    old_a = vsub(cs["pinky_01_" + side][1], cs["index_01_" + side][1])
+    turn = qbasis(old_f, old_a, fwd, (sx, 0.0, 0.0))
+    hand_q = qmul(turn, cs["hand_" + side][0])
+    axis = vnorm(vsub(cs["hand_" + side][1], cs["lowerarm_" + side][1]))
+    twist = 2 * math.degrees(math.atan2(vdot(turn[:3], axis), turn[3]))
+    twist = (twist + 180.0) % 360.0 - 180.0
+    pose.rotate("lowerarm_" + side, axis_angle(axis, twist * 0.5))
+    pose.set_rotation("hand_" + side, hand_q)
+
+    # Fingers wrap round the grip: pick the curl direction that moves a fingertip toward the palm side.
+    cs = pose.cs()
+    across = (sx, 0.0, 0.0)
+    p1, tip = cs["index_01_" + side][1], cs["index_03_" + side][1]
+    moved = vsub(vadd(p1, qrot(axis_angle(across, 20.0), vsub(tip, p1))), tip)
+    sign = 1.0 if vdot(moved, palm) > 0 else -1.0
+    for finger in RIDE_FINGERS:
+        for joint, deg in (("01", 45.0), ("02", 45.0), ("03", 25.0)):
+            pose.rotate("%s_%s_%s" % (finger, joint, side), axis_angle(across, sign * deg))
+
+
+# --- Pushing a gerobak --------------------------------------------------------------------------------------------
+# The bar across the back of a vendor's cart (AGRWarga::Dress in World/GRCrowd.cpp), in the mesh's unscaled space:
+# Dress scales the handles with the person, so both hands land on it whatever their size. Keep the two in sync.
+PUSH_GRIP = (24.0, 32.0, 103.0)
+WALK = "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd"
+
+
+def push_frame(pose, yaw_fix, orig_cs, t, square):
+    if square:
+        # MM_Idle stands turned; face the cart squarely, feet and all.
+        pose.rotate("pelvis", yaw_fix)
+    # Leaning into the cart from the lower back, head up to see where it goes.
+    for bone, deg in (("spine_01", -5.0), ("spine_02", -4.0), ("neck_01", 4.0), ("head", 4.0)):
+        pose.rotate(bone, axis_angle(X, deg))
+    fwd = (0.0, math.cos(math.radians(20)), -math.sin(math.radians(20)))
+    palm = (0.0, -math.sin(math.radians(20)), -math.cos(math.radians(20)))
+    for side, sx in (("l", 1.0), ("r", -1.0)):
+        shoulder = pose.cs()["upperarm_" + side][1]
+        # Elbows down and back, close to the body.
+        hold_bar(pose, side, sx, (sx * PUSH_GRIP[0], PUSH_GRIP[1], PUSH_GRIP[2]), fwd, palm, vadd(shoulder, (sx * 20.0, -12.0, -30.0)))
+    pairs = [("ik_hand_gun", "hand_r"), ("ik_hand_l", "hand_l"), ("ik_hand_r", "hand_r")]
+    if square:
+        pairs += [("ik_foot_l", "foot_l"), ("ik_foot_r", "foot_r")]
+    for bone, other in pairs:
+        pose.match(bone, other)
+
+
+def walk_speed(src, frames, parents, names):
+    """Speed the walk cycle moves at, from the planted foot sliding back under the body (cm/s)."""
+    dt = unreal.AnimationLibrary.get_sequence_length(src) / max(1, frames)
+    feet = []
+    for f in range(frames + 1):
+        poses = unreal.AnimationLibrary.get_bone_poses_for_frame(src, names, f, False)
+        local = {n: [(p.rotation.x, p.rotation.y, p.rotation.z, p.rotation.w), (p.translation.x, p.translation.y, p.translation.z), p.scale3d]
+                 for n, p in zip(names, poses)}
+        feet.append(Pose(local, parents).cs()["foot_l"][1])
+    low = min(p[2] for p in feet)
+    steps = [abs(feet[f + 1][1] - feet[f][1]) / dt for f in range(frames) if max(feet[f][2], feet[f + 1][2]) < low + 2.0]
+    return sum(steps) / max(1, len(steps))
+
+
+def build_ride(name, src_path=SRC, frame_fn=ride_frame, label="GR ride anim"):
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     path = DST + "/" + name
-    src = unreal.load_asset(SRC)
+    src = unreal.load_asset(src_path)
     if unreal.EditorAssetLibrary.does_asset_exist(path):
         seq = unreal.load_asset(path)
     else:
@@ -380,17 +445,20 @@ def build_ride(name):
             # MM_Idle stands turned about 22 degrees; square the hips to the scooter.
             hips = vsub(orig_cs["thigh_l"][1], orig_cs["thigh_r"][1])
             yaw_fix = axis_angle(Z, -math.degrees(math.atan2(hips[1], hips[0])))
-        ride_frame(pose, yaw_fix, orig_cs, f / max(1, frames))
+        frame_fn(pose, yaw_fix, orig_cs, f / max(1, frames))
         if f == 0:
             cs = pose.cs()
             report = " ".join("%s=(%.0f,%.0f,%.0f)" % ((n,) + tuple(cs[n][1])) for n in ("pelvis", "calf_l", "foot_l", "lowerarm_l", "hand_l", "head"))
+            report += " root=(%.0f,%.0f,%.0f)" % tuple(local["root"][1])
+            if src_path != SRC:
+                report += " speed=%.0f" % walk_speed(src, frames, parents, names)
         for n in names:
             q, tr, sc = local[n]
             tracks[n][0].append(unreal.Vector(tr[0], tr[1], tr[2]))
             tracks[n][1].append(unreal.Quat(q[0], q[1], q[2], q[3]))
             tracks[n][2].append(sc)
     ctrl = seq.get_editor_property("controller")
-    ctrl.open_bracket(unreal.Text("GR ride anim"), True)
+    ctrl.open_bracket(unreal.Text(label), True)
     for n in names:
         if n == "root":
             continue
@@ -410,6 +478,9 @@ try:
     build("MM_GR_Sit", sit_deltas, True)
     build("MM_GR_SitTalk", sit_talk_deltas, True)
     build_ride("MM_GR_Ride")
+    build("MM_GR_Marah", angry_deltas, False)
+    build_ride("MM_GR_Gerobak", SRC, lambda p, y, o, t: push_frame(p, y, o, t, True), "GR push anim")
+    build_ride("MM_GR_GerobakJalan", WALK, lambda p, y, o, t: push_frame(p, y, o, t, False), "GR push anim")
 except Exception as e:  # noqa: BLE001
     import traceback
     LOG.append("ERROR " + traceback.format_exc())

@@ -13,6 +13,7 @@
 #include "Animation/AnimSequenceBase.h"
 #include "Engine/World.h"
 #include "Story/GRStorySubsystem.h"
+#include "World/GRCrowd.h"
 #include "World/GRMotor.h"
 #include "World/GRTraffic.h"
 #include "HAL/PlatformTime.h"
@@ -527,7 +528,26 @@ void AGRCharacter::TickRide(float DeltaSeconds)
 				GetCapsuleComponent()->GetCollisionObjectType(), FCollisionShape::MakeSphere(25.f), Params, Response)
 			&& Hit.ImpactNormal.Z < 0.7f)
 		{
-			if (AGRTrafficCar* Car = Cast<AGRTrafficCar>(Hit.GetActor()); Car && ImpactCooldown <= 0.f)
+			bool bRideOn = false;
+			if (AGRWarga* Person = Cast<AGRWarga>(Hit.GetActor()))
+			{
+				// Rode into someone on foot: a hard hit throws them down and the scooter rolls on, much slower; a
+				// slow one shoves them and the scooter stops.
+				const float Closing = FVector::DotProduct(Heading * RideSpeedNow - Person->GetVelocity(), Heading * Dir);
+				const bool bHard = Closing >= 450.f;
+				if (Closing > 120.f && Person->KnockedBy(this, Closing, Heading * Dir, bHard ? 6.f : 3.f))
+				{
+					ShakeCamera(bHard ? 7.f : 3.f, bHard ? 0.35f : 0.2f);
+					if (bHard)
+					{
+						UGameplayStatics::SetGlobalTimeDilation(this, 0.35f);
+						HitStopEnd = FPlatformTime::Seconds() + 0.07;
+						RideSpeedNow *= 0.45f;
+						bRideOn = true;
+					}
+				}
+			}
+			else if (AGRTrafficCar* Car = Cast<AGRTrafficCar>(Hit.GetActor()); Car && ImpactCooldown <= 0.f)
 			{
 				// Rode into a car: it gets shoved, the scooter bounces back or goes down with Bayu.
 				const float Closing = FVector::DotProduct(Heading * RideSpeedNow - Car->GetMoveVelocity(), Heading * Dir);
@@ -541,7 +561,10 @@ void AGRCharacter::TickRide(float DeltaSeconds)
 					}
 				}
 			}
-			RideSpeedNow = Dir * FMath::Min(SpeedAbs, FMath::Max(Hit.Distance - 42.f, 0.f) / DeltaSeconds);
+			if (!bRideOn)
+			{
+				RideSpeedNow = Dir * FMath::Min(SpeedAbs, FMath::Max(Hit.Distance - 42.f, 0.f) / DeltaSeconds);
+			}
 		}
 	}
 

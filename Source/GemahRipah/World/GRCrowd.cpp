@@ -5,6 +5,7 @@
 #include "Story/GRStoryTypes.h"
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
+#include "Systems/GRStatusSubsystem.h"
 #include "World/GRNpc.h"
 #include "World/GRPropModels.h"
 #include "World/GRStealthLevel.h"
@@ -49,6 +50,8 @@ namespace
 	constexpr float RecycleRange = 6500.f;
 	constexpr int32 PoolSize = 44;
 	constexpr int32 MaxVendors = 2;
+	/** Walking pace of MM_GR_GerobakJalan at rate 1, cm/s (make_talk_anims.py logs it as speed=). */
+	constexpr float CartWalkSpeed = 68.f;
 
 	const TCHAR* const ShirtColors[] = {
 		TEXT("#F2F2EE"), TEXT("#8E2C2C"), TEXT("#2B4C7E"), TEXT("#6E8FB5"), TEXT("#5E6B3A"), TEXT("#C99A2E"),
@@ -114,6 +117,35 @@ namespace
 		TEXT("Eh! Pelan-pelan, Mas!"),
 		TEXT("Astaga! Ini trotoar, bukan sirkuit!"),
 		TEXT("Woi, motornya!") };
+	const TCHAR* const VictimLines[] = {
+		TEXT("Woi! Matamu di mana?!"),
+		TEXT("Heh! Nggak lihat ada orang?!"),
+		TEXT("Aduh, sakit! Tanggung jawab, kamu!"),
+		TEXT("Naik motor kok kayak dikejar setan!"),
+		TEXT("Trotoar buat jalan kaki, bukan buat motor!"),
+		TEXT("Awas kamu! Kuingat mukamu!") };
+	const TCHAR* const ShoveLines[] = {
+		TEXT("Eh! Jangan main seruduk!"),
+		TEXT("Pelan-pelan, Mas! Nggak sopan!"),
+		TEXT("Heh, buru-buru amat! Dikejar utang?") };
+	const TCHAR* const DriverLines[] = {
+		TEXT("Woi! Mobilku penyok! Ganti rugi!"),
+		TEXT("Lihat ini, lecet semua! Siapa yang bayar?!"),
+		TEXT("Mana SIM-mu?! Punya nggak?!"),
+		TEXT("Cicilan belum lunas, sudah ditabrak!"),
+		TEXT("Kurang lebar jalannya, hah?!") };
+	const TCHAR* const BystanderLines[] = {
+		TEXT("Ada yang ketabrak! Ada yang ketabrak!"),
+		TEXT("Rekam, rekam! Biar viral!"),
+		TEXT("Wah, ribut! Panggil polisi!"),
+		TEXT("Itu Mas Bayu, kan? Wah, wah."),
+		TEXT("Kepung! Eh, jangan main hakim sendiri."),
+		TEXT("Ya ampun, kasihan.") };
+	const TCHAR* const CalmLines[] = {
+		TEXT("Huh. Dasar."),
+		TEXT("Zaman sekarang, ya..."),
+		TEXT("Sudahlah. Sabar, sabar.") };
+	const FColor AngryColor(255, 110, 90);
 
 	template <typename T, int32 N>
 	const T& PickOne(FRandomStream& Rng, const T (&Items)[N])
@@ -203,9 +235,15 @@ AGRWarga::AGRWarga()
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> TalkSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Talk.MM_GR_Talk"));
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> SitSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Sit.MM_GR_Sit"));
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> SitTalkSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_SitTalk.MM_GR_SitTalk"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> AngrySeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Marah.MM_GR_Marah"));
 	TalkAnim = TalkSeq.Object;
 	SitAnim = SitSeq.Object;
 	SitTalkAnim = SitTalkSeq.Object;
+	AngryAnim = AngrySeq.Object;
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> CartSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Gerobak.MM_GR_Gerobak"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> CartWalkSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_GerobakJalan.MM_GR_GerobakJalan"));
+	CartAnim = CartSeq.Object;
+	CartWalkAnim = CartWalkSeq.Object;
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ClothesMat(TEXT("/Game/GemahRipah/Materials/M_GR_Warga.M_GR_Warga"));
 	ClothesBase = ClothesMat.Object;
 
@@ -307,7 +345,7 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 	const bool bVendor = Role == ERole::Vendor;
 	if (bVendor && CartParts.IsEmpty())
 	{
-		for (int32 i = 0; i < 12; ++i)
+		for (int32 i = 0; i < 13; ++i)
 		{
 			UStaticMeshComponent* Part = NewObject<UStaticMeshComponent>(this);
 			Part->SetupAttachment(RootComponent);
@@ -341,9 +379,14 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 			CartParts[n++]->SetRelativeRotation(FRotator(0.f, 0.f, 90.f));
 		}
 		PutPiece(CartParts[n++], TEXT("cube"), FVector(160.f, 0.f, F + 25.f), FVector(0.04f, 0.04f, 0.5f), Dark);
+		// The handlebar sits where MM_GR_Gerobak puts the hands (PUSH_GRIP in make_talk_anims.py, mesh space), so it
+		// scales with the person; two side bars join it to the cart.
+		const float BarX = 32.f * Scale;
+		const float BarZ = F + 103.f * Scale;
+		PutPiece(CartParts[n++], TEXT("cube"), FVector(BarX, 0.f, BarZ), FVector(0.035f, 0.62f, 0.035f), Dark);
 		for (int32 PY = -1; PY <= 1; PY += 2)
 		{
-			PutPiece(CartParts[n++], TEXT("cube"), FVector(50.f, PY * 26.f, F + 92.f), FVector(0.4f, 0.04f, 0.04f), Dark);
+			PutPiece(CartParts[n++], TEXT("cube"), FVector((BarX + 70.f) * 0.5f, PY * 29.f, BarZ), FVector((70.f - BarX) / 100.f, 0.035f, 0.035f), Dark);
 		}
 	}
 	else
@@ -386,12 +429,25 @@ void AGRWarga::Activate(const FVector& Feet, float Yaw)
 	WalkTime = 0.f;
 	Stuck = 0.f;
 	CryTimer = Rng.FRandRange(1.f, 6.f);
+	AngryTime = 0.f;
+	HitCooldown = 0.f;
+	ShoveCooldown = 0.f;
+	AngryAt = nullptr;
+	DriverCar = nullptr;
 	BarkText->SetHiddenInGame(true);
 	SetSeatedLook(false);
 }
 
 void AGRWarga::Deactivate()
 {
+	StopRagdoll();
+	if (AGRTrafficCar* Car = DriverCar.Get())
+	{
+		// Recycled while out of the car: it drives on without them.
+		Car->HoldForDriver(0.f);
+	}
+	DriverCar = nullptr;
+	AngryAt = nullptr;
 	if (AGRCrowd* C = Crowd.Get(); C && C->Benches.IsValidIndex(Bench) && C->Benches[Bench].Sitters[Seat] == this)
 	{
 		C->Benches[Bench].Sitters[Seat] = nullptr;
@@ -412,27 +468,243 @@ void AGRWarga::Deactivate()
 	BarkText->SetHiddenInGame(true);
 }
 
-void AGRWarga::Say(const FString& Text, float Duration)
+void AGRWarga::Say(const FString& Text, float Duration, const FColor& Color)
 {
 	BarkText->SetText(FText::FromString(Text));
+	BarkText->SetTextRenderColor(Color);
 	BarkText->SetHiddenInGame(false);
 	BarkHide = Duration;
 }
 
-void AGRWarga::PlayPose(UAnimSequenceBase* Anim)
+bool AGRWarga::KnockedBy(AActor* Culprit, float Closing, const FVector& Direction, float Diawasi, const TCHAR* What)
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (!AnimInstance || Anim == CurrentPose)
+	if (!bActive || Mode == EMode::Down || HitCooldown > 0.f)
+	{
+		return false;
+	}
+	HitCooldown = 1.f;
+	if (Mode == EMode::Sit)
+	{
+		StandUp();
+	}
+	Group = -1;
+	bCrossing = false;
+	Dodge = 0.f;
+	TalkPause = 0.f;
+	const FVector Dir = Direction.GetSafeNormal2D();
+	const AGRCharacter* Bayu = Cast<AGRCharacter>(Culprit);
+	const bool bShove = Bayu && !Bayu->IsRiding();
+	// A vendor's cart takes the hit: they stagger instead of going down.
+	const bool bFall = Closing >= 450.f && Role != ERole::Vendor;
+	UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s ditabrak %s, %.0f cm/s%s"), *GetName(), Culprit ? *Culprit->GetName() : TEXT("-"), Closing,
+		bFall ? TEXT(", jatuh") : TEXT(""));
+	if (bFall)
+	{
+		AngryAt = Culprit;
+		Say(TEXT("Aduh!!"), 1.6f, AngryColor);
+		StartFall(Dir * Closing * 0.7f + FVector(0.f, 0.f, 220.f));
+	}
+	else
+	{
+		LaunchCharacter(Dir * FMath::Clamp(Closing * 0.9f, 250.f, 650.f) + FVector(0.f, 0.f, 140.f), true, true);
+		GetAngry(Culprit, FMath::Clamp(Closing / 90.f, 3.5f, 6.f), bShove ? EAnger::Shoved : EAnger::Victim);
+	}
+	if (AGRCrowd* C = Crowd.Get(); C && Diawasi > 0.f)
+	{
+		C->ReportIncident(Diawasi, GetActorLocation(), What ? What
+			: bFall ? TEXT("Bayu menabrak warga sampai jatuh!") : bShove ? TEXT("Bayu menyeruduk warga.") : TEXT("Bayu menyerempet warga."));
+	}
+	return true;
+}
+
+void AGRWarga::GetAngry(AActor* At, float Duration, EAnger Kind)
+{
+	if (Mode == EMode::Sit)
+	{
+		if (Kind == EAnger::Bystander)
+		{
+			// Onlookers on a bench shout from their seat.
+			Say(PickOne(Rng, BystanderLines), 2.5f, AngryColor);
+			return;
+		}
+		StandUp();
+	}
+	Mode = EMode::Angry;
+	Anger = Kind;
+	AngryAt = At;
+	AngryTime = Duration;
+	ShoutTimer = Kind == EAnger::Bystander ? Rng.FRandRange(0.f, 0.8f) : 0.f;
+	bApproach = Kind != EAnger::Bystander;
+	Group = -1;
+	bCrossing = false;
+	Dodge = 0.f;
+	TalkPause = 0.f;
+}
+
+void AGRWarga::TickAngry(float DeltaSeconds)
+{
+	AngryTime -= DeltaSeconds;
+	const AActor* At = AngryAt.Get();
+	const FVector Loc = GetActorLocation();
+	const float Dist = At ? FVector::Dist2D(At->GetActorLocation(), Loc) : 1e6f;
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (At)
+	{
+		const FRotator Face(0.f, (At->GetActorLocation() - Loc).Rotation().Yaw, 0.f);
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), Face, DeltaSeconds, 7.f));
+		// Step up to have it out with him, but not into his face.
+		if (bApproach && Dist > 260.f && Dist < 1500.f && Move->IsMovingOnGround())
+		{
+			Move->MaxWalkSpeed = 240.f;
+			AddMovementInput((At->GetActorLocation() - Loc).GetSafeNormal2D(), 1.f);
+		}
+	}
+	if (Dist > 2500.f)
+	{
+		// He is long gone.
+		AngryTime = FMath::Min(AngryTime, 0.5f);
+	}
+	ShoutTimer -= DeltaSeconds;
+	if (ShoutTimer <= 0.f && AngryTime > 0.8f)
+	{
+		ShoutTimer = Rng.FRandRange(2.f, 2.8f);
+		const TCHAR* Line = Anger == EAnger::Driver ? PickOne(Rng, DriverLines)
+			: Anger == EAnger::Shoved ? PickOne(Rng, ShoveLines)
+			: Anger == EAnger::Bystander ? PickOne(Rng, BystanderLines) : PickOne(Rng, VictimLines);
+		Say(Line, 1.9f, AngryColor);
+	}
+	if (AngryTime > 0.f)
 	{
 		return;
 	}
+	Move->MaxWalkSpeed = Speed;
+	if (const AGRTrafficCar* Car = DriverCar.Get())
+	{
+		// Back to the car, still muttering.
+		Target = Car->GetActorTransform().TransformPosition(DriverDoor);
+		Mode = EMode::Walk;
+		WalkTime = 0.f;
+		Stuck = 0.f;
+		Say(TEXT("Huh! Awas kalau ketemu lagi!"), 2.f, AngryColor);
+		return;
+	}
+	if (Anger != EAnger::Bystander)
+	{
+		Say(PickOne(Rng, CalmLines), 2.2f);
+	}
+	NextTarget(false);
+}
+
+void AGRWarga::StartFall(const FVector& Velocity)
+{
+	Mode = EMode::Down;
+	Anger = EAnger::Victim;
+	DownTime = 0.f;
+	bGettingUp = false;
+	bRagdoll = true;
+	PlayPose(nullptr);
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	Move->StopMovementImmediately();
+	Move->DisableMovement();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	USkeletalMeshComponent* Body = GetMesh();
+	MeshProfile = Body->GetCollisionProfileName();
+	Body->SetCollisionProfileName(TEXT("Ragdoll"));
+	Body->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	// The scooter rolls on through; the ground, walls and cars still stop the body.
+	Body->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	// The mesh stays on the capsule while the bodies tumble in the world, so getting up can blend from the heap
+	// back into the standing pose instead of popping.
+	Body->PhysicsTransformUpdateMode = EPhysicsTransformUpdateMode::ComponentTransformIsKinematic;
+	Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+	Body->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, true);
+	Body->SetAllBodiesBelowPhysicsBlendWeight(TEXT("pelvis"), 1.f);
+	Body->WakeAllRigidBodies();
+	Body->SetAllPhysicsLinearVelocity(Velocity);
+}
+
+void AGRWarga::TickDown(float DeltaSeconds)
+{
+	DownTime += DeltaSeconds;
+	USkeletalMeshComponent* Body = GetMesh();
+	if (bGettingUp)
+	{
+		const float Weight = 1.f - DownTime / 0.7f;
+		if (Weight > 0.f)
+		{
+			Body->SetAllBodiesBelowPhysicsBlendWeight(TEXT("pelvis"), Weight);
+			return;
+		}
+		StopRagdoll();
+		GetAngry(AngryAt.Get(), 6.f, EAnger::Victim);
+		return;
+	}
+	const FBodyInstance* Pelvis = Body->GetBodyInstance(TEXT("pelvis"));
+	const FVector Hip = Pelvis ? Pelvis->GetUnrealWorldTransform().GetLocation() : GetActorLocation();
+	// Lying there: the capsule keeps to the body so traffic stops for them and the crowd knows where they are.
+	SetActorLocation(Hip);
+	const bool bSettled = !Pelvis || Pelvis->GetUnrealWorldVelocity().SizeSquared() < FMath::Square(30.f);
+	if (DownTime < 2.6f || (!bSettled && DownTime < 5.f))
+	{
+		return;
+	}
+	// Stand where they landed, facing whoever hit them.
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(GRWargaGetUp), false, this);
+	const float Ground = GetWorld()->LineTraceSingleByChannel(Hit, Hip + FVector(0.f, 0.f, 80.f), Hip - FVector(0.f, 0.f, 300.f), ECC_Visibility, Params)
+		? Hit.ImpactPoint.Z : Hip.Z - 15.f;
+	const AActor* At = AngryAt.Get();
+	const float Yaw = At ? (At->GetActorLocation() - Hip).Rotation().Yaw : GetActorRotation().Yaw;
+	SetActorLocationAndRotation(FVector(Hip.X, Hip.Y, Ground + CapsuleHalf + 2.f), FRotator(0.f, Yaw, 0.f));
+	bGettingUp = true;
+	DownTime = 0.f;
+	Say(TEXT("Aduh, aduh..."), 1.2f, AngryColor);
+}
+
+void AGRWarga::StopRagdoll()
+{
+	if (!bRagdoll)
+	{
+		return;
+	}
+	bRagdoll = false;
+	bGettingUp = false;
+	USkeletalMeshComponent* Body = GetMesh();
+	Body->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), false, true);
+	Body->SetCollisionProfileName(MeshProfile);
+	Body->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	Body->PhysicsTransformUpdateMode = EPhysicsTransformUpdateMode::SimulationUpatesComponentTransform;
+	Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
+	Body->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -CapsuleHalf), FRotator(0.f, -90.f, 0.f));
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void AGRWarga::PlayPose(UAnimSequenceBase* Anim, float Rate)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+	{
+		return;
+	}
+	if (Anim == CurrentPose)
+	{
+		if (Anim && CurrentMontage)
+		{
+			AnimInstance->Montage_SetPlayRate(CurrentMontage, Rate);
+		}
+		return;
+	}
 	CurrentPose = Anim;
+	CurrentMontage = nullptr;
 	if (!Anim)
 	{
 		AnimInstance->StopSlotAnimation(0.3f, TEXT("DefaultSlot"));
 		return;
 	}
-	AnimInstance->PlaySlotAnimationAsDynamicMontage(Anim, TEXT("DefaultSlot"), 0.3f, 0.3f, 1.f, 10000);
+	// The pushing walk comes from a walk cycle, which can carry root motion; the crowd code moves people itself.
+	AnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
+	CurrentMontage = AnimInstance->PlaySlotAnimationAsDynamicMontage(Anim, TEXT("DefaultSlot"), 0.3f, 0.3f, Rate, 10000);
 }
 
 void AGRWarga::PinToHead(UStaticMeshComponent* Piece)
@@ -474,7 +746,7 @@ FText AGRWarga::GetInteractionPrompt_Implementation(AActor* Interactor) const
 
 bool AGRWarga::CanInteract_Implementation(AActor* Interactor) const
 {
-	if (!bActive || IsHidden() || Dodge > 0.f)
+	if (!bActive || IsHidden() || Dodge > 0.f || Mode == EMode::Down || Mode == EMode::Angry)
 	{
 		return false;
 	}
@@ -547,7 +819,7 @@ void AGRWarga::Tick(float DeltaSeconds)
 	{
 		return;
 	}
-	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (BarkHide > 0.f)
 	{
 		BarkHide -= DeltaSeconds;
@@ -557,6 +829,18 @@ void AGRWarga::Tick(float DeltaSeconds)
 		}
 	}
 	DodgeCooldown -= DeltaSeconds;
+	HitCooldown -= DeltaSeconds;
+	ShoveCooldown -= DeltaSeconds;
+	// Bayu sprinting into someone shoves them (walking pace only brushes past).
+	if (const AGRCharacter* Bayu = Cast<AGRCharacter>(Player); Bayu && !Bayu->IsRiding() && ShoveCooldown <= 0.f && Mode != EMode::Down)
+	{
+		const FVector2D Rel(GetActorLocation() - Bayu->GetActorLocation());
+		if (Rel.SizeSquared() < FMath::Square(120.f) && FVector2D::DotProduct(FVector2D(Bayu->GetVelocity()), Rel.GetSafeNormal()) > 560.f)
+		{
+			ShoveCooldown = 4.f;
+			KnockedBy(Player, 260.f, FVector(Rel.GetSafeNormal(), 0.f), 1.f);
+		}
+	}
 	if (FurnitureIgnore > 0.f)
 	{
 		FurnitureIgnore -= DeltaSeconds;
@@ -596,10 +880,16 @@ void AGRWarga::Tick(float DeltaSeconds)
 		case EMode::Sit:
 			TickSit(DeltaSeconds);
 			break;
+		case EMode::Down:
+			TickDown(DeltaSeconds);
+			break;
+		case EMode::Angry:
+			TickAngry(DeltaSeconds);
+			break;
 		}
 	}
 
-	if (Role == ERole::Vendor)
+	if (Role == ERole::Vendor && Mode != EMode::Down && Mode != EMode::Angry)
 	{
 		CryTimer -= DeltaSeconds;
 		if (CryTimer <= 0.f)
@@ -626,7 +916,24 @@ void AGRWarga::UpdatePose()
 {
 	const bool bTalking = BarkHide > 0.f || TalkPause > 0.f;
 	UAnimSequenceBase* Want = nullptr;
-	if (Mode == EMode::Sit)
+	if (Mode == EMode::Down)
+	{
+		return;
+	}
+	float Rate = 1.f;
+	if (Mode == EMode::Angry)
+	{
+		// Shaking a fist while standing; walking up to him (or staggering) uses the walk.
+		Want = GetVelocity().SizeSquared2D() < FMath::Square(60.f) && GetCharacterMovement()->IsMovingOnGround() ? AngryAnim.Get() : nullptr;
+	}
+	else if (Role == ERole::Vendor && CartAnim)
+	{
+		// Both hands stay on the cart's handlebar; the steps keep pace with the cart.
+		const float Moving = GetVelocity().Size2D();
+		Want = Moving > 20.f && CartWalkAnim ? CartWalkAnim.Get() : CartAnim.Get();
+		Rate = Want == CartWalkAnim ? FMath::Clamp(Moving / CartWalkSpeed, 0.3f, 2.f) : 1.f;
+	}
+	else if (Mode == EMode::Sit)
 	{
 		Want = bTalking ? SitTalkAnim.Get() : SitAnim.Get();
 	}
@@ -638,7 +945,7 @@ void AGRWarga::UpdatePose()
 	{
 		Want = TalkAnim.Get();
 	}
-	PlayPose(Want);
+	PlayPose(Want, Rate);
 }
 
 void AGRWarga::TickWalk(float DeltaSeconds)
@@ -651,6 +958,14 @@ void AGRWarga::TickWalk(float DeltaSeconds)
 	const FVector Loc = GetActorLocation();
 	const FVector2D To(Target - Loc);
 	const float Dist = To.Size();
+	if (AGRTrafficCar* Car = DriverCar.Get(); Car && (Dist < 90.f || Stuck > 1.f || WalkTime > 10.f))
+	{
+		// Back behind the wheel: the car drives on.
+		Car->HoldForDriver(0.8f);
+		DriverCar = nullptr;
+		Deactivate();
+		return;
+	}
 	if (Dist < (Role == ERole::Jogger ? 120.f : 60.f))
 	{
 		bCrossing = false;
@@ -793,7 +1108,7 @@ void AGRWarga::TickSit(float DeltaSeconds)
 void AGRWarga::TickDodge(const APawn* Player)
 {
 	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
-	if (!Bayu || !Bayu->IsRiding() || Mode == EMode::Sit || DodgeCooldown > 0.f)
+	if (!Bayu || !Bayu->IsRiding() || Mode == EMode::Sit || Mode == EMode::Down || DodgeCooldown > 0.f)
 	{
 		return;
 	}
@@ -1209,7 +1524,8 @@ void AGRCrowd::Tick(float DeltaSeconds)
 	{
 		for (AGRWarga* Person : People)
 		{
-			if (Person->bActive && Person->Mode != AGRWarga::EMode::Chat && !InView(Person->GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf)))
+			if (Person->bActive && Person->Mode != AGRWarga::EMode::Chat && Person->Mode != AGRWarga::EMode::Down
+				&& Person->Mode != AGRWarga::EMode::Angry && !Person->DriverCar.IsValid() && !InView(Person->GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf)))
 			{
 				Person->Deactivate();
 				break;
@@ -1225,6 +1541,83 @@ void AGRCrowd::Tick(float DeltaSeconds)
 		}
 		Active = CountActive(Vendors);
 	}
+}
+
+void AGRCrowd::ReportIncident(float Diawasi, const FVector& Where, const FString& What)
+{
+	const double Now = GetWorld()->GetTimeSeconds();
+	Incidents.RemoveAll([Now](double T) { return Now - T > 90.0; });
+	Incidents.Add(Now);
+	// Once is an accident. Again and again within a minute and a half, and people start to remember the face.
+	const int32 Count = Incidents.Num();
+	const bool bRiot = Count >= 3 && Now - LastRiot > 60.0;
+	if (bRiot)
+	{
+		LastRiot = Now;
+	}
+	const float Delta = FMath::RoundToFloat(Diawasi * FMath::Min(1.f + 0.5f * (Count - 1), 3.f)) + (bRiot ? 5.f : 0.f);
+	UE_LOG(LogGRCrowd, Display, TEXT("GRINSIDEN %s ke-%d dalam 90 dtk, Diawasi +%.0f%s"), *What, Count, Delta, bRiot ? TEXT(", KERUSUHAN") : TEXT(""));
+	UGameInstance* GI = GetGameInstance();
+	if (UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>())
+	{
+		Story->Run(FString::Printf(TEXT("notifburuk %s Diawasi +%.0f."),
+			bRiot ? TEXT("Kerusuhan! Warga ramai mengerubungi Bayu, ada yang merekam.") : *What, Delta));
+	}
+	if (UGRStatusSubsystem* Status = GI->GetSubsystem<UGRStatusSubsystem>())
+	{
+		Status->AddDiawasi(Delta, true);
+	}
+	// People nearby turn round and shout; in a riot the whole street crowds in on Bayu.
+	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	const float Reach = bRiot ? 2200.f : 1200.f;
+	int32 Left = bRiot ? 14 : 3;
+	for (AGRWarga* Person : People)
+	{
+		if (Left > 0 && Person->bActive && Person->Mode != AGRWarga::EMode::Down && Person->Mode != AGRWarga::EMode::Angry
+			&& FVector::DistSquared2D(Person->GetActorLocation(), Where) < FMath::Square(Reach))
+		{
+			Person->GetAngry(Player, Rng.FRandRange(3.f, 6.f) + (bRiot ? 4.f : 0.f), AGRWarga::EAnger::Bystander);
+			Person->bApproach = bRiot && Person->Mode == AGRWarga::EMode::Angry;
+			--Left;
+		}
+	}
+}
+
+bool AGRCrowd::DriverOut(AGRTrafficCar* Car)
+{
+	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!Car || !Player || FVector::DistSquared2D(Car->GetActorLocation(), Player->GetActorLocation()) > FMath::Square(3000.f))
+	{
+		return false;
+	}
+	AGRWarga* Driver = TakeFromPool();
+	if (!Driver)
+	{
+		return false;
+	}
+	const FTransform Frame(FRotator(0.f, Car->GetActorRotation().Yaw, 0.f), Car->GetActorLocation());
+	const int32 Hour = HourNow(this);
+	// Right-hand drive: the driver's door is on the right. A car up against something lets them out on the left.
+	for (const float Side : { 1.f, -1.f })
+	{
+		const FVector Door(Car->GetHalfLength() * 0.15f, Side * (Car->GetHalfWidth() + 70.f), 0.f);
+		const FVector Spot = Frame.TransformPosition(Door);
+		float Z = 0.f;
+		if (!GroundAt(GetWorld(), FVector2D(Spot), Z)
+			|| BodyBlocked(GetWorld(), FVector(Spot.X, Spot.Y, Z + CapsuleHalf + 2.f), FQuat::Identity, FCollisionShape::MakeCapsule(38.f, CapsuleHalf - 4.f)))
+		{
+			continue;
+		}
+		Driver->Dress(NextSeed++, AGRWarga::ERole::Stroller, Hour >= 20 || Hour < 5);
+		Driver->Activate(FVector(Spot.X, Spot.Y, Z), (Player->GetActorLocation() - Spot).Rotation().Yaw);
+		Driver->DriverCar = Car;
+		Driver->DriverDoor = FVector(Door.X, Door.Y, CapsuleHalf);
+		Driver->GetAngry(Player, 6.5f, AGRWarga::EAnger::Driver);
+		Car->HoldForDriver(30.f);
+		UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA sopir %s turun dari %s"), *Driver->GetName(), *Car->GetName());
+		return true;
+	}
+	return false;
 }
 
 int32 AGRCrowd::TargetPopulation() const
@@ -1606,6 +1999,14 @@ void AGRCrowd::Lineup()
 		Person->Dress(NextSeed++, Roles[i], false);
 		Person->Activate(FVector(P, Z), Facing);
 		Person->Wait = 1e6f;
+		// They stand their ground, even in front of the scooter (for testing the crash reactions too).
+		Person->DodgeCooldown = 1e6f;
+		if (Roles[i] == ERole::Vendor)
+		{
+			// The vendor pushes the cart a few steps toward Bayu, to show the pushing walk.
+			Person->Target = FVector(P, Z + CapsuleHalf) - Ahead * 300.f;
+			Person->Mode = AGRWarga::EMode::Walk;
+		}
 	}
 	// And two on the nearest bench.
 	int32 Nearest = INDEX_NONE;
@@ -1635,7 +2036,7 @@ void AGRCrowd::Lineup()
 
 void AGRCrowd::LogCrowd() const
 {
-	int32 Modes[4] = {};
+	int32 Modes[6] = {};
 	int32 Roles[3] = {};
 	int32 Active = 0;
 	int32 OnRoad = 0;
@@ -1654,8 +2055,8 @@ void AGRCrowd::LogCrowd() const
 	{
 		Hidden += B.bHidden ? 1 : 0;
 	}
-	UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA aktif %d/%d target %d | jalan %d diam %d ngobrol %d duduk %d | joging %d pedagang %d | di jalan raya %d | bangku %d (%d disimpan)"),
-		Active, People.Num(), TargetPopulation(), Modes[0], Modes[1], Modes[2], Modes[3], Roles[1], Roles[2], OnRoad, Benches.Num(), Hidden);
+	UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA aktif %d/%d target %d | jalan %d diam %d ngobrol %d duduk %d jatuh %d marah %d | joging %d pedagang %d | di jalan raya %d | bangku %d (%d disimpan)"),
+		Active, People.Num(), TargetPopulation(), Modes[0], Modes[1], Modes[2], Modes[3], Modes[4], Modes[5], Roles[1], Roles[2], OnRoad, Benches.Num(), Hidden);
 	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
 	for (const FBox& Room : Rooms)
 	{
@@ -1702,7 +2103,7 @@ void AGRCrowd::LogCrowd() const
 		}
 		UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA titik: jalan %d ruang %d jaga %d tanpa-tanah %d tinggi %d terhalang %d bisa %d"), Why[0], Why[1], Why[2], Why[3], Why[4], Why[5], Why[6]);
 	}
-	const TCHAR* ModeNames[] = { TEXT("jalan"), TEXT("diam"), TEXT("ngobrol"), TEXT("duduk") };
+	const TCHAR* ModeNames[] = { TEXT("jalan"), TEXT("diam"), TEXT("ngobrol"), TEXT("duduk"), TEXT("jatuh"), TEXT("marah") };
 	for (int32 i = 0; i < People.Num(); ++i)
 	{
 		const AGRWarga* Person = People[i];
@@ -1710,8 +2111,8 @@ void AGRCrowd::LogCrowd() const
 		{
 			const FVector L = Person->GetActorLocation();
 			const float HeadZ = Person->GetMesh()->GetBoneLocation(TEXT("head")).Z - (L.Z - CapsuleHalf);
-			UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA %2d %-7s (%.0f, %.0f, %.0f) ke (%.0f, %.0f) kepala %.1f skala %.2f %s%s%s"), i, ModeNames[int32(Person->Mode)],
-				L.X, L.Y, L.Z, Person->Target.X, Person->Target.Y, HeadZ, Person->GetMesh()->GetRelativeScale3D().Z,
+			UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA %2d %-7s (%.0f, %.0f, %.0f) ke (%.0f, %.0f) laju %.0f kepala %.1f skala %.2f %s%s%s"), i, ModeNames[int32(Person->Mode)],
+				L.X, L.Y, L.Z, Person->Target.X, Person->Target.Y, Person->GetVelocity().Size2D(), HeadZ, Person->GetMesh()->GetRelativeScale3D().Z,
 				Person->GetMesh()->GetSkeletalMeshAsset() == Person->QuinnMesh ? TEXT("quinn") : TEXT("manny"), Person->bCrossing ? TEXT(" nyeberang") : TEXT(""),
 				Person->Role == AGRWarga::ERole::Vendor ? TEXT(" pedagang") : Person->Role == AGRWarga::ERole::Jogger ? TEXT(" joging") : TEXT(""));
 		}

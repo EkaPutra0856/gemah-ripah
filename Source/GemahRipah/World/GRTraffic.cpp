@@ -1,6 +1,7 @@
 #include "World/GRTraffic.h"
 #include "Player/GRCharacter.h"
 #include "Story/GRStoryUtil.h"
+#include "World/GRCrowd.h"
 #include "World/GRMotor.h"
 #include "World/GRPropModels.h"
 #include "Algo/BinarySearch.h"
@@ -166,6 +167,11 @@ void AGRTrafficCar::HitByRider(float Closing, const FVector& Direction, const FV
 	const float Momentum = Closing * RiderMass * 1.6f;
 	Knock(Direction.GetSafeNormal2D() * Momentum + FVector(0.f, 0.f, Momentum * 0.15f), Point);
 	Shout(Closing > 700.f ? TEXT("BRAKK!!") : TEXT("BRAK!"), FColor(255, 90, 60), 1.f);
+	bRammed = true;
+	if (AGRCrowd* Crowd = AGRCrowd::Get(this))
+	{
+		Crowd->ReportIncident(Closing >= 750.f ? 6.f : Closing >= 450.f ? 4.f : 2.f, Point, TEXT("Bayu menabrak mobil orang."));
+	}
 }
 
 void AGRTrafficCar::EndKnock()
@@ -176,6 +182,15 @@ void AGRTrafficCar::EndKnock()
 	// Back on its wheels; AGRTraffic finds the lane and the driver steers back into it.
 	SetActorRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
 	bRejoin = true;
+	if (bRammed)
+	{
+		bRammed = false;
+		// The driver gets out to have a word with Bayu; the car waits for them.
+		if (AGRCrowd* Crowd = AGRCrowd::Get(this); Crowd && Crowd->DriverOut(this))
+		{
+			return;
+		}
+	}
 	Shout(FMath::RandBool() ? TEXT("Woi! Hati-hati!") : TEXT("Aduh, mobilku!"), FColor(255, 230, 120), 2.f);
 }
 
@@ -210,6 +225,19 @@ void AGRTrafficCar::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* Other, 
 			HitCooldown = 0.5f;
 			Bayu->HandleCarImpact(Closing, Toward, false);
 			Shout(TEXT("BRAK!"), FColor(255, 90, 60), 1.f);
+		}
+		return;
+	}
+	if (AGRWarga* Person = Cast<AGRWarga>(Other))
+	{
+		// A car sliding after Bayu rammed it bowls the person over (and that is on him); one still driving only
+		// touches someone who stepped out in front of it.
+		const float Closing = FVector::DotProduct(GetMoveVelocity() - Person->GetVelocity(), Toward);
+		const bool bBayu = bKnocked && bRammed;
+		AActor* Culprit = bBayu ? static_cast<AActor*>(UGameplayStatics::GetPlayerPawn(this, 0)) : this;
+		if (Closing > 150.f && Person->KnockedBy(Culprit ? Culprit : this, Closing, Toward, bBayu ? 4.f : 0.f, TEXT("Mobil yang ditabrak Bayu menyeruduk warga!")))
+		{
+			HitCooldown = 0.3f;
 		}
 		return;
 	}
