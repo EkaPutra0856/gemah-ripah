@@ -14,6 +14,9 @@
 #include "Engine/World.h"
 #include "Story/GRStorySubsystem.h"
 #include "World/GRMotor.h"
+#include "World/GRTraffic.h"
+#include "HAL/PlatformTime.h"
+#include "Kismet/GameplayStatics.h"
 
 namespace
 {
@@ -89,6 +92,10 @@ void AGRCharacter::BeginPlay()
 
 void AGRCharacter::MoveFromInput(const FVector2D& Axis)
 {
+	if (bKnockedDown)
+	{
+		return;
+	}
 	if (bRiding)
 	{
 		// Scooter controls, not camera-relative: W throttle, S brake, A/D steer.
@@ -146,7 +153,7 @@ void AGRCharacter::SetSprinting(bool bNewSprinting)
 
 bool AGRCharacter::CanJumpInternal_Implementation() const
 {
-	return !bRiding && Super::CanJumpInternal_Implementation();
+	return !bRiding && !bKnockedDown && Super::CanJumpInternal_Implementation();
 }
 
 float AGRCharacter::GetMotorDistance() const
@@ -234,13 +241,179 @@ void AGRCharacter::SetRiding(bool bNewRiding)
 void AGRCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (bRiding)
+	ImpactCooldown -= DeltaSeconds;
+	if (HitStopEnd > 0.0 && FPlatformTime::Seconds() > HitStopEnd)
+	{
+		HitStopEnd = 0.0;
+		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+	}
+	if (bPendingKnock)
+	{
+		bPendingKnock = false;
+		StartKnockdown(PendingKnock);
+	}
+	if (bKnockedDown)
+	{
+		TickKnockdown(DeltaSeconds);
+	}
+	else if (bRiding)
 	{
 		TickRide(DeltaSeconds);
+	}
+	if (ShakeTime > 0.f)
+	{
+		ShakeTime = FMath::Max(ShakeTime - DeltaSeconds, 0.f);
+		const float Amp = ShakeAmp * ShakeTime / ShakeLength;
+		FollowCamera->SetRelativeLocation(FVector(0.f, FMath::FRandRange(-Amp, Amp), FMath::FRandRange(-Amp, Amp)));
 	}
 	// A touch wider view at speed.
 	const float SpeedRatio = bRiding ? FMath::Clamp(FMath::Abs(RideSpeedNow) / RideSpeed, 0.f, 1.3f) : 0.f;
 	FollowCamera->SetFieldOfView(FMath::FInterpTo(FollowCamera->FieldOfView, 90.f + 10.f * SpeedRatio, DeltaSeconds, 2.f));
+}
+
+void AGRCharacter::HandleCarImpact(float Closing, const FVector& Fling, bool bRammed)
+{
+	if (bKnockedDown || bPendingKnock || ImpactCooldown > 0.f || Closing < 150.f)
+	{
+		return;
+	}
+	ImpactCooldown = 0.6f;
+	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+	const FVector Dir = Fling.GetSafeNormal2D();
+	if (Closing >= 750.f)
+	{
+		// About 27 km/h and up: Bayu comes off and tumbles, with a beat of slow motion on the hit.
+		ShakeCamera(14.f, 0.6f);
+		UGameplayStatics::SetGlobalTimeDilation(this, 0.25f);
+		HitStopEnd = FPlatformTime::Seconds() + 0.09;
+		bPendingKnock = true;
+		PendingKnock = Dir * Closing * 0.55f + FVector(0.f, 0.f, 260.f);
+		if (Story)
+		{
+			Story->AddEnergi(-8.f);
+			Story->Run(bRiding ? TEXT("notifburuk Bayu jatuh dari motor! Energi -8.") : TEXT("notifburuk Bayu tertabrak mobil! Energi -8."));
+		}
+		return;
+	}
+	const bool bHard = Closing >= 450.f;
+	ShakeCamera(bHard ? 9.f : 4.f, bHard ? 0.45f : 0.25f);
+	if (bRiding)
+	{
+		// The scooter rebounds off the car (rammed) or gets knocked off its line and loses speed (rammed by it).
+		RideSpeedNow = bRammed ? -RideSpeedNow * 0.2f : RideSpeedNow * 0.3f;
+	}
+	else
+	{
+		LaunchCharacter(Dir * Closing * 0.7f + FVector(0.f, 0.f, 200.f), true, true);
+	}
+	if (bHard && Story)
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, 0.4f);
+		HitStopEnd = FPlatformTime::Seconds() + 0.06;
+		Story->AddEnergi(-3.f);
+		Story->Run(bRammed ? TEXT("notif Bayu menyerempet mobil. Energi -3.") : TEXT("notif Bayu terserempet mobil. Energi -3."));
+	}
+}
+
+void AGRCharacter::ShakeCamera(float Amplitude, float Duration)
+{
+	ShakeAmp = Amplitude;
+	ShakeLength = Duration;
+	ShakeTime = Duration;
+}
+
+void AGRCharacter::StartKnockdown(const FVector& Velocity)
+{
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (bRiding)
+	{
+		// The scooter drops where it hit and skids a little way back; Bayu flies on over the bars.
+		Motor->Crash(GetActorForwardVector() * RideSpeedNow * -0.12f, LeanAngle);
+		bRiding = false;
+		bWantDismount = false;
+		RideInput = FVector2D::ZeroVector;
+		RideSpeedNow = 0.f;
+		SteerAngle = 0.f;
+		LeanAngle = 0.f;
+		Move->bOrientRotationToMovement = true;
+		Move->MaxAcceleration = 2048.f;
+		if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
+		{
+			Anim->StopSlotAnimation(0.1f, TEXT("DefaultSlot"));
+		}
+		SetSprinting(bSprinting);
+	}
+	bKnockedDown = true;
+	bKnockFade = false;
+	KnockTime = 0.f;
+	Move->StopMovementImmediately();
+	Move->DisableMovement();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	USkeletalMeshComponent* Body = GetMesh();
+	MeshProfile = Body->GetCollisionProfileName();
+	Body->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	Body->SetCollisionProfileName(TEXT("Ragdoll"));
+	Body->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	Body->SetAllBodiesSimulatePhysics(true);
+	Body->SetSimulatePhysics(true);
+	Body->WakeAllRigidBodies();
+	Body->SetAllPhysicsLinearVelocity(Velocity);
+}
+
+void AGRCharacter::TickKnockdown(float DeltaSeconds)
+{
+	// The capsule, and with it the camera, keeps up with the tumbling body.
+	KnockTime += DeltaSeconds;
+	SetActorLocation(GetMesh()->GetSocketLocation(TEXT("pelvis")) + FVector(0.f, 0.f, 30.f));
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!bKnockFade && KnockTime > 2.3f)
+	{
+		bKnockFade = true;
+		if (PC && PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.35f, FLinearColor::Black, false, true);
+		}
+	}
+	if (KnockTime > 2.75f)
+	{
+		EndKnockdown();
+		if (PC && PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 0.6f, FLinearColor::Black, false, false);
+		}
+	}
+}
+
+void AGRCharacter::EndKnockdown()
+{
+	if (!bKnockedDown)
+	{
+		return;
+	}
+	bKnockedDown = false;
+	USkeletalMeshComponent* Body = GetMesh();
+	const FVector Pelvis = Body->GetSocketLocation(TEXT("pelvis"));
+	Body->SetSimulatePhysics(false);
+	Body->SetAllBodiesSimulatePhysics(false);
+	Body->SetCollisionProfileName(MeshProfile);
+	const float HalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	Body->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	Body->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -HalfHeight), FRotator(0.f, -90.f, 0.f));
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	// Up on his feet where he landed; TeleportTo finds room beside a car or a wall.
+	FHitResult Hit;
+	const bool bGround = GetWorld()->LineTraceSingleByObjectType(Hit, Pelvis + FVector(0.f, 0.f, 100.f), Pelvis - FVector(0.f, 0.f, 600.f),
+		FCollisionObjectQueryParams(ECC_WorldStatic));
+	const FVector Stand = (bGround ? Hit.ImpactPoint : Pelvis) + FVector(0.f, 0.f, HalfHeight + 5.f);
+	if (!TeleportTo(Stand, FRotator(0.f, GetActorRotation().Yaw, 0.f)))
+	{
+		SetActorLocation(Stand);
+	}
+	if (Motor)
+	{
+		Motor->FinishCrash();
+	}
 }
 
 void AGRCharacter::TickRide(float DeltaSeconds)
@@ -354,6 +527,20 @@ void AGRCharacter::TickRide(float DeltaSeconds)
 				GetCapsuleComponent()->GetCollisionObjectType(), FCollisionShape::MakeSphere(25.f), Params, Response)
 			&& Hit.ImpactNormal.Z < 0.7f)
 		{
+			if (AGRTrafficCar* Car = Cast<AGRTrafficCar>(Hit.GetActor()); Car && ImpactCooldown <= 0.f)
+			{
+				// Rode into a car: it gets shoved, the scooter bounces back or goes down with Bayu.
+				const float Closing = FVector::DotProduct(Heading * RideSpeedNow - Car->GetMoveVelocity(), Heading * Dir);
+				if (Closing > 150.f)
+				{
+					Car->HitByRider(Closing, Heading * Dir, Hit.ImpactPoint);
+					HandleCarImpact(Closing, Heading * Dir, true);
+					if (bPendingKnock)
+					{
+						return;
+					}
+				}
+			}
 			RideSpeedNow = Dir * FMath::Min(SpeedAbs, FMath::Max(Hit.Distance - 42.f, 0.f) / DeltaSeconds);
 		}
 	}

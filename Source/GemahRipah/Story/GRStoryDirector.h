@@ -12,7 +12,7 @@ class UGRStorySubsystem;
 
 /**
  * Runs the chapter inside the city map: spawns NPCs, props and zones from bab1.json, shows/hides them
- * by their conditions, fires story events, tracks OjekKu orders, drives simple road traffic, and opens
+ * by their conditions, fires story events, tracks OjekKu orders, spawns the road traffic (AGRTraffic), and opens
  * the dialog/cutscene/minigame screens that story actions ask for (one at a time).
  * The game mode spawns one automatically.
  */
@@ -39,16 +39,6 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	struct FCar
-	{
-		TObjectPtr<UStaticMeshComponent> Body;
-		bool bAlongY = true;
-		float Lane = 0.f;
-		float Dir = 1.f;
-		float Pos = 0.f;
-		float Speed = 1000.f;
-	};
-
 	struct FRequest
 	{
 		FName Kind;
@@ -56,12 +46,10 @@ private:
 	};
 
 	void SpawnAll();
-	void SpawnTraffic();
 	void RefreshSpawns();
 	void CheckZones();
 	void CheckOrder();
 	void UpdateTargetMarker();
-	void TickTraffic(float DeltaSeconds);
 	void HandleRequest(FName Kind, const FString& Arg);
 	void ProcessRequests();
 	bool IsUIBusy() const;
@@ -79,7 +67,6 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<AGRMapMarker> TargetMarker;
 
-	TArray<FCar> Cars;
 	TArray<FRequest> Queue;
 	FDelegateHandle RequestHandle;
 	float SlowTimer = 0.f;

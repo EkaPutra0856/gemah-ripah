@@ -21,6 +21,7 @@
 #include "World/GRMapBounds.h"
 #include "World/GRMapSubsystem.h"
 #include "World/GRNpc.h"
+#include "World/GRTraffic.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "Story/GRStorySubsystem.h"
@@ -297,6 +298,25 @@ void UGRCheatManager::GRKamera(float Yaw, float Pitch, float Distance)
 	if (USpringArmComponent* Boom = Pawn->FindComponentByClass<USpringArmComponent>())
 	{
 		Boom->TargetArmLength = Distance;
+	}
+}
+
+void UGRCheatManager::GRMobil(float Distance, float Yaw, float Hold)
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (AGRTraffic* Traffic = AGRTraffic::Get(PC); Traffic && Pawn)
+	{
+		Traffic->PlaceCar(Pawn->GetActorLocation() + Pawn->GetActorForwardVector().GetSafeNormal2D() * Distance,
+			Pawn->GetActorRotation().Yaw + Yaw, Hold);
+	}
+}
+
+void UGRCheatManager::GRLalin()
+{
+	if (const AGRTraffic* Traffic = AGRTraffic::Get(GetOuterAPlayerController()))
+	{
+		Traffic->LogCars();
 	}
 }
 

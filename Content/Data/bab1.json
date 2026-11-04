@@ -430,8 +430,8 @@
 
     { "id": "wiryo", "kind": "npc", "pose": "duduk", "pose": "duduk", "name": "Komandan Wiryo (SPN)", "pos": [5850, -4500], "yaw": 180, "dialog": "wiryo_umum", "color": "#2B3A67",
       "barks": ["Situasi kondusif.", "Asap? Itu kabut."] },
-    { "id": "spn_p1", "kind": "spn", "name": "Petugas SPN", "pos": [700, -12000], "patrol": [700, -15000, 700, 15000], "color": "#22305A" },
-    { "id": "spn_p2", "kind": "spn", "name": "Petugas SPN", "pos": [-12000, -700], "patrol": [-15000, -700, 15000, -700], "color": "#22305A" },
+    { "id": "spn_p1", "kind": "spn", "name": "Petugas SPN", "pos": [1000, -12000], "patrol": [1000, -15000, 1000, 15000], "color": "#22305A" },
+    { "id": "spn_p2", "kind": "spn", "name": "Petugas SPN", "pos": [-12000, -1000], "patrol": [-15000, -1000, 15000, -1000], "color": "#22305A" },
     { "id": "spn_p3", "kind": "spn", "name": "Petugas SPN", "pos": [12000, 17600], "if": "q.Dapur>=1", "patrol": [9000, 17600, 19000, 17600], "color": "#22305A" },
     { "id": "spn_r1", "kind": "spn", "name": "Razia SPN", "pos": [1400, -1500], "yaw": -45, "if": "razia && hour>=18 || razia && hour<5", "color": "#22305A" },
     { "id": "spn_r2", "kind": "spn", "name": "Razia SPN", "pos": [-1400, 1500], "yaw": 135, "if": "razia && hour>=18 || razia && hour<5", "color": "#22305A" },

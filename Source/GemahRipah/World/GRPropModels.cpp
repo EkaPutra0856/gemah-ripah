@@ -462,6 +462,49 @@ bool GRPropModels::Build(const FString& Model, const TArray<float>& Size, const 
 		P.Group = 0;
 		return true;
 	}
+	if (Model == TEXT("mobil") || Model == TEXT("angkot"))
+	{
+		// Road traffic, facing +X. AGRTrafficCar collides with one box around the whole car, so no part collides.
+		const bool bAngkot = Model == TEXT("angkot");
+		const FLinearColor Body = Main(bAngkot ? Hex(TEXT("#2A8C82")) : Hex(TEXT("#B8BEC6")));
+		const FLinearColor Glass = Hex(TEXT("#22303C"));
+		const float HalfLength = bAngkot ? 235.f : 210.f;
+		const float WheelX = bAngkot ? 160.f : 135.f;
+		P.bCollide = false;
+		if (bAngkot)
+		{
+			// Boxy minibus with a window band all round and the sliding door open on the kerb (left) side.
+			P.Box(FVector(0.f, 0.f, 100.f), FVector(470.f, 176.f, 160.f), Body);
+			P.Box(FVector(-5.f, 0.f, 148.f), FVector(440.f, 178.f, 44.f), Glass);
+			P.Box(FVector(0.f, 0.f, 186.f), FVector(460.f, 170.f, 12.f), Body);
+			P.Box(FVector(0.f, 0.f, 92.f), FVector(472.f, 178.f, 8.f), White);
+			P.Box(FVector(236.f, 0.f, 146.f), FVector(1.5f, 160.f, 46.f), Glass);
+			P.Box(FVector(20.f, -88.6f, 98.f), FVector(80.f, 1.5f, 150.f), Hex(TEXT("#1A1F24")));
+		}
+		else
+		{
+			P.Box(FVector(0.f, 0.f, 52.f), FVector(420.f, 176.f, 62.f), Body);
+			P.Box(FVector(-25.f, 0.f, 108.f), FVector(220.f, 164.f, 50.f), Glass);
+			P.Box(FVector(-30.f, 0.f, 136.f), FVector(190.f, 156.f, 6.f), Body);
+			for (int32 SY = -1; SY <= 1; SY += 2)
+			{
+				P.Box(FVector(-25.f, SY * 80.f, 108.f), FVector(10.f, 6.f, 50.f), Body);
+			}
+		}
+		for (int32 SX = -1; SX <= 1; SX += 2)
+		{
+			// Bumper, blank plate, and the tyres standing a little proud of the sides so they read from the side.
+			P.Box(FVector(SX * (HalfLength + 2.f), 0.f, 34.f), FVector(6.f, 178.f, 14.f), MetalDark);
+			P.Box(FVector(SX * (HalfLength + 5.5f), 0.f, 46.f), FVector(1.f, 44.f, 11.f), White);
+			for (int32 SY = -1; SY <= 1; SY += 2)
+			{
+				P.Cyl(FVector(SX * WheelX, SY * 80.f, 31.f), FVector(62.f, 62.f, 24.f), Black, FRotator(0.f, 0.f, 90.f));
+				P.Cyl(FVector(SX * WheelX, SY * 80.f, 31.f), FVector(30.f, 30.f, 25.f), Metal, FRotator(0.f, 0.f, 90.f));
+				P.Box(FVector(SX * (HalfLength + 0.5f), SY * 64.f, 66.f), FVector(2.f, 28.f, 12.f), SX > 0 ? Hex(TEXT("#FFF2B0")) : Hex(TEXT("#C8322A")));
+			}
+		}
+		return true;
+	}
 	if (Model == TEXT("warung") || Model == TEXT("lapak"))
 	{
 		// Long counter: goods are lined up along its longer side.

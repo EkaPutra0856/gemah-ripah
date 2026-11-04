@@ -262,7 +262,7 @@ void AGRPlayerController::HandleSprintCompleted()
 
 void AGRPlayerController::HandleInteract()
 {
-	if (AGRCharacter* GRCharacter = GetGRCharacter())
+	if (AGRCharacter* GRCharacter = GetGRCharacter(); GRCharacter && !GRCharacter->IsKnockedDown())
 	{
 		GRCharacter->GetInteraction()->TryInteract();
 	}
@@ -308,7 +308,7 @@ void AGRPlayerController::HandleMotor()
 {
 	AGRCharacter* GRCharacter = GetGRCharacter();
 	UGRStorySubsystem* Story = GetGameInstance() ? GetGameInstance()->GetSubsystem<UGRStorySubsystem>() : nullptr;
-	if (!GRCharacter || !Story)
+	if (!GRCharacter || !Story || GRCharacter->IsKnockedDown())
 	{
 		return;
 	}

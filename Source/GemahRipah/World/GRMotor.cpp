@@ -25,6 +25,8 @@ namespace
 	// On the side stand: leaning left, bars turned left.
 	constexpr float StandLean = -7.f;
 	constexpr float StandSteer = -18.f;
+	/** Lying on its side after a crash (a little short of flat, so the side panels stay above the road). */
+	constexpr float FallenLean = 78.f;
 }
 
 AGRMotor::AGRMotor()
@@ -121,13 +123,52 @@ void AGRMotor::BuildModel()
 void AGRMotor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bCrashed)
+	{
+		// Toppling over faster and faster, then scraping along on its side.
+		const float Fall = CrashLean >= 0.f ? FallenLean : -FallenLean;
+		CrashFallRate += 320.f * DeltaSeconds;
+		CrashLean = FMath::FInterpConstantTo(CrashLean, Fall, DeltaSeconds, CrashFallRate);
+		const float Speed = CrashVelocity.Size();
+		const float Slowed = FMath::Max(Speed - 700.f * DeltaSeconds, 0.f);
+		CrashVelocity = Speed > 0.f ? CrashVelocity * (Slowed / Speed) : FVector::ZeroVector;
+		const FVector Spot = GetActorLocation() + CrashVelocity * DeltaSeconds;
+		SetActorLocation(FVector(Spot.X, Spot.Y, GroundBelow(Spot + FVector(0.f, 0.f, 100.f)).Z));
+		SetRidePose(CrashLean, 0.f, Slowed * DeltaSeconds);
+		return;
+	}
 	SyncFromStory();
+}
+
+void AGRMotor::Crash(const FVector& Velocity, float Lean)
+{
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	SetActorRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
+	bRidden = false;
+	bCrashed = true;
+	CrashVelocity = FVector(Velocity.X, Velocity.Y, 0.f);
+	// Leaning either way, it falls that way; upright, onto the left (stand) side.
+	CrashLean = FMath::Abs(Lean) > 1.f ? Lean : -1.f;
+	CrashFallRate = 0.f;
+	SetActorEnableCollision(false);
+	SetActorTickInterval(0.f);
+}
+
+void AGRMotor::FinishCrash()
+{
+	if (!bCrashed)
+	{
+		return;
+	}
+	bCrashed = false;
+	SetActorTickInterval(0.25f);
+	Park(GroundBelow(GetActorLocation() + FVector(0.f, 0.f, 100.f)), GetActorRotation().Yaw);
 }
 
 void AGRMotor::SyncFromStory()
 {
 	UGRStorySubsystem* Story = GetGameInstance() ? GetGameInstance()->GetSubsystem<UGRStorySubsystem>() : nullptr;
-	if (!Story || bRidden)
+	if (!Story || bRidden || bCrashed)
 	{
 		return;
 	}

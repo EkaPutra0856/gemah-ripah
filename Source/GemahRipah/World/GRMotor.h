@@ -33,7 +33,15 @@ public:
 	/** Stands the scooter at a ground spot and remembers the spot in the story vars. */
 	void Park(const FVector& Ground, float Yaw);
 
-	bool IsParked() const { return !bRidden && !IsHidden(); }
+	bool IsParked() const { return !bRidden && !bCrashed && !IsHidden(); }
+
+	/** Thrown down in a crash: comes off the rider, falls on its side (the way it leaned) and slides to a stop. */
+	void Crash(const FVector& Velocity, float Lean);
+
+	/** Picked up after a crash: stands on its side stand where it came to rest. */
+	void FinishCrash();
+
+	bool IsCrashed() const { return bCrashed; }
 
 	/** Lean (roll) and steering in degrees, and how far the wheels rolled since the last call in cm. */
 	void SetRidePose(float Lean, float Steer, float Rolled);
@@ -89,4 +97,8 @@ private:
 	float WheelAngle = 0.f;
 	bool bRidden = false;
 	bool bOnMap = false;
+	bool bCrashed = false;
+	FVector CrashVelocity = FVector::ZeroVector;
+	float CrashLean = 0.f;
+	float CrashFallRate = 0.f;
 };

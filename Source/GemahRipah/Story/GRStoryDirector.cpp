@@ -12,6 +12,7 @@
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRNpc.h"
 #include "World/GRStoryProp.h"
+#include "World/GRTraffic.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "EngineUtils.h"
@@ -23,7 +24,6 @@ DEFINE_LOG_CATEGORY_STATIC(LogGRDirector, Log, All);
 namespace
 {
 	constexpr float OrderReach = 450.f;
-	constexpr float TrafficHalfLength = 26000.f;
 	const FVector HiddenSpot(0.f, 0.f, -100000.f);
 }
 
@@ -68,7 +68,7 @@ void AGRStoryDirector::BeginPlay()
 	}
 
 	SpawnAll();
-	SpawnTraffic();
+	GetWorld()->SpawnActor<AGRTraffic>(AGRTraffic::StaticClass(), FTransform::Identity);
 	RequestHandle = Story->OnRequest.AddUObject(this, &AGRStoryDirector::HandleRequest);
 	GetGameInstance()->GetSubsystem<UGRStatusSubsystem>()->OnDiawasiMaxed.AddDynamic(this, &AGRStoryDirector::HandleDiawasiMaxed);
 	RefreshSpawns();
@@ -144,68 +144,6 @@ void AGRStoryDirector::SpawnAll()
 		TargetMarker->Marker->bTracked = false;
 	}
 	UE_LOG(LogGRDirector, Log, TEXT("Director: %d objek cerita"), Spawned.Num());
-}
-
-void AGRStoryDirector::SpawnTraffic()
-{
-	UStaticMesh* Cube = GRStoryUtil::LoadShape(TEXT("cube"));
-	const FLinearColor Colors[] = { FLinearColor(0.8f, 0.15f, 0.1f), FLinearColor(0.15f, 0.3f, 0.7f), FLinearColor(0.85f, 0.85f, 0.8f),
-		FLinearColor(0.1f, 0.1f, 0.1f), FLinearColor(0.2f, 0.55f, 0.3f), FLinearColor(0.9f, 0.7f, 0.1f) };
-	int32 Index = 0;
-	for (int32 Road = 0; Road < 2; ++Road)
-	{
-		for (int32 Side = 0; Side < 2; ++Side)
-		{
-			for (int32 i = 0; i < 4; ++i)
-			{
-				FCar Car;
-				Car.bAlongY = Road == 0;
-				Car.Dir = Side == 0 ? 1.f : -1.f;
-				// Left-hand traffic.
-				Car.Lane = Car.bAlongY ? -650.f * Car.Dir : 650.f * Car.Dir;
-				Car.Pos = -TrafficHalfLength + (i + Side * 0.5f) * (TrafficHalfLength * 0.5f);
-				Car.Speed = FMath::FRandRange(900.f, 1300.f);
-				Car.Body = NewObject<UStaticMeshComponent>(this);
-				Car.Body->SetStaticMesh(Cube);
-				Car.Body->SetMobility(EComponentMobility::Movable);
-				Car.Body->SetupAttachment(RootComponent);
-				Car.Body->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-				const FVector Size = (Index % 5 == 0) ? FVector(5.5f, 2.0f, 2.2f) : FVector(4.2f, 1.8f, 1.4f);
-				Car.Body->SetWorldScale3D(Car.bAlongY ? FVector(Size.Y, Size.X, Size.Z) : Size);
-				Car.Body->RegisterComponent();
-				GRStoryUtil::ApplyColor(Car.Body, Colors[Index % UE_ARRAY_COUNT(Colors)]);
-				Cars.Add(Car);
-				++Index;
-			}
-		}
-	}
-}
-
-void AGRStoryDirector::TickTraffic(float DeltaSeconds)
-{
-	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
-	const FVector P = Player ? Player->GetActorLocation() : FVector(1e9);
-	for (FCar& Car : Cars)
-	{
-		const float Along = Car.bAlongY ? P.Y : P.X;
-		const float Across = Car.bAlongY ? P.X : P.Y;
-		const float Ahead = (Along - Car.Pos) * Car.Dir;
-		const bool bBlocked = FMath::Abs(Across - Car.Lane) < 400.f && Ahead > 0.f && Ahead < 900.f;
-		if (!bBlocked)
-		{
-			Car.Pos += Car.Speed * Car.Dir * DeltaSeconds;
-		}
-		if (Car.Pos > TrafficHalfLength)
-		{
-			Car.Pos = -TrafficHalfLength;
-		}
-		else if (Car.Pos < -TrafficHalfLength)
-		{
-			Car.Pos = TrafficHalfLength;
-		}
-		const float Height = Car.Body->GetComponentScale().Z * 50.f;
-		Car.Body->SetWorldLocation(Car.bAlongY ? FVector(Car.Lane, Car.Pos, Height) : FVector(Car.Pos, Car.Lane, Height));
-	}
 }
 
 void AGRStoryDirector::RefreshSpawns()
@@ -359,7 +297,6 @@ void AGRStoryDirector::Tick(float DeltaSeconds)
 		}
 	}
 
-	TickTraffic(DeltaSeconds);
 	// Safety net: anyone who falls out of the world wakes up at home.
 	if (APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0); Player && Player->GetActorLocation().Z < -3000.f)
 	{
@@ -472,6 +409,10 @@ void AGRStoryDirector::Teleport(const FString& SpawnId)
 	{
 		return;
 	}
+	if (AGRCharacter* Character = Cast<AGRCharacter>(Player))
+	{
+		Character->EndKnockdown();
+	}
 	// The exact spot may be blocked (lamp post, NPC): try a ring of nearby spots.
 	const FVector Base = GetSpawnLocation(SpawnId) + FVector(0.f, 0.f, 110.f);
 	for (int32 i = 0; i < 17; ++i)
@@ -502,6 +443,7 @@ void AGRStoryDirector::ForceSleep()
 	}
 	if (AGRCharacter* Character = Cast<AGRCharacter>(PC->GetPawn()))
 	{
+		Character->EndKnockdown();
 		Character->SetRiding(false);
 	}
 	if (APawn* Player = PC->GetPawn())

@@ -68,6 +68,17 @@ public:
 	/** Roll into the turn, degrees (positive leans right). */
 	float GetRideLean() const { return LeanAngle; }
 
+	/**
+	 * A traffic car and Bayu met at Closing cm/s; Fling is the way his body goes, bRammed means he rode into it.
+	 * A bump shakes the camera, a harder one costs energy, and from about 27 km/h he comes off (ragdoll) for a moment.
+	 */
+	void HandleCarImpact(float Closing, const FVector& Fling, bool bRammed);
+
+	bool IsKnockedDown() const { return bKnockedDown; }
+
+	/** Back on his feet now: after the ragdoll settles, or straight away before a teleport. */
+	void EndKnockdown();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Kamera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -111,6 +122,10 @@ private:
 	/** Throttle, brakes, steering, lean and the camera behind the scooter. */
 	void TickRide(float DeltaSeconds);
 
+	void StartKnockdown(const FVector& Velocity);
+	void TickKnockdown(float DeltaSeconds);
+	void ShakeCamera(float Amplitude, float Duration);
+
 	bool bTopDownMode = false;
 	bool bRiding = false;
 	bool bSprinting = false;
@@ -123,4 +138,18 @@ private:
 	/** How long S has been held at a standstill; backing up starts after a moment. */
 	float StoppedBrakeTime = 0.f;
 	float LastLookTime = -100.f;
+
+	bool bKnockedDown = false;
+	/** Hits can arrive in the middle of a movement update; the ragdoll starts on the next tick. */
+	bool bPendingKnock = false;
+	FVector PendingKnock = FVector::ZeroVector;
+	bool bKnockFade = false;
+	float KnockTime = 0.f;
+	FName MeshProfile;
+	float ShakeTime = 0.f;
+	float ShakeLength = 0.f;
+	float ShakeAmp = 0.f;
+	float ImpactCooldown = 0.f;
+	/** Real time when the short slow-motion on a hard hit ends. */
+	double HitStopEnd = 0.0;
 };

@@ -118,6 +118,12 @@ public:
 	/** Points the camera from yaw/pitch degrees relative to Bayu, at Distance cm, for scripted screenshots. */
 	UFUNCTION(Exec)
 	void GRKamera(float Yaw, float Pitch = -10.f, float Distance = 450.f);
+	/** Puts the nearest traffic car Distance cm ahead of Bayu, turned Yaw degrees from his heading, standing still for Hold s. */
+	UFUNCTION(Exec)
+	void GRMobil(float Distance = 1500.f, float Yaw = 90.f, float Hold = 10.f);
+	/** Logs every traffic car (spot, speed, knocked) and any two that overlap. */
+	UFUNCTION(Exec)
+	void GRLalin();
 
 private:
 	UGameInstance* GetGI() const;
