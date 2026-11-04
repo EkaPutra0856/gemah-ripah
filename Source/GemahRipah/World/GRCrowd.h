@@ -44,6 +44,15 @@ public:
 	 */
 	bool KnockedBy(AActor* Culprit, float Closing, const FVector& Direction, float Diawasi, const TCHAR* What = nullptr);
 
+	/** Talk menu (UGRWargaChatScreen): who they are, whether they still listen, and their answers. */
+	FText GetChatTitle() const;
+	bool IsVendor() const { return Role == ERole::Vendor; }
+	bool CanChat() const;
+	/** Keeps them standing and facing Bayu for Seconds more. */
+	void HoldChat(float Seconds);
+	/** Answers a menu topic: 0 greet (with a wave), 1 how things are, 2 the way to Bayu's goal, 3 buy a snack (vendors). */
+	void Chat(int32 Topic);
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
 	TObjectPtr<UStaticMeshComponent> Headwear;
@@ -51,9 +60,6 @@ protected:
 	/** Cap brim, hijab drape or the crown of a straw hat. */
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
 	TObjectPtr<UStaticMeshComponent> HeadExtra;
-
-	UPROPERTY(VisibleAnywhere, Category = "Warga")
-	TObjectPtr<UTextRenderComponent> BarkText;
 
 private:
 	friend class AGRCrowd;
@@ -124,6 +130,16 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAnimSequenceBase> CartWalkAnim;
 
+	/** Waving at Bayu, and looking at a phone while standing about. */
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> WaveAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> PhoneAnim;
+
+	UPROPERTY(VisibleAnywhere, Category = "Warga")
+	TObjectPtr<UStaticMeshComponent> PhoneProp;
+
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimSequenceBase> CurrentPose;
 
@@ -142,6 +158,8 @@ private:
 	FVector LookAt = FVector::ZeroVector;
 	/** Height of the speech line above the actor, standing. */
 	float BarkZ = 135.f;
+	/** Current speech bubble height (lower when seated). */
+	float BubbleZ = 135.f;
 	/** Waist and neck heights for the clothes material, standing. */
 	float HipZ = 95.f;
 	float NeckZ = 150.f;
@@ -169,6 +187,11 @@ private:
 	float DownTime = 0.f;
 	float HitCooldown = 0.f;
 	float ShoveCooldown = 0.f;
+	/** Waving (time left), and until they may notice Bayu walking past again. */
+	float WaveTime = 0.f;
+	float NoticeCooldown = 0.f;
+	/** This stop is spent looking at the phone. */
+	bool bPhone = false;
 	int32 Group = -1;
 	int32 Bench = -1;
 	int32 Seat = 0;

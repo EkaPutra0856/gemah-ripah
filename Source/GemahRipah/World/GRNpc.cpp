@@ -2,6 +2,7 @@
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
+#include "UI/GRBubbles.h"
 #include "UI/GRUISubsystem.h"
 #include "UI/GRStoryScreens.h"
 #include "Animation/AnimInstance.h"
@@ -82,13 +83,6 @@ AGRNpc::AGRNpc()
 	NameText->SetWorldSize(18.f);
 	NameText->SetTextRenderColor(FColor(240, 220, 190));
 
-	BarkText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("BarkText"));
-	BarkText->SetupAttachment(RootComponent);
-	BarkText->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
-	BarkText->SetHorizontalAlignment(EHTA_Center);
-	BarkText->SetWorldSize(16.f);
-	BarkText->SetTextRenderColor(FColor::White);
-	BarkText->SetHiddenInGame(true);
 
 	Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
 	Flashlight->SetupAttachment(RootComponent);
@@ -130,7 +124,7 @@ void AGRNpc::Setup(const FGRSpawnDef& Def)
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 		Hat->SetRelativeLocation(FVector(-8.f, 0.f, 50.f));
 		NameText->SetRelativeLocation(FVector(0.f, 0.f, 85.f));
-		BarkText->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
+		BubbleZ = 110.f;
 	}
 
 	NameText->SetText(FText::FromString(Def.Name));
@@ -201,8 +195,7 @@ void AGRNpc::Interact_Implementation(AActor* Interactor)
 
 void AGRNpc::Say(const FString& Text, float Duration)
 {
-	BarkText->SetText(FText::FromString(Text));
-	BarkText->SetHiddenInGame(false);
+	UGRBubbleSubsystem::Show(this, Text, Duration, FLinearColor::White, BubbleZ);
 	BarkHideTime = Duration;
 }
 
@@ -229,7 +222,6 @@ void AGRNpc::Tick(float DeltaSeconds)
 		const float Dist = FVector::Dist(CamLoc, GetActorLocation());
 		const FRotator Face(0.f, (CamLoc - GetActorLocation()).Rotation().Yaw, 0.f);
 		NameText->SetWorldRotation(Face);
-		BarkText->SetWorldRotation(Face);
 		NameText->SetHiddenInGame(Dist > NameRange);
 	}
 }
@@ -466,14 +458,7 @@ void AGRNpc::TickVision(float DeltaSeconds, APawn* Player)
 
 void AGRNpc::TickBarks(float DeltaSeconds, const APawn* Player)
 {
-	if (BarkHideTime > 0.f)
-	{
-		BarkHideTime -= DeltaSeconds;
-		if (BarkHideTime <= 0.f)
-		{
-			BarkText->SetHiddenInGame(true);
-		}
-	}
+	BarkHideTime -= DeltaSeconds;
 	BarkCooldown -= DeltaSeconds;
 	if (BarkCooldown > 0.f || !Player || FVector::Dist(Player->GetActorLocation(), GetActorLocation()) > BarkRange)
 	{

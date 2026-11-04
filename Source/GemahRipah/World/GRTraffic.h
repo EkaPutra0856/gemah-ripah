@@ -50,9 +50,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Komponen")
 	TObjectPtr<UBoxComponent> Body;
 
-	UPROPERTY(VisibleAnywhere, Category = "Komponen")
-	TObjectPtr<UTextRenderComponent> ShoutText;
-
 private:
 	friend class AGRTraffic;
 
@@ -107,7 +104,6 @@ private:
 	/** This knock is Bayu's doing: the driver gets out once the car stops, and whoever it hits is on his record. */
 	bool bRammed = false;
 	float KnockTime = 0.f;
-	float ShoutTime = 0.f;
 	float HitCooldown = 0.f;
 };
 

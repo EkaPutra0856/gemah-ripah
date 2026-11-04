@@ -76,6 +76,27 @@ for side, yaw in ((-1, 0), (1, 180)):
 put("rumah_dapur", "dapur", -9455, -8650, 0)
 put("rumah_lemari", "lemari", -9300, -8460, -90)
 desk_seat("rumah_dinda", -8850, -9350, 0, desk="meja", chair="kursi", dist=85, desk_size=[50, 90, 68])
+# Living corner: rug, TV on the west wall with a photo above it, a photo by the dining table, a plant by the door.
+put("rumah_karpet", "karpet", -9050, -9050, 0)
+put("rumah_tv", "tv", -9050, -9560, 90)
+put("rumah_foto", "bingkai", -9050, -9586, 90)
+put("rumah_foto2", "bingkai", -8900, -8414, -90, size=[3, 45, 55], color="#D98E73")
+put("rumah_pot", "pot", -8570, -9540)
+
+# Dapur PPR (x 19100..20900, y 19300..20700, door in the -X wall): stoves on the north wall, prep tables in the
+# middle, store shelves on the east and west walls. Hidden while the stealth level runs in this room.
+DAP = "!menyusup"
+for i, y in enumerate((19560, 20000, 20440)):
+    put(f"dapur_kompor{i}", "kompor_besar", 20840, y, 180, cond=DAP)
+for i, y in enumerate((19750, 20250)):
+    put(f"dapur_meja{i}", "meja_dapur", 20300, y, 0, cond=DAP)
+for i, x in enumerate((19450, 19650, 19850)):
+    put(f"dapur_rak{i}", "rak_dapur", x, 20660, -90, cond=DAP)
+for i, x in enumerate((19500, 19700)):
+    put(f"dapur_rakb{i}", "rak_dapur", x, 19340, 90, cond=DAP)
+put("dapur_dispenser", "dispenser", 19180, 20620, 0, cond=DAP)
+for i, x in enumerate((19250, 19330)):
+    put(f"dapur_kursi{i}", "kursi_plastik", x, 19420, 90, cond=DAP)
 
 # Pos Ronda: Pak RT on the bench with kopi, a second bench facing the warung.
 put("ronda_bangku", "bangku", -5650, -12300, 90)

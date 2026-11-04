@@ -55,9 +55,6 @@ public:
 	TObjectPtr<UTextRenderComponent> NameText;
 
 	UPROPERTY(VisibleAnywhere, Category = "NPC")
-	TObjectPtr<UTextRenderComponent> BarkText;
-
-	UPROPERTY(VisibleAnywhere, Category = "NPC")
 	TObjectPtr<UStaticMeshComponent> Hat;
 
 	UPROPERTY(VisibleAnywhere, Category = "NPC")
@@ -99,6 +96,8 @@ private:
 	float StuckTime = 0.f;
 	float BarkCooldown = 3.f;
 	float BarkHideTime = 0.f;
+	/** Speech bubble height above the actor (lower when seated). */
+	float BubbleZ = 150.f;
 	float TalkPause = 0.f;
 	bool bSpn = false;
 	bool bChasing = false;

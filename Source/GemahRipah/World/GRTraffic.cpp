@@ -2,6 +2,7 @@
 #include "Player/GRCharacter.h"
 #include "Story/GRStoryUtil.h"
 #include "World/GRCrowd.h"
+#include "UI/GRBubbles.h"
 #include "World/GRMotor.h"
 #include "World/GRPropModels.h"
 #include "Algo/BinarySearch.h"
@@ -89,15 +90,6 @@ AGRTrafficCar::AGRTrafficCar()
 	// Engine and axles sit low: a shove makes it rock and slide, not tip over.
 	Body->BodyInstance.COMNudge = FVector(0.f, 0.f, -35.f);
 
-	ShoutText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("ShoutText"));
-	ShoutText->SetupAttachment(Body);
-	ShoutText->SetUsingAbsoluteLocation(true);
-	ShoutText->SetUsingAbsoluteRotation(true);
-	ShoutText->SetHorizontalAlignment(EHTA_Center);
-	ShoutText->SetVerticalAlignment(EVRTA_TextCenter);
-	ShoutText->SetWorldSize(42.f);
-	ShoutText->SetHiddenInGame(true);
-	ShoutText->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AGRTrafficCar::Build(bool bInAngkot, const TCHAR* Color, float InCruise)
@@ -264,10 +256,7 @@ void AGRTrafficCar::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* Other, 
 
 void AGRTrafficCar::Shout(const FString& Text, const FColor& Color, float Duration)
 {
-	ShoutText->SetText(FText::FromString(Text));
-	ShoutText->SetTextRenderColor(Color);
-	ShoutText->SetHiddenInGame(false);
-	ShoutTime = Duration;
+	UGRBubbleSubsystem::Show(this, Text, Duration, FLinearColor(Color), HalfHeight + 70.f, true);
 }
 
 void AGRTrafficCar::Tick(float DeltaSeconds)
@@ -282,19 +271,6 @@ void AGRTrafficCar::Tick(float DeltaSeconds)
 		if ((KnockTime > 1.2f && bSettled) || KnockTime > 6.f)
 		{
 			EndKnock();
-		}
-	}
-	if (ShoutTime > 0.f)
-	{
-		ShoutTime -= DeltaSeconds;
-		if (ShoutTime <= 0.f)
-		{
-			ShoutText->SetHiddenInGame(true);
-		}
-		else if (const APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(this, 0))
-		{
-			const FVector Above = GetActorLocation() + FVector(0.f, 0.f, HalfHeight + 70.f);
-			ShoutText->SetWorldLocationAndRotation(Above, FRotator(0.f, (Camera->GetCameraLocation() - Above).Rotation().Yaw, 0.f));
 		}
 	}
 }

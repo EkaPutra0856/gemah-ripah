@@ -1,11 +1,15 @@
 #include "World/GRCrowd.h"
+#include "UI/GRBubbles.h"
 #include "Camera/GRTopDownRoomVolume.h"
 #include "Player/GRCharacter.h"
+#include "Story/GRStoryDirector.h"
 #include "Story/GRStorySubsystem.h"
 #include "Story/GRStoryTypes.h"
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "UI/GRUISubsystem.h"
+#include "UI/GRWargaChat.h"
 #include "World/GRNpc.h"
 #include "World/GRPropModels.h"
 #include "World/GRStealthLevel.h"
@@ -22,8 +26,10 @@
 #include "Components/TextRenderComponent.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -244,6 +250,21 @@ AGRWarga::AGRWarga()
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> CartWalkSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_GerobakJalan.MM_GR_GerobakJalan"));
 	CartAnim = CartSeq.Object;
 	CartWalkAnim = CartWalkSeq.Object;
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> WaveSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Lambai.MM_GR_Lambai"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PhoneSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Ponsel.MM_GR_Ponsel"));
+	WaveAnim = WaveSeq.Object;
+	PhoneAnim = PhoneSeq.Object;
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> PhoneCube(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	PhoneProp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PhoneProp"));
+	PhoneProp->SetStaticMesh(PhoneCube.Object);
+	PhoneProp->SetupAttachment(RootComponent);
+	PhoneProp->SetUsingAbsoluteLocation(true);
+	PhoneProp->SetUsingAbsoluteRotation(true);
+	PhoneProp->SetUsingAbsoluteScale(true);
+	PhoneProp->SetWorldScale3D(FVector(0.012f, 0.075f, 0.15f));
+	PhoneProp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PhoneProp->SetCastShadow(false);
+	PhoneProp->SetHiddenInGame(true);
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ClothesMat(TEXT("/Game/GemahRipah/Materials/M_GR_Warga.M_GR_Warga"));
 	ClothesBase = ClothesMat.Object;
 
@@ -257,19 +278,16 @@ AGRWarga::AGRWarga()
 		Piece->SetVisibility(false);
 	}
 
-	BarkText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("BarkText"));
-	BarkText->SetupAttachment(RootComponent);
-	BarkText->SetRelativeLocation(FVector(0.f, 0.f, 135.f));
-	BarkText->SetHorizontalAlignment(EHTA_Center);
-	BarkText->SetWorldSize(16.f);
-	BarkText->SetTextRenderColor(FColor::White);
-	BarkText->SetHiddenInGame(true);
 }
 
 void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 {
 	Rng.Initialize(Seed);
 	Role = InRole;
+	if (!Cast<UMaterialInstanceDynamic>(PhoneProp->GetMaterial(0)))
+	{
+		PhoneProp->SetMaterial(0, GRStoryUtil::MakeColorMaterial(this, FLinearColor(0.04f, 0.05f, 0.07f), 1.f));
+	}
 	const bool bFemale = Rng.FRand() < 0.5f;
 	USkeletalMeshComponent* Body = GetMesh();
 	USkeletalMesh* Want = bFemale ? QuinnMesh.Get() : MannyMesh.Get();
@@ -339,7 +357,7 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 	PinToHead(Headwear);
 	PinToHead(HeadExtra);
 	BarkZ = Top + 40.f;
-	BarkText->SetRelativeLocation(FVector(0.f, 0.f, BarkZ));
+	BubbleZ = BarkZ;
 
 	// Vendors push a gerobak: body, glass case, roof on four posts, two wheels, a front leg and the handles.
 	const bool bVendor = Role == ERole::Vendor;
@@ -431,10 +449,14 @@ void AGRWarga::Activate(const FVector& Feet, float Yaw)
 	CryTimer = Rng.FRandRange(1.f, 6.f);
 	AngryTime = 0.f;
 	HitCooldown = 0.f;
+	WaveTime = 0.f;
+	NoticeCooldown = Rng.FRandRange(4.f, 15.f);
+	bPhone = false;
+	PhoneProp->SetHiddenInGame(true);
 	ShoveCooldown = 0.f;
 	AngryAt = nullptr;
 	DriverCar = nullptr;
-	BarkText->SetHiddenInGame(true);
+	UGRBubbleSubsystem::Hide(this);
 	SetSeatedLook(false);
 }
 
@@ -465,14 +487,12 @@ void AGRWarga::Deactivate()
 	Move->SetComponentTickEnabled(false);
 	// Far below the town: traffic and the story only look at people near street level.
 	SetActorLocation(FVector(0.f, 0.f, -30000.f), false, nullptr, ETeleportType::ResetPhysics);
-	BarkText->SetHiddenInGame(true);
+	UGRBubbleSubsystem::Hide(this);
 }
 
 void AGRWarga::Say(const FString& Text, float Duration, const FColor& Color)
 {
-	BarkText->SetText(FText::FromString(Text));
-	BarkText->SetTextRenderColor(Color);
-	BarkText->SetHiddenInGame(false);
+	UGRBubbleSubsystem::Show(this, Text, Duration, FLinearColor(Color), BubbleZ, Color != FColor::White);
 	BarkHide = Duration;
 }
 
@@ -730,7 +750,7 @@ void AGRWarga::PinToHead(UStaticMeshComponent* Piece)
 void AGRWarga::SetSeatedLook(bool bSeated)
 {
 	// Headwear rides the head bone; the speech line and the clothes' waist and neck drop with the pelvis.
-	BarkText->SetRelativeLocation(FVector(0.f, 0.f, bSeated ? BarkZ - 42.f : BarkZ));
+	BubbleZ = bSeated ? BarkZ - 42.f : BarkZ;
 	if (Clothes)
 	{
 		// Seated, the waist sits just above the thighs and the neck drops with the pelvis.
@@ -775,41 +795,127 @@ bool AGRWarga::CanInteract_Implementation(AActor* Interactor) const
 
 void AGRWarga::Interact_Implementation(AActor* Interactor)
 {
-	TalkPause = 4.5f;
-	if (Mode == EMode::Walk)
+	HoldChat(4.5f);
+	Say(Role == ERole::Vendor ? TEXT("Ya, Mas? Mau jajan?") : Rng.FRand() < 0.5f ? TEXT("Eh, Mas Bayu. Ada apa?") : TEXT("Iya, Mas?"), 2.5f);
+	const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	UGRUISubsystem* UI = PC && PC->GetLocalPlayer() ? PC->GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (UGRWargaChatScreen* Screen = UI ? UI->PushScreen<UGRWargaChatScreen>() : nullptr)
+	{
+		Screen->SetWarga(this);
+	}
+}
+
+FText AGRWarga::GetChatTitle() const
+{
+	return Role == ERole::Vendor ? LOCTEXT("ChatVendor", "Pedagang Gerobak")
+		: Role == ERole::Jogger ? LOCTEXT("ChatJogger", "Warga yang Lagi Joging")
+		: LOCTEXT("ChatWarga", "Warga Sentosa");
+}
+
+bool AGRWarga::CanChat() const
+{
+	return bActive && !IsHidden() && Mode != EMode::Down && Mode != EMode::Angry;
+}
+
+void AGRWarga::HoldChat(float Seconds)
+{
+	if (Mode == EMode::Walk && TalkPause <= 0.f)
 	{
 		GetCharacterMovement()->StopMovementImmediately();
 	}
-	TArray<FString> Lines;
+	TalkPause = FMath::Max(TalkPause, Seconds);
+}
+
+void AGRWarga::Chat(int32 Topic)
+{
+	HoldChat(5.f);
 	const int32 Hour = HourNow(this);
-	Lines.Add(Hour >= 4 && Hour < 11 ? TEXT("Pagi, Mas Bayu!") : Hour < 15 ? TEXT("Siang, Mas. Panas, ya.")
-		: Hour < 18 ? TEXT("Sore, Mas Bayu.") : TEXT("Malam, Mas. Jangan kemalaman, banyak razia."));
-	if (Role == ERole::Vendor)
+	TArray<FString> Lines;
+	if (Topic == 0)
 	{
-		Lines.Add(TEXT("Beli, Mas? Masih anget."));
-		Lines.Add(TEXT("Murah, Mas. Belum kena pajak."));
-	}
-	else if (Role == ERole::Jogger)
-	{
-		Lines.Add(TEXT("Ayo lari, Mas! Biar kuat ngadepin harga."));
-	}
-	else
-	{
-		for (const TCHAR* Line : GreetLines)
+		// Hello back, with a wave (seated people and vendors keep their hands where they are).
+		if (Mode != EMode::Sit && Role != ERole::Vendor)
 		{
-			Lines.Add(Line);
+			WaveTime = 2.4f;
 		}
-		// What the town is talking about this chapter.
-		const UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
-		for (const FGRBarkDef& Bark : Story ? Story->GetData().Barks : TArray<FGRBarkDef>())
+		Lines.Add(Hour >= 4 && Hour < 11 ? TEXT("Pagi, Mas Bayu! Sehat?") : Hour < 15 ? TEXT("Siang, Mas. Panas, ya.")
+			: Hour < 18 ? TEXT("Sore, Mas Bayu. Salam buat Ibu.") : TEXT("Malam, Mas. Jangan kemalaman, banyak razia."));
+	}
+	else if (Topic == 1)
+	{
+		if (Role == ERole::Vendor)
 		{
-			if (Story->Check(Bark.If))
+			Lines.Add(TEXT("Laris, Mas. Tapi minyak goreng naik lagi, untung tipis."));
+			Lines.Add(TEXT("Katanya mau ada penertiban PKL. Kami mau dagang di mana?"));
+			Lines.Add(TEXT("Murah, Mas. Belum kena pajak."));
+		}
+		else if (Role == ERole::Jogger)
+		{
+			Lines.Add(TEXT("Ayo lari, Mas! Biar kuat ngadepin harga."));
+			Lines.Add(TEXT("Udaranya sesak, Mas. ISPU merah terus, tapi lari harus jalan."));
+		}
+		else
+		{
+			for (const TCHAR* Line : GreetLines)
 			{
-				Lines.Add(Bark.Text);
+				Lines.Add(Line);
+			}
+			// What the town is talking about this chapter.
+			const UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+			for (const FGRBarkDef& Bark : Story ? Story->GetData().Barks : TArray<FGRBarkDef>())
+			{
+				if (Story->Check(Bark.If))
+				{
+					Lines.Add(Bark.Text);
+				}
 			}
 		}
 	}
-	Say(Lines[Rng.RandRange(0, Lines.Num() - 1)], 4.f);
+	else if (Topic == 2)
+	{
+		// Directions to the current goal by compass point, the way people here give them.
+		FVector Goal;
+		FText Label;
+		const AGRStoryDirector* Director = AGRStoryDirector::Get(this);
+		if (!Director || !Director->GetTrackedTarget(Goal, Label))
+		{
+			Lines.Add(TEXT("Mau ke mana, Mas? Kota ini kecil, jalan aja pasti nyampe."));
+		}
+		else
+		{
+			const FVector To = Goal - GetActorLocation();
+			const float Meters = To.Size2D() / 100.f;
+			static const TCHAR* Points[] = { TEXT("utara"), TEXT("timur laut"), TEXT("timur"), TEXT("tenggara"), TEXT("selatan"), TEXT("barat daya"), TEXT("barat"), TEXT("barat laut") };
+			const int32 Point = (FMath::RoundToInt(FMath::RadiansToDegrees(FMath::Atan2(To.Y, To.X)) / 45.f) + 8) % 8;
+			if (Meters < 15.f)
+			{
+				Lines.Add(FString::Printf(TEXT("%s? Lho, itu sudah dekat sini, Mas."), *Label.ToString()));
+			}
+			else
+			{
+				const int32 Rounded = Meters < 100.f ? FMath::RoundToInt(Meters / 10.f) * 10 : FMath::RoundToInt(Meters / 50.f) * 50;
+				Lines.Add(FString::Printf(TEXT("%s? Ke arah %s, Mas. Kira-kira %d meter dari sini."), *Label.ToString(), Points[Point], Rounded));
+			}
+		}
+	}
+	else if (Topic == 3 && Role == ERole::Vendor)
+	{
+		UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+		const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
+		if (Story && Status && Status->GetUang() >= 5000)
+		{
+			Story->Run(TEXT("uang -5000 Jajan di gerobak; energi 8"));
+			Lines.Add(TEXT("Makasih, Mas! Masih anget, tuh. Langganan, ya."));
+		}
+		else
+		{
+			Lines.Add(TEXT("Uangnya kurang, Mas. Ngutang? Wah, jangan deh."));
+		}
+	}
+	if (!Lines.IsEmpty())
+	{
+		Say(Lines[Rng.RandRange(0, Lines.Num() - 1)], 4.5f);
+	}
 }
 
 void AGRWarga::Tick(float DeltaSeconds)
@@ -820,14 +926,7 @@ void AGRWarga::Tick(float DeltaSeconds)
 		return;
 	}
 	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (BarkHide > 0.f)
-	{
-		BarkHide -= DeltaSeconds;
-		if (BarkHide <= 0.f)
-		{
-			BarkText->SetHiddenInGame(true);
-		}
-	}
+	BarkHide -= DeltaSeconds;
 	DodgeCooldown -= DeltaSeconds;
 	HitCooldown -= DeltaSeconds;
 	ShoveCooldown -= DeltaSeconds;
@@ -847,6 +946,22 @@ void AGRWarga::Tick(float DeltaSeconds)
 		if (FurnitureIgnore <= 0.f)
 		{
 			GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+		}
+	}
+	WaveTime -= DeltaSeconds;
+	NoticeCooldown -= DeltaSeconds;
+	// Bayu walking past: some look up, stop, wave and say hello.
+	if (const AGRCharacter* Bayu = Cast<AGRCharacter>(Player); Bayu && !Bayu->IsRiding() && NoticeCooldown <= 0.f && TalkPause <= 0.f
+		&& (Mode == EMode::Walk || Mode == EMode::Pause) && Role != ERole::Jogger && !DriverCar.IsValid() && Dodge <= 0.f
+		&& FVector::DistSquared2D(GetActorLocation(), Bayu->GetActorLocation()) < FMath::Square(300.f))
+	{
+		NoticeCooldown = Rng.FRandRange(30.f, 60.f);
+		if (Rng.FRand() < 0.45f)
+		{
+			static const TCHAR* Hello[] = { TEXT("Eh, Mas Bayu!"), TEXT("Mari, Mas."), TEXT("Mas Bayu! Sehat?"), TEXT("Monggo, Mas."), TEXT("Salam buat Ibu, Mas!") };
+			HoldChat(2.2f);
+			WaveTime = Role == ERole::Vendor ? 0.f : 2.2f;
+			Say(Hello[Rng.RandRange(0, UE_ARRAY_COUNT(Hello) - 1)], 2.2f);
 		}
 	}
 
@@ -902,14 +1017,6 @@ void AGRWarga::Tick(float DeltaSeconds)
 		}
 	}
 	UpdatePose();
-
-	if (!BarkText->bHiddenInGame)
-	{
-		if (const APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(this, 0))
-		{
-			BarkText->SetWorldRotation(FRotator(0.f, (Camera->GetCameraLocation() - GetActorLocation()).Rotation().Yaw, 0.f));
-		}
-	}
 }
 
 void AGRWarga::UpdatePose()
@@ -918,6 +1025,7 @@ void AGRWarga::UpdatePose()
 	UAnimSequenceBase* Want = nullptr;
 	if (Mode == EMode::Down)
 	{
+		PhoneProp->SetHiddenInGame(true);
 		return;
 	}
 	float Rate = 1.f;
@@ -937,6 +1045,10 @@ void AGRWarga::UpdatePose()
 	{
 		Want = bTalking ? SitTalkAnim.Get() : SitAnim.Get();
 	}
+	else if (WaveTime > 0.f && WaveAnim)
+	{
+		Want = WaveAnim.Get();
+	}
 	else if (bTalking && Mode != EMode::Walk)
 	{
 		Want = TalkAnim.Get();
@@ -945,7 +1057,23 @@ void AGRWarga::UpdatePose()
 	{
 		Want = TalkAnim.Get();
 	}
+	else if (Mode == EMode::Pause && bPhone && PhoneAnim)
+	{
+		Want = PhoneAnim.Get();
+	}
 	PlayPose(Want, Rate);
+
+	// The phone sits between both hands, screen toward the face.
+	const bool bShowPhone = Want == PhoneAnim && PhoneAnim;
+	PhoneProp->SetHiddenInGame(!bShowPhone);
+	if (bShowPhone)
+	{
+		const USkeletalMeshComponent* Body = GetMesh();
+		const FVector Hands = (Body->GetSocketLocation(TEXT("hand_l")) + Body->GetSocketLocation(TEXT("hand_r"))) * 0.5f;
+		const FVector Face = Body->GetSocketLocation(TEXT("head")) + GetActorForwardVector() * 12.f;
+		const FVector Normal = (Face - Hands).GetSafeNormal();
+		PhoneProp->SetWorldLocationAndRotation(Hands + Normal * 4.f + FVector(0.f, 0.f, 3.f), FRotationMatrix::MakeFromXZ(Normal, FVector::UpVector).Rotator());
+	}
 }
 
 void AGRWarga::TickWalk(float DeltaSeconds)
@@ -971,6 +1099,7 @@ void AGRWarga::TickWalk(float DeltaSeconds)
 		bCrossing = false;
 		Dodge = 0.f;
 		Mode = EMode::Pause;
+		bPhone = Role == ERole::Stroller && Rng.FRand() < 0.35f;
 		Wait = Role == ERole::Jogger ? Rng.FRandRange(0.2f, 1.f)
 			: Role == ERole::Vendor ? Rng.FRandRange(6.f, 14.f)
 			: Rng.FRand() < 0.25f ? Rng.FRandRange(6.f, 12.f) : Rng.FRandRange(1.5f, 5.f);
@@ -1999,6 +2128,7 @@ void AGRCrowd::Lineup()
 		Person->Dress(NextSeed++, Roles[i], false);
 		Person->Activate(FVector(P, Z), Facing);
 		Person->Wait = 1e6f;
+		Person->bPhone = i == 1 || i == 3;
 		// They stand their ground, even in front of the scooter (for testing the crash reactions too).
 		Person->DodgeCooldown = 1e6f;
 		if (Roles[i] == ERole::Vendor)

@@ -339,6 +339,137 @@ bool GRPropModels::Build(const FString& Model, const TArray<float>& Size, const 
 		P.Cyl(FVector(0.f, S.Y * 0.3f, S.Z + 14.f), FVector(16.f, 16.f, 28.f), Hex(TEXT("#B5651D")));
 		return true;
 	}
+	if (Model == TEXT("karpet"))
+	{
+		// Floor rug with a border and a center motif; walk-over, no collision. Lifted over the 6 cm room floor.
+		const FVector S = SizeOr(180.f, 240.f, 1.5f);
+		const FLinearColor C = Main(Hex(TEXT("#9B2335")));
+		P.bCollide = false;
+		P.Box(FVector(0.f, 0.f, 7.f + S.Z * 0.5f), FVector(S.X, S.Y, S.Z), C);
+		P.Box(FVector(0.f, 0.f, 7.f + S.Z + 0.3f), FVector(S.X - 24.f, S.Y - 24.f, 0.6f), Hex(TEXT("#E3B23C")));
+		P.Box(FVector(0.f, 0.f, 7.f + S.Z + 0.6f), FVector(S.X - 34.f, S.Y - 34.f, 0.6f), C * 0.85f);
+		P.Box(FVector(0.f, 0.f, 7.f + S.Z + 0.9f), FVector(S.X * 0.3f, S.Y * 0.3f, 0.6f), Hex(TEXT("#F3E3C3")), FRotator(0.f, 45.f, 0.f));
+		return true;
+	}
+	if (Model == TEXT("tv"))
+	{
+		// Low cabinet with a flat TV on a stand (screen faces +X).
+		const FVector S = SizeOr(45.f, 140.f, 50.f);
+		P.Box(FVector(0.f, 0.f, S.Z * 0.5f), FVector(S.X, S.Y, S.Z), Main(WoodDark));
+		P.bCollide = false;
+		for (int32 SY = -1; SY <= 1; SY += 2)
+		{
+			P.Box(FVector(S.X * 0.5f + 0.5f, SY * S.Y * 0.25f, S.Z * 0.5f), FVector(1.f, S.Y * 0.45f, S.Z - 12.f), Wood);
+		}
+		P.Box(FVector(-4.f, 0.f, S.Z + 2.f), FVector(20.f, 30.f, 4.f), Black);
+		P.Box(FVector(-4.f, 0.f, S.Z + 12.f), FVector(4.f, 6.f, 18.f), Black);
+		P.Box(FVector(-4.f, 0.f, S.Z + 52.f), FVector(5.f, S.Y * 0.8f, 66.f), Black);
+		P.Box(FVector(-1.2f, 0.f, S.Z + 52.f), FVector(0.6f, S.Y * 0.8f - 6.f, 60.f), Hex(TEXT("#2B4B6F")));
+		P.Box(FVector(4.f, S.Y * 0.35f, S.Z + 1.5f), FVector(8.f, 16.f, 3.f), Black);
+		return true;
+	}
+	if (Model == TEXT("bingkai"))
+	{
+		// Picture frame hanging on a wall at eye height (picture faces +X).
+		const FVector S = SizeOr(3.f, 60.f, 45.f);
+		P.bCollide = false;
+		const float Z = 165.f;
+		P.Box(FVector(0.f, 0.f, Z), FVector(S.X, S.Y, S.Z), WoodDark);
+		P.Box(FVector(S.X * 0.5f, 0.f, Z), FVector(1.f, S.Y - 8.f, S.Z - 8.f), Main(Hex(TEXT("#7FB3D5"))));
+		P.Box(FVector(S.X * 0.5f + 0.4f, 0.f, Z - S.Z * 0.18f), FVector(1.f, S.Y - 8.f, S.Z * 0.3f), Hex(TEXT("#6A994E")));
+		P.Ball(FVector(S.X * 0.5f + 0.6f, S.Y * 0.2f, Z + S.Z * 0.18f), FVector(1.f, 8.f, 8.f), Hex(TEXT("#F4D35E")));
+		return true;
+	}
+	if (Model == TEXT("meja_dapur"))
+	{
+		// Stainless prep table with trays (ompreng), bowls and vegetables.
+		const FVector S = SizeOr(90.f, 260.f, 85.f);
+		P.Box(FVector(0.f, 0.f, S.Z - 2.f), FVector(S.X, S.Y, 4.f), Main(Hex(TEXT("#B8BEC4"))));
+		P.Legs(S, S.Z - 4.f, 4.f, 5.f, Metal);
+		P.bCollide = false;
+		P.Box(FVector(0.f, 0.f, 18.f), FVector(S.X - 10.f, S.Y - 10.f, 2.f), Metal);
+		const int32 Trays = FMath::Max(2, int32(S.Y / 70.f));
+		for (int32 i = 0; i < Trays; ++i)
+		{
+			const float Y = -S.Y * 0.5f + S.Y * (i + 0.5f) / Trays;
+			const int32 Stack = Rng.RandRange(1, 4);
+			for (int32 k = 0; k < Stack; ++k)
+			{
+				P.Box(FVector(-S.X * 0.2f, Y, S.Z + 1.5f + k * 3.f), FVector(30.f, 40.f, 2.5f), Metal);
+			}
+			P.Cyl(FVector(S.X * 0.22f, Y, S.Z + 6.f), FVector(26.f, 26.f, 12.f), Rng.FRand() < 0.5f ? White : Hex(TEXT("#5DADE2")));
+			P.Ball(FVector(S.X * 0.22f, Y, S.Z + 12.f), FVector(20.f, 20.f, 8.f), Rng.FRand() < 0.5f ? Hex(TEXT("#F7F1E3")) : Hex(TEXT("#6A994E")));
+		}
+		const FLinearColor Veg[] = { Hex(TEXT("#C0392B")), Hex(TEXT("#E67E22")), Hex(TEXT("#27AE60")), Hex(TEXT("#F1C40F")) };
+		for (int32 i = 0; i < 6; ++i)
+		{
+			P.Ball(FVector(Rng.FRandRange(-S.X * 0.35f, S.X * 0.35f), Rng.FRandRange(-S.Y * 0.45f, S.Y * 0.45f), 23.f), FVector(10.f), Veg[Rng.RandRange(0, 3)]);
+		}
+		return true;
+	}
+	if (Model == TEXT("kompor_besar"))
+	{
+		// Industrial stove (front +X) with big pots (dandang) and a wok.
+		const FVector S = SizeOr(75.f, 280.f, 80.f);
+		P.Box(FVector(0.f, 0.f, S.Z * 0.5f), FVector(S.X, S.Y, S.Z), Main(Hex(TEXT("#5D6D7E"))));
+		P.bCollide = false;
+		P.Box(FVector(0.f, 0.f, S.Z + 1.5f), FVector(S.X + 4.f, S.Y + 4.f, 3.f), Black);
+		const int32 Burners = FMath::Max(2, int32(S.Y / 90.f));
+		for (int32 i = 0; i < Burners; ++i)
+		{
+			const float Y = -S.Y * 0.5f + S.Y * (i + 0.5f) / Burners;
+			P.Box(FVector(S.X * 0.5f + 1.f, Y, S.Z * 0.6f), FVector(2.f, 10.f, 6.f), Hex(TEXT("#C0392B")));
+			if (i % 3 == 1)
+			{
+				P.Cyl(FVector(0.f, Y, S.Z + 8.f), FVector(60.f, 60.f, 10.f), MetalDark);
+				P.Cyl(FVector(-14.f, Y, S.Z + 14.f), FVector(6.f, 6.f, 4.f), Wood, FRotator(0.f, 0.f, 0.f));
+			}
+			else
+			{
+				const float H = Rng.FRandRange(40.f, 60.f);
+				P.Cyl(FVector(0.f, Y, S.Z + 3.f + H * 0.5f), FVector(56.f, 56.f, H), Metal);
+				P.Cyl(FVector(0.f, Y, S.Z + 4.f + H), FVector(58.f, 58.f, 3.f), MetalDark);
+			}
+		}
+		// Gas bottles below the front edge.
+		for (int32 SY = -1; SY <= 1; SY += 2)
+		{
+			P.Cyl(FVector(S.X * 0.5f + 25.f, SY * S.Y * 0.3f, 30.f), FVector(32.f, 32.f, 60.f), Hex(TEXT("#7DCE82")));
+		}
+		return true;
+	}
+	if (Model == TEXT("rak_dapur"))
+	{
+		// Metal shelf (front +X) with rice sacks, oil jerrycans and boxes.
+		const FVector S = SizeOr(45.f, 140.f, 180.f);
+		const FLinearColor C = Main(Metal);
+		for (int32 SX = -1; SX <= 1; SX += 2)
+		{
+			for (int32 SY = -1; SY <= 1; SY += 2)
+			{
+				P.Box(FVector(SX * (S.X * 0.5f - 2.f), SY * (S.Y * 0.5f - 2.f), S.Z * 0.5f), FVector(4.f, 4.f, S.Z), C);
+			}
+		}
+		P.bCollide = false;
+		const float Gap = (S.Z - 4.f) / 3.f;
+		for (int32 i = 0; i < 4; ++i)
+		{
+			P.Box(FVector(0.f, 0.f, 4.f + i * Gap), FVector(S.X, S.Y, 2.f), C);
+		}
+		const FLinearColor Goods[] = { Hex(TEXT("#EDE6D6")), Hex(TEXT("#C49A6C")), Hex(TEXT("#F1C40F")), Hex(TEXT("#2E86C1")) };
+		for (int32 i = 0; i < 3; ++i)
+		{
+			float Y = -S.Y * 0.5f + 6.f;
+			while (Y < S.Y * 0.5f - 30.f)
+			{
+				const float W = Rng.FRandRange(24.f, 40.f);
+				const float H = FMath::Min(Rng.FRandRange(20.f, 40.f), Gap - 8.f);
+				P.Box(FVector(0.f, Y + W * 0.5f, 5.f + i * Gap + H * 0.5f), FVector(S.X - 8.f, W - 2.f, H), Goods[Rng.RandRange(0, 3)]);
+				Y += W;
+			}
+		}
+		return true;
+	}
 	if (Model == TEXT("tenda"))
 	{
 		const FVector S = SizeOr(400.f, 600.f, 250.f);

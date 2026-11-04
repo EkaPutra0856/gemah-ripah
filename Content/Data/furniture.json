@@ -415,6 +415,205 @@
    ]
   },
   {
+   "id": "f_rumah_karpet",
+   "kind": "prop",
+   "model": "karpet",
+   "pos": [
+    -9050,
+    -9050
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_rumah_tv",
+   "kind": "prop",
+   "model": "tv",
+   "pos": [
+    -9050,
+    -9560
+   ],
+   "yaw": 90
+  },
+  {
+   "id": "f_rumah_foto",
+   "kind": "prop",
+   "model": "bingkai",
+   "pos": [
+    -9050,
+    -9586
+   ],
+   "yaw": 90
+  },
+  {
+   "id": "f_rumah_foto2",
+   "kind": "prop",
+   "model": "bingkai",
+   "pos": [
+    -8900,
+    -8414
+   ],
+   "yaw": -90,
+   "size": [
+    3,
+    45,
+    55
+   ],
+   "color": "#D98E73"
+  },
+  {
+   "id": "f_rumah_pot",
+   "kind": "prop",
+   "model": "pot",
+   "pos": [
+    -8570,
+    -9540
+   ],
+   "yaw": 0
+  },
+  {
+   "id": "f_dapur_kompor0",
+   "kind": "prop",
+   "model": "kompor_besar",
+   "pos": [
+    20840,
+    19560
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_kompor1",
+   "kind": "prop",
+   "model": "kompor_besar",
+   "pos": [
+    20840,
+    20000
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_kompor2",
+   "kind": "prop",
+   "model": "kompor_besar",
+   "pos": [
+    20840,
+    20440
+   ],
+   "yaw": 180,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_meja0",
+   "kind": "prop",
+   "model": "meja_dapur",
+   "pos": [
+    20300,
+    19750
+   ],
+   "yaw": 0,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_meja1",
+   "kind": "prop",
+   "model": "meja_dapur",
+   "pos": [
+    20300,
+    20250
+   ],
+   "yaw": 0,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_rak0",
+   "kind": "prop",
+   "model": "rak_dapur",
+   "pos": [
+    19450,
+    20660
+   ],
+   "yaw": -90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_rak1",
+   "kind": "prop",
+   "model": "rak_dapur",
+   "pos": [
+    19650,
+    20660
+   ],
+   "yaw": -90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_rak2",
+   "kind": "prop",
+   "model": "rak_dapur",
+   "pos": [
+    19850,
+    20660
+   ],
+   "yaw": -90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_rakb0",
+   "kind": "prop",
+   "model": "rak_dapur",
+   "pos": [
+    19500,
+    19340
+   ],
+   "yaw": 90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_rakb1",
+   "kind": "prop",
+   "model": "rak_dapur",
+   "pos": [
+    19700,
+    19340
+   ],
+   "yaw": 90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_dispenser",
+   "kind": "prop",
+   "model": "dispenser",
+   "pos": [
+    19180,
+    20620
+   ],
+   "yaw": 0,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_kursi0",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    19250,
+    19420
+   ],
+   "yaw": 90,
+   "if": "!menyusup"
+  },
+  {
+   "id": "f_dapur_kursi1",
+   "kind": "prop",
+   "model": "kursi_plastik",
+   "pos": [
+    19330,
+    19420
+   ],
+   "yaw": 90,
+   "if": "!menyusup"
+  },
+  {
    "id": "f_ronda_bangku",
    "kind": "prop",
    "model": "bangku",

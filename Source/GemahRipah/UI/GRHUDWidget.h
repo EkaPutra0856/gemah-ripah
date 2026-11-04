@@ -28,6 +28,8 @@ protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
 	UFUNCTION()
@@ -50,6 +52,9 @@ private:
 	void RefreshStatus();
 	void RefreshRules();
 	void UpdateWaypoint(float DeltaTime);
+	void UpdatePrompt(float DeltaTime);
+	/** Speech bubbles over speakers (UGRBubbleSubsystem) and the [E] prompt over the focused thing. */
+	int32 PaintWorldLabels(const FGeometry& Geometry, FSlateWindowElementList& Out, int32 LayerId) const;
 	void ShowBanner(const FText& Title, const FText& Body, const FLinearColor& Color, float Duration);
 	UProgressBar* MakeMeter(UVerticalBox* Parent, const FText& Label, const TCHAR* IconName, const FLinearColor& Color, UTextBlock*& OutValue);
 
@@ -70,8 +75,6 @@ private:
 	UPROPERTY() TObjectPtr<UVerticalBox> DistrictPopup;
 	UPROPERTY() TObjectPtr<UTextBlock> DistrictTitle;
 	UPROPERTY() TObjectPtr<UTextBlock> DistrictSubtitle;
-	UPROPERTY() TObjectPtr<UBorder> PromptPanel;
-	UPROPERTY() TObjectPtr<UTextBlock> PromptText;
 	UPROPERTY() TObjectPtr<UBorder> BannerPanel;
 	UPROPERTY() TObjectPtr<UTextBlock> BannerTitle;
 	UPROPERTY() TObjectPtr<UTextBlock> BannerBody;
@@ -95,6 +98,11 @@ private:
 	FLinearColor UangFlashColor = FLinearColor::White;
 
 	float WaypointTime = 0.f;
+
+	/** Interaction prompt: what is focused, its label and how long it has been shown (for the pop-in). */
+	TWeakObjectPtr<AActor> PromptActor;
+	FText PromptLabel;
+	float PromptAge = 0.f;
 	double BannerEndTime = 0.0;
 	double DistrictPopupStart = -100.0;
 	double NextClockRefresh = 0.0;

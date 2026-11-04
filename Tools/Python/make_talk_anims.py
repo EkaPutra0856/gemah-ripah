@@ -161,6 +161,38 @@ def angry_deltas(t):
     }
 
 
+def wave_deltas(t):
+    """Right arm up and out, forearm upright and swinging side to side: a friendly wave.
+    MM_Idle runs about 7.5 s, so 18 swings per loop is a little over two a second."""
+    w = 2 * math.pi * t
+    swing = math.sin(18 * w)
+    return {
+        "spine_03": [(Y, -4)],
+        "head": [(X, -3), (Z, 8), (Y, 6 * math.sin(9 * w))],
+        "upperarm_r": [(Y, 72), (X, 22)],
+        "lowerarm_r": [(Y, 62 + 24 * swing)],
+        "hand_r": [(Y, 12 * swing)],
+        "upperarm_l": [(X, 6), (Y, -4)],
+    }
+
+
+def phone_deltas(t):
+    """Looking down at a phone held in both hands in front of the chest, thumbs scrolling now and then."""
+    w = 2 * math.pi * t
+    scroll = max(0.0, math.sin(5 * w)) ** 3
+    return {
+        "spine_03": [(X, -5)],
+        "head": [(X, -24 + 2 * math.sin(2 * w)), (Z, 3 * math.sin(w))],
+        # Forearms up and turned in about Z so the hands meet in front of the chest.
+        "upperarm_r": [(X, 30)],
+        "lowerarm_r": [(X, 85), (Z, -35)],
+        "hand_r": [(X, -10 + 6 * scroll)],
+        "upperarm_l": [(X, 30)],
+        "lowerarm_l": [(X, 85), (Z, 35)],
+        "hand_l": [(X, -10)],
+    }
+
+
 def sit_talk_deltas(t):
     d = {k: v for k, v in sit_deltas(t).items() if k.startswith(("thigh", "calf"))}
     d.update(talk_deltas(t, True))
@@ -479,6 +511,8 @@ try:
     build("MM_GR_SitTalk", sit_talk_deltas, True)
     build_ride("MM_GR_Ride")
     build("MM_GR_Marah", angry_deltas, False)
+    build("MM_GR_Lambai", wave_deltas, False)
+    build("MM_GR_Ponsel", phone_deltas, False)
     build_ride("MM_GR_Gerobak", SRC, lambda p, y, o, t: push_frame(p, y, o, t, True), "GR push anim")
     build_ride("MM_GR_GerobakJalan", WALK, lambda p, y, o, t: push_frame(p, y, o, t, False), "GR push anim")
 except Exception as e:  # noqa: BLE001

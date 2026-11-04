@@ -1,4 +1,9 @@
 #include "UI/GRHUDWidget.h"
+#include "UI/GRBubbles.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
+#include "Fonts/FontMeasure.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Rendering/DrawElements.h"
 #include "World/GRStealthLevel.h"
 #include "UI/GRStoryScreens.h"
 #include "UI/GRUISubsystem.h"
@@ -180,12 +185,6 @@ void UGRHUDWidget::NativeOnInitialized()
 	BannerBox->AddChildToVerticalBox(BannerBody)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
 	BannerPanel->SetVisibility(ESlateVisibility::Collapsed);
 
-	// Bottom-center: interaction prompt.
-	PromptPanel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanelSoft, FMargin(18.f, 10.f), 6.f);
-	Place(Root, PromptPanel, HAlign_Center, VAlign_Bottom, FMargin(0.f, 0.f, 0.f, 140.f));
-	PromptText = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 18);
-	PromptPanel->SetContent(PromptText);
-	PromptPanel->SetVisibility(ESlateVisibility::Collapsed);
 
 	// Right side: toasts.
 	ToastList = WidgetTree->ConstructWidget<UVerticalBox>();
@@ -568,21 +567,221 @@ void UGRHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		}
 	}
 
+	UpdatePrompt(InDeltaTime);
+	if (UGRBubbleSubsystem* Bubbles = GetWorld() ? GetWorld()->GetSubsystem<UGRBubbleSubsystem>() : nullptr)
+	{
+		Bubbles->Prune();
+	}
+}
+
+void UGRHUDWidget::UpdatePrompt(float DeltaTime)
+{
+	AActor* Focused = nullptr;
 	FText Prompt;
 	if (const AGRCharacter* Character = Cast<AGRCharacter>(GetOwningPlayerPawn()))
 	{
+		Focused = Character->GetInteraction()->GetFocusedActor();
 		Prompt = Character->GetInteraction()->GetFocusedPrompt();
 	}
 	const UGRUISubsystem* PromptUI = GetOwningLocalPlayer() ? GetOwningLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
 	if (Prompt.IsEmpty() || (PromptUI && PromptUI->GetTopScreen()))
 	{
-		PromptPanel->SetVisibility(ESlateVisibility::Collapsed);
+		Focused = nullptr;
+	}
+	// A new target or a new label pops in again.
+	if (Focused != PromptActor.Get() || !Prompt.EqualTo(PromptLabel))
+	{
+		PromptAge = 0.f;
+	}
+	PromptActor = Focused;
+	PromptLabel = Prompt;
+	PromptAge += DeltaTime;
+}
+
+namespace
+{
+	/** Word-wraps Text into lines no wider than MaxWidth. */
+	TArray<FString> HudWrapLines(const FString& Text, const FSlateFontInfo& Font, float MaxWidth, const TSharedRef<FSlateFontMeasure>& Measure)
+	{
+		TArray<FString> Words;
+		Text.ParseIntoArrayWS(Words);
+		TArray<FString> Lines;
+		FString Line;
+		for (const FString& Word : Words)
+		{
+			const FString Try = Line.IsEmpty() ? Word : Line + TEXT(" ") + Word;
+			if (!Line.IsEmpty() && Measure->Measure(Try, Font).X > MaxWidth)
+			{
+				Lines.Add(Line);
+				Line = Word;
+			}
+			else
+			{
+				Line = Try;
+			}
+		}
+		if (!Line.IsEmpty())
+		{
+			Lines.Add(Line);
+		}
+		return Lines;
+	}
+
+	float HudEaseOutBack(float T)
+	{
+		const float U = T - 1.f;
+		return 1.f + 2.7f * U * U * U + 1.7f * U * U;
+	}
+}
+
+int32 UGRHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	const int32 Layer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+	return PaintWorldLabels(AllottedGeometry, OutDrawElements, Layer + 1);
+}
+
+int32 UGRHUDWidget::PaintWorldLabels(const FGeometry& Geometry, FSlateWindowElementList& Out, int32 LayerId) const
+{
+	const APlayerController* PC = GetOwningPlayer();
+	const UWorld* World = GetWorld();
+	if (!PC || !PC->PlayerCameraManager || !World)
+	{
+		return LayerId;
+	}
+	static const FSlateRoundedBoxBrush Rounded(FLinearColor::White, 7.f);
+	static const FSlateRoundedBoxBrush Key(FLinearColor::White, 5.f);
+	static const FSlateBrush Solid;
+	const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+	const float Scale = FMath::Max(UWidgetLayoutLibrary::GetViewportScale(this), 0.01f);
+	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+	auto Project = [&](const FVector& World3, FVector2D& OutPos)
+	{
+		FVector2D Screen;
+		if (!PC->ProjectWorldLocationToScreen(World3, Screen, true))
+		{
+			return false;
+		}
+		OutPos = Screen / Scale;
+		return true;
+	};
+	auto Box = [&](int32 Layer, const FSlateBrush* Brush, const FVector2D& Pos, const FVector2D& Size, const FLinearColor& Color, float Angle = 0.f)
+	{
+		const FPaintGeometry Paint = Angle == 0.f
+			? Geometry.ToPaintGeometry(FVector2f(Size), FSlateLayoutTransform(FVector2f(Pos)))
+			: Geometry.ToPaintGeometry(FVector2f(Size), FSlateLayoutTransform(FVector2f(Pos)), FSlateRenderTransform(FQuat2f(FMath::DegreesToRadians(Angle))));
+		FSlateDrawElement::MakeBox(Out, Layer, Paint, Brush, ESlateDrawEffect::None, Color);
+	};
+	auto Text = [&](int32 Layer, const FString& String, const FSlateFontInfo& Font, const FVector2D& Pos, const FLinearColor& Color)
+	{
+		FSlateDrawElement::MakeText(Out, Layer, Geometry.ToPaintGeometry(FVector2f(Measure->Measure(String, Font)), FSlateLayoutTransform(FVector2f(Pos))), String, Font, ESlateDrawEffect::None, Color);
+	};
+
+	// Speech bubbles, far ones first so near ones draw on top.
+	if (const UGRBubbleSubsystem* Bubbles = World->GetSubsystem<UGRBubbleSubsystem>())
+	{
+		struct FDrawn { const FGRBubble* Bubble; FVector2D Pos; float Dist; };
+		TArray<FDrawn> Drawn;
+		for (const FGRBubble& Bubble : Bubbles->GetBubbles())
+		{
+			const AActor* Who = Bubble.Who.Get();
+			if (!Who || Who->IsHidden())
+			{
+				continue;
+			}
+			const FVector Spot = Who->GetActorLocation() + FVector(0.f, 0.f, Bubble.Height);
+			const float Dist = FVector::Dist(Camera, Spot);
+			FVector2D Pos;
+			if (Dist < 4200.f && Project(Spot, Pos))
+			{
+				Drawn.Add({ &Bubble, Pos, Dist });
+			}
+		}
+		Drawn.Sort([](const FDrawn& A, const FDrawn& B) { return A.Dist > B.Dist; });
+		const double Now = World->GetTimeSeconds();
+		int32 Layer = LayerId;
+		for (const FDrawn& D : Drawn)
+		{
+			const FGRBubble& B = *D.Bubble;
+			const float Age = float(Now - B.Start);
+			const float Near = FMath::GetMappedRangeValueClamped(FVector2f(500.f, 3500.f), FVector2f(1.f, 0.f), D.Dist);
+			const float Alpha = FMath::Clamp(Age / 0.12f, 0.f, 1.f) * FMath::Clamp((B.Duration - Age) / 0.35f, 0.f, 1.f)
+				* FMath::GetMappedRangeValueClamped(FVector2f(3400.f, 4200.f), FVector2f(1.f, 0.f), D.Dist);
+			if (Alpha <= 0.01f)
+			{
+				continue;
+			}
+			const FSlateFontInfo Font = GRStyle::Font(FMath::RoundToInt((B.bShout ? 15.f : 12.f) + 4.f * Near), B.bShout);
+			const TArray<FString> Lines = HudWrapLines(B.Text, Font, 250.f, Measure);
+			const float LineH = Measure->Measure(TEXT("Ag"), Font).Y;
+			float Width = 0.f;
+			for (const FString& Line : Lines)
+			{
+				Width = FMath::Max(Width, float(Measure->Measure(Line, Font).X));
+			}
+			const FVector2D Size(Width + 22.f, Lines.Num() * LineH + 12.f);
+			// Pops up from below; a shout shakes for half a second.
+			FVector2D Anchor = D.Pos + FVector2D(0.f, (1.f - HudEaseOutBack(FMath::Clamp(Age / 0.2f, 0.f, 1.f))) * 14.f);
+			if (B.bShout && Age < 0.5f)
+			{
+				Anchor.X += FMath::Sin(Age * 70.f) * 4.f * (1.f - Age / 0.5f);
+			}
+			const FVector2D TopLeft = Anchor - FVector2D(Size.X * 0.5f, Size.Y + 9.f);
+			const bool bPlain = B.Color.Equals(FLinearColor::White, 0.02f);
+			const FLinearColor Edge = (bPlain ? GRStyle::ColorAccent : B.Color).CopyWithNewOpacity(Alpha * (B.bShout ? 1.f : 0.75f));
+			const FLinearColor Fill = GRStyle::ColorPanel.CopyWithNewOpacity(0.93f * Alpha);
+			const float Border = B.bShout ? 2.5f : 1.5f;
+			Box(Layer, &Solid, Anchor - FVector2D(7.f, 16.f), FVector2D(14.f, 14.f), Edge, 45.f);
+			Box(Layer, &Rounded, TopLeft - FVector2D(Border, Border), Size + FVector2D(Border * 2.f, Border * 2.f), Edge);
+			Box(Layer, &Solid, Anchor - FVector2D(5.5f, 16.f - Border), FVector2D(11.f, 11.f), Fill, 45.f);
+			Box(Layer, &Rounded, TopLeft, Size, Fill);
+			const FLinearColor Ink = (bPlain ? GRStyle::ColorText : B.Color).CopyWithNewOpacity(Alpha);
+			for (int32 i = 0; i < Lines.Num(); ++i)
+			{
+				const float LineW = Measure->Measure(Lines[i], Font).X;
+				Text(Layer, Lines[i], Font, FVector2D(Anchor.X - LineW * 0.5f, TopLeft.Y + 6.f + i * LineH), Ink);
+			}
+			++Layer;
+		}
+		LayerId = Layer;
+	}
+
+	// [E] prompt beside the focused thing: a key cap and its label, sliding in.
+	const AActor* Target = PromptActor.Get();
+	if (!Target || PromptLabel.IsEmpty())
+	{
+		return LayerId;
+	}
+	const FBox Bounds = Target->GetComponentsBoundingBox(false);
+	const FVector Center = Bounds.IsValid ? Bounds.GetCenter() : Target->GetActorLocation();
+	const float Top = Bounds.IsValid ? FMath::Min(Bounds.Max.Z, Bounds.Min.Z + 200.f) : Center.Z + 60.f;
+	FVector2D Pos;
+	const FVector2D View = UWidgetLayoutLibrary::GetViewportSize(this) / Scale;
+	if (!Project(FVector(Center.X, Center.Y, (Center.Z + Top) * 0.5f), Pos) || Pos.X < 40.f || Pos.X > View.X - 300.f || Pos.Y < 40.f || Pos.Y > View.Y - 40.f)
+	{
+		Pos = FVector2D(View.X * 0.5f - 60.f, View.Y - 170.f);
 	}
 	else
 	{
-		PromptText->SetText(FText::Format(LOCTEXT("Prompt", "[E]  {0}"), Prompt));
-		PromptPanel->SetVisibility(ESlateVisibility::HitTestInvisible);
+		Pos.X += 34.f;
 	}
+	const float In = FMath::Clamp(PromptAge / 0.22f, 0.f, 1.f);
+	const float Alpha = In;
+	Pos.X += (1.f - HudEaseOutBack(In)) * -18.f;
+	const FString Label = PromptLabel.ToString();
+	const FSlateFontInfo LabelFont = GRStyle::Font(16);
+	const FSlateFontInfo KeyFont = GRStyle::Font(16, true);
+	const FVector2D LabelSize = FVector2D(Measure->Measure(Label, LabelFont)) + FVector2D(26.f, 12.f);
+	const float KeySize = 30.f;
+	const FVector2D KeyPos = Pos - FVector2D(0.f, KeySize * 0.5f + FMath::Sin(PromptAge * 4.f) * 1.5f);
+	// Key cap: a darker base under a lighter top, like a real key.
+	Box(LayerId, &Rounded, FVector2D(Pos.X + KeySize * 0.5f, Pos.Y - LabelSize.Y * 0.5f), LabelSize + FVector2D(KeySize * 0.5f + 8.f, 0.f), GRStyle::ColorPanel.CopyWithNewOpacity(0.9f * Alpha));
+	Box(LayerId, &Key, KeyPos + FVector2D(0.f, 3.f), FVector2D(KeySize, KeySize), (GRStyle::ColorAccent * 0.55f).CopyWithNewOpacity(Alpha));
+	Box(LayerId, &Key, KeyPos, FVector2D(KeySize, KeySize), GRStyle::ColorAccent.CopyWithNewOpacity(Alpha));
+	const FVector2D KeyText = FVector2D(Measure->Measure(TEXT("E"), KeyFont));
+	Text(LayerId + 1, TEXT("E"), KeyFont, KeyPos + (FVector2D(KeySize, KeySize) - KeyText) * 0.5f, FLinearColor(0.08f, 0.06f, 0.04f, Alpha));
+	Text(LayerId + 1, Label, LabelFont, FVector2D(Pos.X + KeySize + 13.f, Pos.Y - LabelSize.Y * 0.5f + 6.f), GRStyle::ColorText.CopyWithNewOpacity(Alpha));
+	return LayerId + 1;
 }
 
 #undef LOCTEXT_NAMESPACE
