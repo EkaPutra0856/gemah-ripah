@@ -1,5 +1,6 @@
 #include "Player/GRInteractionComponent.h"
 #include "Interaction/GRInteractable.h"
+#include "Player/GRCharacter.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/World.h"
 
@@ -93,8 +94,10 @@ bool UGRInteractionComponent::TryInteract()
 	{
 		return false;
 	}
-	// Turn (over a few frames, not in one snap) to face whoever or whatever Bayu is talking to.
-	if (AActor* Owner = GetOwner())
+	// Turn (over a few frames, not in one snap) to face whoever or whatever Bayu is talking to. Not on the
+	// scooter: it cannot turn on the spot.
+	const AGRCharacter* Rider = Cast<AGRCharacter>(GetOwner());
+	if (AActor* Owner = Rider && Rider->IsRiding() ? nullptr : GetOwner())
 	{
 		const FVector ToTarget = Target->GetActorLocation() - Owner->GetActorLocation();
 		if (ToTarget.SizeSquared2D() > 1.f)

@@ -115,6 +115,9 @@ public:
 	/** Logs the player's position and any seated NPC that drifted off its seat (pushed by furniture). */
 	UFUNCTION(Exec)
 	void GRPosisi();
+	/** Points the camera from yaw/pitch degrees relative to Bayu, at Distance cm, for scripted screenshots. */
+	UFUNCTION(Exec)
+	void GRKamera(float Yaw, float Pitch = -10.f, float Distance = 450.f);
 
 private:
 	UGameInstance* GetGI() const;

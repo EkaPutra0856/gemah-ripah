@@ -71,6 +71,8 @@ void AGRBed::WakeUp(APlayerController* PC)
 	Clock->SleepUntilMorning();
 	UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>();
 	Story->CancelOrder();
+	// Whoever parked the scooter where, it is back in the yard in the morning.
+	Story->SetVar(TEXT("motor_parkir"), 0);
 	Story->RunMorning();
 	GI->GetSubsystem<UGRSaveSubsystem>()->Autosave();
 	GI->GetSubsystem<UGRNotificationSubsystem>()->Notify(

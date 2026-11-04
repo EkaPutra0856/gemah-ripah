@@ -365,7 +365,7 @@
       "barks": ["Uhuk... uhuk...", "Jemuran kotor lagi kena abu."] },
     { "id": "dinda_rumah", "kind": "npc", "pose": "duduk", "pose": "duduk", "name": "Dinda", "pos": [-8850, -9350], "yaw": 0, "if": "day>=2", "dialog": "dinda_rumah", "color": "#F2C14E",
       "barks": ["Kak, Dinda bosan di rumah.", "Dinda nggak mau makan ayam lagi."] },
-    { "id": "motor_halaman", "kind": "prop", "model": "motor", "model": "motor", "name": "Motor Bayu", "pos": [-7700, -8400], "yaw": 0, "color": "#2E8B57",
+    { "id": "motor_halaman", "kind": "prop", "model": "motor", "name": "Motor Bayu", "pos": [-7700, -8400], "yaw": 0, "color": "#2E8B57",
       "if": "!punya_motor", "prompt": "Ambil motor", "do": "set punya_motor 1; jika q.Pagi==2 ? step Pagi 3; notifbaik Tekan F untuk naik atau turun motor." },
 
     { "id": "warung_ronda", "kind": "prop", "model": "warung", "model": "warung", "name": "Warung Kopi Pos Ronda", "pos": [-6000, -12000], "size": [220, 120, 100], "color": "#8B5A2B",

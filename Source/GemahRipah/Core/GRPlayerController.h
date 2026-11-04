@@ -52,6 +52,7 @@ private:
 	void HandleJournal();
 	void HandleMotor();
 	friend class UGRCheatManager;
+	friend class AGRMotor;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputMappingContext> DefaultContext;

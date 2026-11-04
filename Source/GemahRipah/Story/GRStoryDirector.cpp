@@ -500,13 +500,13 @@ void AGRStoryDirector::ForceSleep()
 	{
 		return;
 	}
-	if (APawn* Player = PC->GetPawn())
-	{
-		Player->TeleportTo(It->GetActorLocation() + FVector(250.f, 0.f, 100.f), Player->GetActorRotation());
-	}
 	if (AGRCharacter* Character = Cast<AGRCharacter>(PC->GetPawn()))
 	{
 		Character->SetRiding(false);
+	}
+	if (APawn* Player = PC->GetPawn())
+	{
+		Player->TeleportTo(It->GetActorLocation() + FVector(250.f, 0.f, 100.f), Player->GetActorRotation());
 	}
 	It->Sleep(PC);
 }

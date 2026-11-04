@@ -15,6 +15,7 @@ namespace
 		TArray<FGRPropPart>& Out;
 		bool bCollide = true;
 		bool bRoof = false;
+		uint8 Group = 0;
 
 		FGRPropPart& Add(const TCHAR* Shape, const FVector& Loc, const FVector& Size, const FLinearColor& Color, const FRotator& Rot)
 		{
@@ -26,6 +27,7 @@ namespace
 			Part.Rot = Rot;
 			Part.bCollide = bCollide;
 			Part.bRoof = bRoof;
+			Part.Group = Group;
 			return Part;
 		}
 		FGRPropPart& Box(const FVector& Loc, const FVector& Size, const FLinearColor& Color, const FRotator& Rot = FRotator::ZeroRotator)
@@ -417,32 +419,47 @@ bool GRPropModels::Build(const FString& Model, const TArray<float>& Size, const 
 	}
 	if (Model == TEXT("motor"))
 	{
-		// Scooter facing +X.
+		// Scooter facing +X. AGRMotor steers group 1-2, spins 2-3 and folds the side stand (4) while ridden.
 		const FLinearColor Body = Main(Hex(TEXT("#C0392B")));
-		P.Box(FVector(-2.f, 0.f, 52.f), FVector(96.f, 24.f, 22.f), MetalDark);
-		P.Box(FVector(-30.f, 0.f, 66.f), FVector(70.f, 30.f, 22.f), Body);
-		P.Box(FVector(-28.f, 0.f, 82.f), FVector(64.f, 28.f, 9.f), Black);
+		// Seat top 79 cm and a flat floorboard: MM_GR_Ride puts Bayu's hips, feet and hands on these spots.
+		P.Box(FVector(-11.f, 0.f, 32.f), FVector(78.f, 20.f, 14.f), MetalDark);
+		P.Box(FVector(-35.f, 0.f, 59.f), FVector(60.f, 30.f, 22.f), Body);
+		P.Box(FVector(-28.f, 0.f, 74.5f), FVector(64.f, 28.f, 9.f), Black);
 		P.Box(FVector(44.f, 0.f, 70.f), FVector(26.f, 40.f, 46.f), Body, FRotator(-18.f, 0.f, 0.f));
-		P.Box(FVector(8.f, 0.f, 40.f), FVector(50.f, 30.f, 4.f), Black);
+		P.Box(FVector(8.f, 0.f, 40.f), FVector(50.f, 36.f, 4.f), Black);
 		P.bCollide = false;
+		P.Box(FVector(62.f, 0.f, 82.f), FVector(4.f, 16.f, 10.f), Hex(TEXT("#FFF2B0")));
+		P.Box(FVector(-66.f, 0.f, 66.f), FVector(4.f, 14.f, 6.f), Hex(TEXT("#E04A3A")));
+		P.Cyl(FVector(-40.f, 16.f, 38.f), FVector(8.f, 8.f, 46.f), Metal, FRotator(90.f, 0.f, 0.f));
 		for (int32 SX = -1; SX <= 1; SX += 2)
 		{
+			// Tyre, rim and three dark spokes across the rim, so a turning wheel reads as turning.
+			P.Group = SX > 0 ? 2 : 3;
 			P.Cyl(FVector(SX * 58.f, 0.f, 30.f), FVector(60.f, 60.f, 11.f), Black, FRotator(0.f, 0.f, 90.f));
 			P.Cyl(FVector(SX * 58.f, 0.f, 30.f), FVector(26.f, 26.f, 12.5f), Metal, FRotator(0.f, 0.f, 90.f));
+			for (int32 Spoke = 0; Spoke < 3; ++Spoke)
+			{
+				P.Box(FVector(SX * 58.f, 0.f, 30.f), FVector(24.f, 13.5f, 3.f), MetalDark, FRotator(Spoke * 60.f, 0.f, 0.f));
+			}
 		}
+		// Fork, fender, swept-back handlebar with its cover and speedometer, grips and mirrors all turn together.
+		P.Group = 1;
 		P.Box(FVector(52.f, 0.f, 62.f), FVector(6.f, 6.f, 64.f), Metal, FRotator(20.f, 0.f, 0.f));
 		P.Box(FVector(58.f, 0.f, 63.f), FVector(30.f, 14.f, 4.f), Body);
-		P.Box(FVector(-60.f, 0.f, 64.f), FVector(30.f, 22.f, 4.f), Body);
-		P.Box(FVector(46.f, 0.f, 98.f), FVector(5.f, 64.f, 5.f), Metal);
+		P.Box(FVector(46.f, 0.f, 100.f), FVector(16.f, 30.f, 10.f), Body);
+		P.Box(FVector(44.f, 0.f, 105.2f), FVector(8.f, 12.f, 0.8f), Hex(TEXT("#1E2A30")));
+		P.Box(FVector(46.f, 0.f, 102.f), FVector(5.f, 32.f, 5.f), Metal);
 		for (int32 SY = -1; SY <= 1; SY += 2)
 		{
-			P.Box(FVector(46.f, SY * 30.f, 98.f), FVector(6.f, 10.f, 7.f), Black);
-			P.Box(FVector(42.f, SY * 22.f, 106.f), FVector(1.5f, 1.5f, 14.f), Black);
-			P.Box(FVector(42.f, SY * 22.f, 114.f), FVector(2.f, 9.f, 6.f), Black);
+			P.Box(FVector(42.f, SY * 21.f, 102.f), FVector(12.8f, 5.f, 5.f), Metal, FRotator(0.f, SY * 128.66f, 0.f));
+			P.Box(FVector(37.5f, SY * 31.f, 102.f), FVector(7.f, 10.f, 7.f), Black);
+			P.Box(FVector(43.f, SY * 19.f, 110.f), FVector(1.5f, 1.5f, 14.f), Black);
+			P.Box(FVector(43.f, SY * 21.f, 118.f), FVector(2.f, 9.f, 6.f), Black);
 		}
-		P.Box(FVector(62.f, 0.f, 82.f), FVector(4.f, 16.f, 10.f), Hex(TEXT("#FFF2B0")));
-		P.Box(FVector(-68.f, 0.f, 74.f), FVector(6.f, 14.f, 6.f), Hex(TEXT("#E04A3A")));
-		P.Cyl(FVector(-40.f, 16.f, 38.f), FVector(8.f, 8.f, 46.f), Metal, FRotator(90.f, 0.f, 0.f));
+		// Side stand on the left: the parked scooter leans on it.
+		P.Group = 4;
+		P.Box(FVector(-8.f, -19.f, 21.f), FVector(3.f, 3.f, 40.5f), MetalDark, FRotator(0.f, 0.f, 20.f));
+		P.Group = 0;
 		return true;
 	}
 	if (Model == TEXT("warung") || Model == TEXT("lapak"))

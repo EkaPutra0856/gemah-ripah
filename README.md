@@ -54,10 +54,14 @@ Keputusan teknis:
 | Peta kota | M | Back / View |
 | Ponsel | Tab | D-pad atas |
 | Jurnal (tugas, barang, keluarga) | J | D-pad bawah |
-| Naik/turun motor | F | Y / Segitiga |
+| Naik/turun motor (dekat motor yang diparkir) | F, atau E di motor | Y / Segitiga |
+| Di motor: gas / rem dan mundur / belok | W / S / A, D | Stik kiri |
+| Di motor: ngebut | Shift kiri | Klik stik kiri |
 | Lanjut dialog | E, Spasi, Enter, klik | A / Silang |
 | Jeda | Esc atau P (P untuk Play di editor) | Start |
 | Kembali di menu | Esc | B / Lingkaran |
+
+Motor: makin kencang, makin lebar beloknya, dan motor miring ke dalam tikungan. Tabrak dinding atau orang berarti berhenti. Turun saat masih jalan: motor direm dulu sampai berhenti. Motor tetap terparkir di tempat Bayu turun (tanda M di peta) dan kembali ke halaman rumah setiap pagi.
 
 ## Perintah debug (konsol `~`, saat Play)
 
@@ -80,12 +84,13 @@ Keputusan teknis:
 | `GRTidur` | Tidur sampai pagi (hari berikutnya + autosave) |
 | `GRPetaUlang` | Hitung ulang gambar peta dari bangunan |
 | `GRCerita "aksi; aksi"` | Jalankan aksi cerita, mis. `GRCerita "quest Piring; teleport ibu_pkm"` |
-| `GRMotor` | Naik/turun motor (sama dengan F) |
+| `GRMotor` | Naik/turun motor di mana saja (motor didatangkan ke Bayu) |
 | `GRTekan W 1.5` | Tahan tombol selama 1,5 detik, untuk tes otomatis (jalan, minigame, menu) |
 | `GRBab bab2` | Lompat ke bab tertentu (bab sebelumnya dianggap selesai) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |
 | `GRPos 8740 -9000 0` | Pindahkan pemain ke x, y (cm) menghadap yaw, untuk screenshot otomatis |
-| `GRPosisi` | Catat posisi pemain dan NPC duduk yang bergeser dari kursinya (cek tembus perabot) |
+| `GRPosisi` | Catat posisi pemain, kecepatan dan kemiringan motor, jarak motor parkir, dan NPC duduk yang bergeser dari kursinya |
+| `GRKamera 90 -10 380` | Arahkan kamera dari yaw/pitch relatif terhadap Bayu pada jarak tertentu, untuk screenshot otomatis |
 
 ## Map
 
@@ -128,7 +133,7 @@ Perabot dan pose:
 - Ruangan tempat orang diajak bicara punya meja dan kursi: Kantor Kelurahan, Warnet Jaya, rumah Bayu, Pos Ronda, layanan Puskesmas, meja piket Pos SPN, fotokopi Pak Harso. Datanya di `Content/Data/furniture.json` (dibuat oleh `Tools/Python/make_furniture.py`) dan dipakai semua bab.
 - Spawn `prop` dengan `model` dirakit dari bentuk dasar (`World/GRPropModels.cpp`): `meja`, `meja_makan`, `meja_kantor`, `meja_pc`, `meja_kecil`, `kursi`, `kursi_kantor`, `kursi_plastik`, `bangku`, `rak`, `lemari`, `lemari_arsip`, `dapur`, `dispenser`, `pot`, `tenda`, `kotak_suara`, `bilik`, `motor`, `warung`, `lapak`, `stensil`, `papan`, `baliho`, `spanduk`, `jeruji`, `pintu`, `tiang`, `patok`, `sembako`, `panggung`, `ekskavator`. Atap tenda dan tenda warung hilang saat pemain berdiri di bawahnya.
 - NPC dengan `"pose": "duduk"` duduk di tempat (taruh `kursi` di posisi yang sama) dan tidak berputar atau berkeliling.
-- NPC bergerak tangan dan mengangguk saat baris dialognya tampil, juga saat bark sambil diam. Animasi `MM_GR_Talk`, `MM_GR_Sit`, `MM_GR_SitTalk` dibuat dari `MM_Idle` oleh `Tools/Python/make_talk_anims.py`.
+- NPC bergerak tangan dan mengangguk saat baris dialognya tampil, juga saat bark sambil diam. Animasi `MM_GR_Talk`, `MM_GR_Sit`, `MM_GR_SitTalk` dibuat dari `MM_Idle` oleh `Tools/Python/make_talk_anims.py`. Skrip yang sama membuat `MM_GR_Ride` (Bayu di motor) dengan IK dua tulang ke titik jok, dek kaki, dan stang model `motor`; ubah model motor, ubah juga konstanta `RIDE_*` di skrip lalu jalankan ulang.
 - Perabot di ruangan stealth memakai syarat `!menyusup` (variabel ini 1 selama level stealth berjalan). Syarat `bab>=3` memakai nomor bab.
 
 ## Bab 1 "Asap dan Piring"

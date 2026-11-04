@@ -13,6 +13,8 @@ struct FGRPropPart
 	bool bCollide = true;
 	/** Hidden while the player stands underneath (tent roofs, awnings), so the camera can see inside. */
 	bool bRoof = false;
+	/** Moving group on vehicles: 1 steers, 2 steers and spins (front wheel), 3 spins (rear wheel), 4 side stand. */
+	uint8 Group = 0;
 };
 
 /**

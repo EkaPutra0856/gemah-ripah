@@ -1,5 +1,7 @@
 #include "Core/GRCheatManager.h"
 #include "Core/GRPlayerController.h"
+#include "Player/GRCharacter.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Systems/GRStatusSubsystem.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRRegulationData.h"
@@ -256,10 +258,19 @@ void UGRCheatManager::GRTidur()
 
 void UGRCheatManager::GRMotor()
 {
-	if (AGRPlayerController* PC = Cast<AGRPlayerController>(GetOuterAPlayerController()))
+	// Hands the scooter over wherever Bayu stands (the F key needs him next to it), or gets off it.
+	APlayerController* PC = GetOuterAPlayerController();
+	AGRCharacter* Character = PC ? Cast<AGRCharacter>(PC->GetPawn()) : nullptr;
+	UGRStorySubsystem* Story = PC ? PC->GetGameInstance()->GetSubsystem<UGRStorySubsystem>() : nullptr;
+	if (!Character || !Story)
 	{
-		PC->HandleMotor();
+		return;
 	}
+	if (Story->GetVar(TEXT("punya_motor")) == 0)
+	{
+		Story->SetVar(TEXT("punya_motor"), 1);
+	}
+	Character->SetRiding(!Character->IsRiding());
 }
 
 void UGRCheatManager::GRPos(float X, float Y, float Yaw)
@@ -272,6 +283,21 @@ void UGRCheatManager::GRPos(float X, float Y, float Yaw)
 	}
 	Pawn->TeleportTo(FVector(X, Y, 110.f), FRotator(0.f, Yaw, 0.f));
 	PC->SetControlRotation(FRotator(-15.f, Yaw, 0.f));
+}
+
+void UGRCheatManager::GRKamera(float Yaw, float Pitch, float Distance)
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+	PC->SetControlRotation(FRotator(Pitch, Pawn->GetActorRotation().Yaw + Yaw, 0.f));
+	if (USpringArmComponent* Boom = Pawn->FindComponentByClass<USpringArmComponent>())
+	{
+		Boom->TargetArmLength = Distance;
+	}
 }
 
 void UGRCheatManager::GRPosisi()
@@ -297,7 +323,17 @@ void UGRCheatManager::GRPosisi()
 		}
 	}
 	const FVector P = Pawn ? Pawn->GetActorLocation() : FVector::ZeroVector;
-	UE_LOG(LogGemahRipah, Warning, TEXT("GRPosisi pemain (%.0f, %.0f, %.0f) | NPC duduk %d, bergeser %d"), P.X, P.Y, P.Z, Seated, Moved);
+	FString Ride = TEXT("jalan kaki");
+	if (const AGRCharacter* Character = Cast<AGRCharacter>(Pawn); Character && Character->IsRiding())
+	{
+		Ride = FString::Printf(TEXT("motor %.0f km/j, miring %.0f"), Character->GetRideSpeed() * 0.036f, Character->GetRideLean());
+	}
+	else if (const AGRCharacter* Walker = Cast<AGRCharacter>(Pawn); Walker && Walker->GetMotorDistance() >= 0.f)
+	{
+		Ride += FString::Printf(TEXT(", motor parkir %.0f m"), Walker->GetMotorDistance());
+	}
+	UE_LOG(LogGemahRipah, Warning, TEXT("GRPosisi pemain (%.0f, %.0f, %.0f) yaw %.0f, %s | NPC duduk %d, bergeser %d"), P.X, P.Y, P.Z,
+		Pawn ? Pawn->GetActorRotation().Yaw : 0.f, *Ride, Seated, Moved);
 }
 
 void UGRCheatManager::GRTekan(const FString& KeyName, float Seconds)

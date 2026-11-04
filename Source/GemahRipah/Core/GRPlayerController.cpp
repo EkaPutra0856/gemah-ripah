@@ -314,7 +314,7 @@ void AGRPlayerController::HandleMotor()
 	}
 	if (GRCharacter->IsRiding())
 	{
-		GRCharacter->SetRiding(false);
+		GRCharacter->RequestDismount();
 	}
 	else if (Story->GetVar(TEXT("punya_motor")) == 0)
 	{
@@ -323,6 +323,10 @@ void AGRPlayerController::HandleMotor()
 	else if (CurrentRoom.IsValid())
 	{
 		Story->Run(TEXT("notif Tidak bisa naik motor di dalam ruangan."));
+	}
+	else if (!GRCharacter->IsNearMotor())
+	{
+		Story->Run(FString::Printf(TEXT("notif Motormu terparkir %d m dari sini. Cari tanda M di peta."), FMath::RoundToInt(GRCharacter->GetMotorDistance())));
 	}
 	else
 	{
