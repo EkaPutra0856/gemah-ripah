@@ -64,8 +64,8 @@ protected:
 private:
 	friend class AGRCrowd;
 
-	enum class EMode : uint8 { Walk, Pause, Chat, Sit, Down, Angry };
-	enum class ERole : uint8 { Stroller, Jogger, Vendor };
+	enum class EMode : uint8 { Walk, Pause, Chat, Sit, Down, Angry, Glance, Follow, Chase, Arrest };
+	enum class ERole : uint8 { Stroller, Jogger, Vendor, Police };
 	/** Who is shouting: the one who was hit, a driver whose car Bayu rammed, or someone watching. */
 	enum class EAnger : uint8 { Victim, Shoved, Driver, Bystander };
 
@@ -97,6 +97,25 @@ private:
 	/** Moves a head piece laid out around the actor onto the head bone, keeping where it sits. */
 	void PinToHead(UStaticMeshComponent* Piece);
 	void SetSeatedLook(bool bSeated);
+	/** High Diawasi: stops for a wary side-glance at Bayu (MM_GR_Lirik), then carries on. */
+	void StartGlance();
+	void TickGlance(float DeltaSeconds, const APawn* Player);
+	/** Very high Diawasi: tails Bayu; outrun them to shake them off, or after a while they report him. */
+	void StartFollow();
+	void TickFollow(float DeltaSeconds, const APawn* Player);
+	/** Bayu on foot walked (or ran, bHard) into them: a startled flinch, or anger when it keeps happening. */
+	void Bumped(APawn* Player, const FVector& Direction, bool bHard);
+	/** SPN on patrol: the partner keeps beside the leader; a stop is spent on watch or chatting with the partner. */
+	void TickPartner(float DeltaSeconds);
+	void TickPolicePause(float DeltaSeconds, const APawn* Player);
+	/** Running Bayu down (Diawasi very high); close enough and he is caught. */
+	void StartChase(bool bShout);
+	void TickChase(float DeltaSeconds, APawn* Player);
+	void EndChase(bool bLost);
+	/** Holding Bayu (MM_GR_Tangkap), or the partner calling it in on the radio. */
+	void TickArrest(float DeltaSeconds, const APawn* Player);
+	bool IsPolice() const { return Role == ERole::Police; }
+	bool IsLeader() const { return !Partner.IsValid() || bLeader || !Partner->bActive; }
 
 	/** M_GR_Warga (Tools/Python/make_warga_material.py): shoes, trousers, shirt and skin by height. */
 	UPROPERTY()
@@ -139,6 +158,23 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
 	TObjectPtr<UStaticMeshComponent> PhoneProp;
+
+	/** Wary side-glance, and flinching when bumped into. */
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> GlanceAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> StartleAnim;
+
+	/** SPN: on watch (hands behind the back), on the radio, and holding someone. */
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> GuardAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> RadioAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> GrabAnim;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimSequenceBase> CurrentPose;
@@ -192,6 +228,24 @@ private:
 	float NoticeCooldown = 0.f;
 	/** This stop is spent looking at the phone. */
 	bool bPhone = false;
+	/** Glancing: time left, what they were doing, and until they may glance again. */
+	float GlanceTime = 0.f;
+	float GlanceCooldown = 0.f;
+	EMode GlanceResume = EMode::Walk;
+	/** Flinching after a bump (time left). */
+	float StartleTime = 0.f;
+	/** Tailing Bayu: how long he has been out of reach, and how long they have kept up with him. */
+	float FollowLost = 0.f;
+	float FollowClose = 0.f;
+	/** SPN: the other officer of a pair, and which of them leads. */
+	TWeakObjectPtr<AGRWarga> Partner;
+	bool bLeader = true;
+	/** SPN chase: time Bayu has been out of sight or reach, until the next shout, and until this officer may chase again. */
+	float ChaseLost = 0.f;
+	float ChaseShout = 0.f;
+	float ChaseCooldown = 0.f;
+	/** Radio on (time left) while watching or tailing. */
+	float RadioTime = 0.f;
 	int32 Group = -1;
 	int32 Bench = -1;
 	int32 Seat = 0;
@@ -245,6 +299,16 @@ public:
 	/** The driver of a car Bayu rammed gets out to tell him off; false if there is no room at the door. */
 	bool DriverOut(AGRTrafficCar* Car);
 
+	/** Bayu on foot bumped into someone: returns the bump score of the last 15 s (a run-in counts double). */
+	float NoteBump(bool bHard);
+
+	/** An SPN officer caught up with Bayu: he is held (hands up), then the chapter's "caught" actions run. */
+	void StartArrest(AGRWarga* Officer);
+	bool IsArresting() const { return Arrester.IsValid(); }
+
+	/** Cheat GRPolisi: an SPN pair and a lone officer close to Bayu. */
+	void SpawnPoliceNear();
+
 private:
 	friend class AGRWarga;
 
@@ -278,6 +342,12 @@ private:
 	bool IsRoad(const FVector2D& P) const;
 	bool IsWalkable(const FVector2D& P, float& OutZ) const;
 	bool InView(const FVector& Feet) const;
+	/** The higher Diawasi, the more people nearby glance at Bayu as he passes; from 80 someone tails him. */
+	void UpdateWatchers(const APawn* Player, float Step);
+	/** SPN units near Bayu: one patrolling alone and one pair (pairs only at night); they tail or chase him by Diawasi. */
+	void UpdatePolice(const APawn* Player, float Step);
+	bool SpawnPolice(const FVector& Around, bool bAnywhere, bool bPair);
+	void TickArrest(float DeltaSeconds);
 	bool PersonNear(const FVector& P, float Radius, const AGRWarga* Except) const;
 	/** On one of the four pavements along Jl. Raya / Jl. Merdeka: which one, which side and how far along. */
 	bool PavementAt(const FVector2D& P, int32& OutAxis, float& OutSide, float& OutAlong) const;
@@ -291,6 +361,10 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AGRWarga>> People;
+
+	/** Bayu with his hands up while an officer holds him. */
+	UPROPERTY()
+	TObjectPtr<UAnimSequenceBase> SurrenderAnim;
 
 	UPROPERTY(Transient)
 	/** Bench parts by packed color. */
@@ -307,6 +381,18 @@ private:
 	/** World time of Bayu's recent incidents, for escalating Diawasi. */
 	TArray<double> Incidents;
 	double LastRiot = -1e9;
+	/** Bayu walking into people: world time and weight of each bump. */
+	TArray<TPair<double, float>> Bumps;
+	/** Until the next person may start glancing, or tailing. */
+	float GlanceGap = 0.f;
+	float FollowGap = 0.f;
+	/** Arrest under way: the officer holding Bayu and time since; all SPN stay calm for a while after. */
+	TWeakObjectPtr<AGRWarga> Arrester;
+	float ArrestTime = -1.f;
+	float PoliceCalm = 0.f;
+	float PoliceSpawnGap = 0.f;
+	/** Some officer was chasing Bayu at the last check (to tell him when he got away). */
+	bool bWasChased = false;
 	FVector LastPlayerPos = FVector(1e9f);
 	float Timer = 0.f;
 	float KeepOutTimer = 0.f;

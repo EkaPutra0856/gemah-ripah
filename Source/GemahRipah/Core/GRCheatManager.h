@@ -133,6 +133,10 @@ public:
 	UFUNCTION(Exec)
 	void GRWargaBaris();
 
+	/** Puts an SPN pair and a lone officer on patrol close to Bayu. */
+	UFUNCTION(Exec)
+	void GRPolisi();
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;

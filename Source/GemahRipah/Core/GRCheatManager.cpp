@@ -337,6 +337,14 @@ void UGRCheatManager::GRWargaBaris()
 	}
 }
 
+void UGRCheatManager::GRPolisi()
+{
+	if (AGRCrowd* Crowd = AGRCrowd::Get(GetOuterAPlayerController()))
+	{
+		Crowd->SpawnPoliceNear();
+	}
+}
+
 void UGRCheatManager::GRPosisi()
 {
 	const APlayerController* PC = GetOuterAPlayerController();

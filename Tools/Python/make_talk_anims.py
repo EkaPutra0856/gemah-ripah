@@ -193,6 +193,95 @@ def phone_deltas(t):
     }
 
 
+def glance_deltas(t):
+    """A wary side-glance: chest turned a little and the head a lot to the right (+Z turns toward the mesh's -X,
+    its right), chin down. The game turns the body so the eyes land on Bayu."""
+    w = 2 * math.pi * t
+    return {
+        "spine_03": [(Z, 14)],
+        "neck_01": [(Z, 12)],
+        "head": [(Z, 30 + 3 * math.sin(3 * w)), (X, -7), (Y, -5)],
+        "upperarm_l": [(X, 10), (Y, -4)],
+        "lowerarm_l": [(X, 25)],
+        "upperarm_r": [(X, 8), (Y, 4)],
+    }
+
+
+def startle_deltas(t):
+    """Bumped into: leaning back, both forearms up in front of the chest, head pulled back and shaking a little."""
+    w = 2 * math.pi * t
+    return {
+        "spine_03": [(X, 9)],
+        "head": [(X, 10), (Z, 6 * math.sin(20 * w))],
+        "upperarm_r": [(X, 45), (Y, 18)],
+        "lowerarm_r": [(X, 75), (Z, -20)],
+        "hand_r": [(X, -25)],
+        "upperarm_l": [(X, 45), (Y, -18)],
+        "lowerarm_l": [(X, 75), (Z, 20)],
+        "hand_l": [(X, -25)],
+    }
+
+
+def guard_deltas(t):
+    """Officer on watch: chest out, hands clasped behind the back, the head sweeping slowly across the street.
+    MM_Idle runs about 7.5 s, so two sweeps per loop."""
+    w = 2 * math.pi * t
+    return {
+        "spine_03": [(X, 4)],
+        "head": [(Z, 22 * math.sin(2 * w)), (X, 2 * math.sin(4 * w))],
+        # Upper arms pulled back, forearms swung in across the small of the back.
+        "upperarm_r": [(X, -28), (Y, 6)],
+        "lowerarm_r": [(Y, -78)],
+        "upperarm_l": [(X, -28), (Y, -6)],
+        "lowerarm_l": [(Y, 78)],
+    }
+
+
+def radio_deltas(t):
+    """Talking into the radio clipped on the left shoulder: right hand up across the chest, head tipped toward it."""
+    w = 2 * math.pi * t
+    return {
+        "spine_03": [(Z, -4)],
+        "head": [(Z, -12), (Y, 6), (X, -6 + 3 * math.sin(9 * w))],
+        "upperarm_r": [(X, 42), (Y, -6)],
+        "lowerarm_r": [(X, 108), (Z, -58)],
+        "hand_r": [(X, -12)],
+        "upperarm_l": [(X, 6), (Y, -4)],
+    }
+
+
+def grab_deltas(t):
+    """Arrest: leaning in, both arms out to grab and hold someone, pulling now and then."""
+    w = 2 * math.pi * t
+    pull = math.sin(6 * w)
+    return {
+        "spine_03": [(X, -14 + 2 * pull)],
+        "head": [(X, -8)],
+        "upperarm_r": [(X, 68 - 6 * pull), (Y, -8)],
+        "lowerarm_r": [(X, 28 + 6 * pull), (Z, -15)],
+        "hand_r": [(X, -20)],
+        "upperarm_l": [(X, 68 - 6 * pull), (Y, 8)],
+        "lowerarm_l": [(X, 28 + 6 * pull), (Z, 15)],
+        "hand_l": [(X, -20)],
+    }
+
+
+def surrender_deltas(t):
+    """Caught: both hands up beside the head, palms out, head bowed, a small tremble."""
+    w = 2 * math.pi * t
+    shake = 2 * math.sin(23 * w)
+    return {
+        "spine_03": [(X, 3)],
+        "head": [(X, -16 + shake * 0.5)],
+        "upperarm_r": [(Y, 78 + shake), (X, 14)],
+        "lowerarm_r": [(Y, 84)],
+        "hand_r": [(X, 20)],
+        "upperarm_l": [(Y, -78 - shake), (X, 14)],
+        "lowerarm_l": [(Y, -84)],
+        "hand_l": [(X, 20)],
+    }
+
+
 def sit_talk_deltas(t):
     d = {k: v for k, v in sit_deltas(t).items() if k.startswith(("thigh", "calf"))}
     d.update(talk_deltas(t, True))
@@ -513,6 +602,12 @@ try:
     build("MM_GR_Marah", angry_deltas, False)
     build("MM_GR_Lambai", wave_deltas, False)
     build("MM_GR_Ponsel", phone_deltas, False)
+    build("MM_GR_Lirik", glance_deltas, False)
+    build("MM_GR_Kaget", startle_deltas, False)
+    build("MM_GR_Siaga", guard_deltas, False)
+    build("MM_GR_Radio", radio_deltas, False)
+    build("MM_GR_Tangkap", grab_deltas, False)
+    build("MM_GR_Menyerah", surrender_deltas, False)
     build_ride("MM_GR_Gerobak", SRC, lambda p, y, o, t: push_frame(p, y, o, t, True), "GR push anim")
     build_ride("MM_GR_GerobakJalan", WALK, lambda p, y, o, t: push_frame(p, y, o, t, False), "GR push anim")
 except Exception as e:  # noqa: BLE001

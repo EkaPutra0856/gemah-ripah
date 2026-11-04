@@ -152,6 +152,32 @@ namespace
 		TEXT("Zaman sekarang, ya..."),
 		TEXT("Sudahlah. Sabar, sabar.") };
 	const FColor AngryColor(255, 110, 90);
+	/** Muttering about Bayu while eyeing him. */
+	const FColor WatchColor(235, 205, 130);
+	/** The glance anim turns chest, neck and head this far right; the body turns away by as much. */
+	constexpr float GlanceTurn = 56.f;
+	const TCHAR* const WatchLines[] = {
+		TEXT("Itu kan orang yang lagi diawasi..."), TEXT("Ssst, itu dia orangnya."), TEXT("Jangan dekat-dekat, nanti ikut didata."),
+		TEXT("Mukanya mirip yang di berita."), TEXT("Hm... mencurigakan."), TEXT("Katanya dia provokator, ya?"),
+	};
+	const TCHAR* const BumpLines[] = {
+		TEXT("Eh, hati-hati, Mas!"), TEXT("Aduh, jalan lihat-lihat, dong."), TEXT("Ih, nyenggol."), TEXT("Waduh! Pelan-pelan, Mas."),
+	};
+	const TCHAR* const SorryLines[] = { TEXT("Eh, maaf!"), TEXT("Maaf, maaf!"), TEXT("Sori, nggak lihat.") };
+	const TCHAR* const PoliceChatLines[] = {
+		TEXT("Sepi hari ini, Ndan."), TEXT("Katanya bulan ini target razia naik lagi."), TEXT("Kopi di pos habis, siapa yang beli?"),
+		TEXT("Awasi yang bergerombol, ya."), TEXT("Siap, laksanakan."), TEXT("Nanti malam kita jaga Tugu."), TEXT("Daftar pantauan baru turun tadi pagi."),
+	};
+	const TCHAR* const RadioLines[] = {
+		TEXT("Pos, ini patroli. Target terlihat, ganti."), TEXT("Orang di daftar pantauan lewat sini, ganti."), TEXT("Kami ikuti dari jauh, ganti."),
+	};
+	const TCHAR* const ChaseLines[] = {
+		TEXT("Hei! Berhenti!"), TEXT("Jangan lari kamu!"), TEXT("Berhenti! SPN!"), TEXT("Tangkap dia!"), TEXT("Minggir, minggir!"),
+	};
+	const TCHAR* const PoliceGreetLines[] = {
+		TEXT("Selamat siang. Ada perlu apa?"), TEXT("Jangan keluyuran malam, Mas. Jam malam berlaku."), TEXT("Kalau lihat yang mencurigakan, lapor, ya."),
+		TEXT("Mas ini yang sering ikut kumpul-kumpul itu, kan?"),
+	};
 
 	template <typename T, int32 N>
 	const T& PickOne(FRandomStream& Rng, const T (&Items)[N])
@@ -216,8 +242,13 @@ AGRWarga::AGRWarga()
 
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	Move->bOrientRotationToMovement = true;
-	Move->RotationRate = FRotator(0.f, 300.f, 0.f);
+	Move->RotationRate = FRotator(0.f, 260.f, 0.f);
 	Move->MaxWalkSpeed = Speed;
+	// Ease into a walk and out of it instead of starting and stopping dead (Tick raises these for running).
+	Move->MaxAcceleration = 700.f;
+	Move->bUseSeparateBrakingFriction = true;
+	Move->BrakingFriction = 2.5f;
+	Move->BrakingDecelerationWalking = 300.f;
 	// Same limit as Bayu: nobody climbs onto chairs and tables.
 	Move->MaxStepHeight = 34.f;
 	Move->bRunPhysicsWithNoController = true;
@@ -254,6 +285,16 @@ AGRWarga::AGRWarga()
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PhoneSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Ponsel.MM_GR_Ponsel"));
 	WaveAnim = WaveSeq.Object;
 	PhoneAnim = PhoneSeq.Object;
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> GlanceSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Lirik.MM_GR_Lirik"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> StartleSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Kaget.MM_GR_Kaget"));
+	GlanceAnim = GlanceSeq.Object;
+	StartleAnim = StartleSeq.Object;
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> GuardSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Siaga.MM_GR_Siaga"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RadioSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Radio.MM_GR_Radio"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> GrabSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Tangkap.MM_GR_Tangkap"));
+	GuardAnim = GuardSeq.Object;
+	RadioAnim = RadioSeq.Object;
+	GrabAnim = GrabSeq.Object;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> PhoneCube(TEXT("/Engine/BasicShapes/Cube.Cube"));
 	PhoneProp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PhoneProp"));
 	PhoneProp->SetStaticMesh(PhoneCube.Object);
@@ -301,8 +342,10 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 	Body->SetRelativeScale3D(FVector(Scale));
 
 	// Clothes: one material over the whole mannequin, colored by height (shoes, trousers, shirt, skin).
-	const FLinearColor Shirt = GRStoryUtil::ParseColor(Role == ERole::Jogger ? PickOne(Rng, SportColors) : PickOne(Rng, ShirtColors));
-	const FLinearColor Pants = GRStoryUtil::ParseColor(PickOne(Rng, PantsColors));
+	// SPN wear the navy uniform with black boots.
+	const bool bPolice = Role == ERole::Police;
+	const FLinearColor Shirt = GRStoryUtil::ParseColor(bPolice ? TEXT("#22305A") : Role == ERole::Jogger ? PickOne(Rng, SportColors) : PickOne(Rng, ShirtColors));
+	const FLinearColor Pants = GRStoryUtil::ParseColor(bPolice ? TEXT("#1A2238") : PickOne(Rng, PantsColors));
 	// Heights in the mesh's own space, so the body scale does not move them.
 	HipZ = bFemale ? 92.f : 97.f;
 	NeckZ = bFemale ? 146.f : 151.f;
@@ -315,7 +358,7 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 		Clothes->SetVectorParameterValue(TEXT("Shirt"), Shirt);
 		Clothes->SetVectorParameterValue(TEXT("Pants"), Pants);
 		Clothes->SetVectorParameterValue(TEXT("Skin"), GRStoryUtil::ParseColor(PickOne(Rng, SkinColors)));
-		Clothes->SetScalarParameterValue(TEXT("ShoeZ"), 9.f);
+		Clothes->SetScalarParameterValue(TEXT("ShoeZ"), bPolice ? 22.f : 9.f);
 		for (int32 i = 0; i < Body->GetNumMaterials(); ++i)
 		{
 			Body->SetMaterial(i, Clothes);
@@ -331,7 +374,14 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 		Piece->SetVisibility(false);
 	}
 	const float Roll = Rng.FRand();
-	if (Role == ERole::Vendor && !bFemale && Roll < 0.6f)
+	if (bPolice)
+	{
+		// Service cap with a stiff peak.
+		const FLinearColor Cap = GRStoryUtil::ParseColor(TEXT("#1C2747"));
+		PutPiece(Headwear, TEXT("cylinder"), FVector(-1.f, 0.f, Top - 2.f), FVector(0.23f, 0.22f, 0.1f), Cap);
+		PutPiece(HeadExtra, TEXT("cube"), FVector(12.f, 0.f, Top - 6.f), FVector(0.13f, 0.19f, 0.015f), GRStoryUtil::ParseColor(TEXT("#111111")));
+	}
+	else if (Role == ERole::Vendor && !bFemale && Roll < 0.6f)
 	{
 		const FLinearColor Straw = GRStoryUtil::ParseColor(TEXT("#C9A867"));
 		PutPiece(Headwear, TEXT("cylinder"), FVector(0.f, 0.f, Top - 1.f), FVector(0.56f, 0.56f, 0.03f), Straw);
@@ -416,7 +466,7 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 		}
 	}
 
-	Speed = Role == ERole::Jogger ? Rng.FRandRange(320.f, 380.f) : bVendor ? Rng.FRandRange(70.f, 85.f) : Rng.FRandRange(105.f, 150.f);
+	Speed = Role == ERole::Jogger ? Rng.FRandRange(320.f, 380.f) : bVendor ? Rng.FRandRange(70.f, 85.f) : bPolice ? Rng.FRandRange(112.f, 125.f) : Rng.FRandRange(105.f, 150.f);
 	StripDir = Rng.FRand() < 0.5f ? 1.f : -1.f;
 }
 
@@ -453,7 +503,18 @@ void AGRWarga::Activate(const FVector& Feet, float Yaw)
 	NoticeCooldown = Rng.FRandRange(4.f, 15.f);
 	bPhone = false;
 	PhoneProp->SetHiddenInGame(true);
+	GlanceTime = 0.f;
+	GlanceCooldown = Rng.FRandRange(0.f, 10.f);
+	StartleTime = 0.f;
+	FollowLost = 0.f;
+	FollowClose = 0.f;
 	ShoveCooldown = 0.f;
+	Partner = nullptr;
+	bLeader = true;
+	ChaseLost = 0.f;
+	ChaseShout = 0.f;
+	ChaseCooldown = 0.f;
+	RadioTime = 0.f;
 	AngryAt = nullptr;
 	DriverCar = nullptr;
 	UGRBubbleSubsystem::Hide(this);
@@ -470,6 +531,13 @@ void AGRWarga::Deactivate()
 	}
 	DriverCar = nullptr;
 	AngryAt = nullptr;
+	// A pair split by recycling: the one left patrols alone.
+	if (AGRWarga* Mate = Partner.Get(); Mate && Mate->Partner == this)
+	{
+		Mate->Partner = nullptr;
+		Mate->bLeader = true;
+	}
+	Partner = nullptr;
 	if (AGRCrowd* C = Crowd.Get(); C && C->Benches.IsValidIndex(Bench) && C->Benches[Bench].Sitters[Seat] == this)
 	{
 		C->Benches[Bench].Sitters[Seat] = nullptr;
@@ -615,6 +683,374 @@ void AGRWarga::TickAngry(float DeltaSeconds)
 	NextTarget(false);
 }
 
+void AGRWarga::StartGlance()
+{
+	GlanceResume = Mode == EMode::Pause || Mode == EMode::Chat ? Mode : EMode::Walk;
+	Mode = EMode::Glance;
+	UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s melirik Bayu"), *GetName());
+	GlanceTime = Rng.FRandRange(1.8f, 2.8f);
+	GlanceCooldown = 30.f;
+	if (Rng.FRand() < 0.5f)
+	{
+		// Muttered, not shouted: no shake, and the glance stays the pose.
+		UGRBubbleSubsystem::Show(this, PickOne(Rng, WatchLines), 2.2f, FLinearColor(WatchColor), BubbleZ, false);
+	}
+}
+
+void AGRWarga::TickGlance(float DeltaSeconds, const APawn* Player)
+{
+	GlanceTime -= DeltaSeconds;
+	if (Player)
+	{
+		// The body turns away by as much as the anim turns the head, so the eyes land on him.
+		const float Yaw = (Player->GetActorLocation() - GetActorLocation()).Rotation().Yaw - GlanceTurn;
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, Yaw, 0.f), DeltaSeconds, 5.f));
+	}
+	if (GlanceTime <= 0.f)
+	{
+		Mode = GlanceResume;
+		WalkTime = 0.f;
+		Stuck = 0.f;
+	}
+}
+
+void AGRWarga::StartFollow()
+{
+	Mode = EMode::Follow;
+	FollowLost = 0.f;
+	FollowClose = 0.f;
+	GlanceCooldown = 30.f;
+	Group = -1;
+	bCrossing = false;
+	UE_LOG(LogGRCrowd, Display, TEXT("GR%s %s membuntuti Bayu"), IsPolice() ? TEXT("SPN") : TEXT("WARGA"), *GetName());
+	if (IsPolice())
+	{
+		// Calls it in first, then keeps an eye on him from a distance.
+		RadioTime = 3.f;
+		UGRBubbleSubsystem::Show(this, PickOne(Rng, RadioLines), 3.f, FLinearColor(WatchColor), BubbleZ, false);
+	}
+	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+	if (Story && IsLeader())
+	{
+		Story->Run(IsPolice() ? TEXT("notif Petugas SPN membuntutimu. Menjauh pelan-pelan; lari di depan mereka bikin dikejar.")
+			: TEXT("notif Ada warga yang membuntutimu. Jalan cepat atau lari supaya lolos."));
+	}
+}
+
+void AGRWarga::TickFollow(float DeltaSeconds, const APawn* Player)
+{
+	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	const FVector Loc = GetActorLocation();
+	const FVector To = Bayu ? Bayu->GetActorLocation() - Loc : FVector::ZeroVector;
+	const float Dist = To.Size2D();
+	const bool bPolice = IsPolice();
+	// An officer tailing him sees him break into a run: now it is a chase.
+	if (bPolice && Bayu && !Bayu->IsRiding() && Dist < 1100.f && Bayu->GetVelocity().SizeSquared2D() > FMath::Square(600.f))
+	{
+		StartChase(true);
+		if (AGRWarga* Mate = Partner.Get(); Mate && Mate->bActive && Mate->Mode != EMode::Down && Mate->Mode != EMode::Chase)
+		{
+			Mate->StartChase(false);
+		}
+		return;
+	}
+	// Slower than Bayu walking and far slower than him running: keep moving and the gap only grows.
+	// Officers hang further back than curious townspeople.
+	const float Keep = bPolice ? 650.f : 400.f;
+	const bool bMoving = GetVelocity().SizeSquared2D() > FMath::Square(40.f);
+	const bool bGo = Dist > (bMoving ? Keep : Keep + 120.f);
+	if (bGo)
+	{
+		const float Want = Dist > Keep + 500.f ? (bPolice ? 400.f : 420.f) : (bPolice ? 280.f : 300.f);
+		Move->MaxWalkSpeed = FMath::FInterpTo(Move->MaxWalkSpeed, Want, DeltaSeconds, 3.f);
+		AddMovementInput(To.GetSafeNormal2D(), 1.f);
+	}
+	else if (Bayu)
+	{
+		const float Yaw = To.Rotation().Yaw - GlanceTurn;
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, Yaw, 0.f), DeltaSeconds, 4.f));
+	}
+	// Shaken off: far ahead, on the scooter, indoors, or the way is blocked.
+	Stuck = bGo && !bMoving ? Stuck + DeltaSeconds : 0.f;
+	const bool bLost = !Bayu || Bayu->IsRiding() || Bayu->IsInTopDownMode() || Dist > 1700.f || Stuck > 2.f;
+	FollowLost = bLost ? FollowLost + DeltaSeconds : 0.f;
+	if (FollowLost > 1.5f)
+	{
+		UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s kehilangan jejak Bayu"), *GetName());
+		Move->MaxWalkSpeed = Speed;
+		UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+		if (Story && IsLeader())
+		{
+			Story->Run(bPolice ? TEXT("notif Kamu lolos dari pengawasan SPN.") : TEXT("notif Kamu lolos dari warga yang membuntuti."));
+		}
+		NextTarget(false);
+		return;
+	}
+	FollowClose += Dist < 1200.f ? DeltaSeconds : 0.f;
+	if (FollowClose < 25.f)
+	{
+		return;
+	}
+	// Stuck to him long enough: out comes the phone (or the radio).
+	UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s melaporkan Bayu"), *GetName());
+	Move->MaxWalkSpeed = Speed;
+	UGRBubbleSubsystem::Show(this, bPolice ? TEXT("Pos, target masih di sini. Mohon arahan, ganti.") : TEXT("Halo, Pak SPN? Orangnya ada di sini..."),
+		3.5f, FLinearColor(WatchColor), BubbleZ, false);
+	UGameInstance* GI = GetGameInstance();
+	const bool bReport = !bPolice || IsLeader();
+	if (UGRStatusSubsystem* Status = GI->GetSubsystem<UGRStatusSubsystem>(); Status && bReport)
+	{
+		Status->AddDiawasi(bPolice ? 3.f : 4.f, true);
+	}
+	if (UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>(); Story && bReport)
+	{
+		Story->Run(bPolice ? TEXT("notifburuk Petugas SPN melaporkan gerak-gerikmu. Diawasi +3.") : TEXT("notifburuk Warga yang membuntutimu melapor ke SPN. Diawasi +4."));
+	}
+	Mode = EMode::Pause;
+	bPhone = !bPolice;
+	RadioTime = bPolice ? 3.5f : 0.f;
+	ChaseCooldown = bPolice ? 30.f : ChaseCooldown;
+	Wait = 6.f;
+}
+
+void AGRWarga::Bumped(APawn* Player, const FVector& Direction, bool bHard)
+{
+	AGRCrowd* C = Crowd.Get();
+	const float Streak = C ? C->NoteBump(bHard) : 0.f;
+	const FVector Dir = Direction.GetSafeNormal2D();
+	if (AGRCharacter* Bayu = Cast<AGRCharacter>(Player))
+	{
+		// The bump costs him his momentum too.
+		Bayu->GetCharacterMovement()->Velocity *= 0.35f;
+		if (Rng.FRand() < 0.6f)
+		{
+			UGRBubbleSubsystem::Show(Bayu, PickOne(Rng, SorryLines), 1.4f);
+		}
+	}
+	if (Streak >= 5.f)
+	{
+		// Again and again in a few seconds: nobody thinks it was an accident any more.
+		KnockedBy(Player, bHard ? 300.f : 220.f, Dir, bHard ? 3.f : 2.f, TEXT("Bayu menabrak-nabrak orang di trotoar."));
+		return;
+	}
+	if (Mode == EMode::Angry)
+	{
+		AngryTime = FMath::Max(AngryTime, 2.5f);
+		Say(PickOne(Rng, ShoveLines), 1.8f, AngryColor);
+		return;
+	}
+	if (bHard)
+	{
+		// Ran into: shoved aside and cross, but once is not a report.
+		KnockedBy(Player, 260.f, Dir, 0.f);
+		return;
+	}
+	// Brushed past: a flinch and a step back, then a word with him.
+	Dodge = 0.f;
+	StartleTime = 0.9f;
+	LaunchCharacter(Dir * 180.f, true, false);
+	TalkPause = FMath::Max(TalkPause, 1.6f);
+	Say(PickOne(Rng, BumpLines), 2.f);
+}
+
+void AGRWarga::TickPartner(float DeltaSeconds)
+{
+	const AGRWarga* Lead = Partner.Get();
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	Mode = Lead->Mode == EMode::Pause ? EMode::Pause : EMode::Walk;
+	// Half a step behind the leader's shoulder, matching the leader's pace: the right one, unless a wall is there.
+	const FVector LeadAt = Lead->GetActorLocation();
+	FVector Slot = LeadAt + Lead->GetActorRightVector() * 95.f - Lead->GetActorForwardVector() * 15.f;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(GRSpnPartner), false, this);
+	Params.AddIgnoredActor(Lead);
+	if (GetWorld()->LineTraceTestByChannel(LeadAt, Slot + (Slot - LeadAt).GetSafeNormal2D() * 40.f, ECC_Visibility, Params))
+	{
+		Slot = LeadAt - Lead->GetActorRightVector() * 95.f - Lead->GetActorForwardVector() * 15.f;
+	}
+	// Caught on something: fall in right behind the leader instead.
+	if (Stuck > 1.f)
+	{
+		Slot = LeadAt - Lead->GetActorForwardVector() * 90.f;
+	}
+	const FVector2D To(Slot - GetActorLocation());
+	const float Dist = To.Size();
+	const float LeadSpeed = Lead->GetVelocity().Size2D();
+	if (Dist > 1500.f)
+	{
+		// Split up (a wall, a crowd): patrol alone from here.
+		Partner = nullptr;
+		bLeader = true;
+		NextTarget(false);
+		return;
+	}
+	if (Dist > 35.f)
+	{
+		Move->MaxWalkSpeed = FMath::FInterpTo(Move->MaxWalkSpeed, FMath::Clamp(LeadSpeed + Dist * 0.8f, 60.f, 280.f), DeltaSeconds, 4.f);
+		AddMovementInput(FVector(To / Dist, 0.f), FMath::Clamp(Dist / 120.f, 0.35f, 1.f));
+		Stuck = Dist > 150.f && GetVelocity().SizeSquared2D() < FMath::Square(30.f) ? Stuck + DeltaSeconds : FMath::Max(0.f, Stuck - DeltaSeconds * 0.5f);
+	}
+	else if (LeadSpeed < 20.f)
+	{
+		// Standing with the leader: face the same way, or face them while one of the two is talking.
+		const float Yaw = Lead->BarkHide > 0.f || BarkHide > 0.f ? (Lead->GetActorLocation() - GetActorLocation()).Rotation().Yaw : Lead->GetActorRotation().Yaw;
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, Yaw, 0.f), DeltaSeconds, 3.f));
+	}
+}
+
+void AGRWarga::TickPolicePause(float DeltaSeconds, const APawn* Player)
+{
+	Wait -= DeltaSeconds;
+	TalkTimer -= DeltaSeconds;
+	AGRWarga* Mate = Partner.Get();
+	if (Mate && Mate->bActive)
+	{
+		// Small talk between the two now and then, turned toward each other.
+		if (TalkTimer <= 0.f && BarkHide <= 0.f && Mate->BarkHide <= 0.f)
+		{
+			TalkTimer = Rng.FRandRange(4.f, 9.f);
+			(Rng.FRand() < 0.5f ? this : Mate)->Say(PickOne(Rng, PoliceChatLines), 3.f);
+		}
+		if (BarkHide > 0.f || Mate->BarkHide > 0.f)
+		{
+			const FRotator Face(0.f, (Mate->GetActorLocation() - GetActorLocation()).Rotation().Yaw, 0.f);
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Face, DeltaSeconds, 3.f));
+		}
+	}
+	if (Wait <= 0.f)
+	{
+		NextTarget(false);
+	}
+}
+
+void AGRWarga::StartChase(bool bShout)
+{
+	if (Mode == EMode::Sit)
+	{
+		StandUp();
+	}
+	UE_LOG(LogGRCrowd, Display, TEXT("GRSPN %s mengejar Bayu"), *GetName());
+	Mode = EMode::Chase;
+	ChaseLost = 0.f;
+	ChaseShout = Rng.FRandRange(2.2f, 3.f);
+	if (bShout)
+	{
+		Say(TEXT("Hei! Berhenti!"), 1.8f, AngryColor);
+	}
+	Group = -1;
+	bCrossing = false;
+	TalkPause = 0.f;
+	Dodge = 0.f;
+	StartleTime = 0.f;
+	Stuck = 0.f;
+	// A moment to point and shout before the run: Bayu gets a head start.
+	Wait = bShout ? 0.8f : 1.f;
+}
+
+void AGRWarga::TickChase(float DeltaSeconds, APawn* Player)
+{
+	AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
+	if (!Bayu)
+	{
+		EndChase(true);
+		return;
+	}
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	const FVector Loc = GetActorLocation();
+	const float Dist = FVector::Dist2D(Bayu->GetActorLocation(), Loc);
+	if (Wait > 0.f)
+	{
+		Wait -= DeltaSeconds;
+		const FRotator Face(0.f, (Bayu->GetActorLocation() - Loc).Rotation().Yaw, 0.f);
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), Face, DeltaSeconds, 6.f));
+		return;
+	}
+	// Picks up speed over a second instead of bolting: faster than Bayu walking, slower than him running.
+	Move->MaxWalkSpeed = FMath::FInterpTo(Move->MaxWalkSpeed, 560.f, DeltaSeconds, 2.5f);
+	// Run at where he is going; the second officer of a pair cuts in from the side.
+	FVector Aim = Bayu->GetActorLocation() + Bayu->GetVelocity() * FMath::Clamp(Dist / 700.f, 0.1f, 0.6f);
+	if (!IsLeader() && Dist > 450.f)
+	{
+		const FVector Ahead = (Aim - Loc).GetSafeNormal2D();
+		Aim += FVector(-Ahead.Y, Ahead.X, 0.f) * 200.f;
+	}
+	AddMovementInput((Aim - Loc).GetSafeNormal2D(), 1.f);
+	ChaseShout -= DeltaSeconds;
+	if (ChaseShout <= 0.f)
+	{
+		ChaseShout = Rng.FRandRange(2.2f, 3.4f);
+		Say(PickOne(Rng, ChaseLines), 1.8f, AngryColor);
+	}
+	AGRCrowd* C = Crowd.Get();
+	if (Dist < 125.f && !Bayu->IsRiding() && !Bayu->IsKnockedDown() && C && !C->IsArresting())
+	{
+		C->StartArrest(this);
+		return;
+	}
+	// Lost him: out of sight for a while, far ahead, off on the scooter, indoors, or stuck behind something.
+	bool bSees = false;
+	if (Dist < 2600.f)
+	{
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(GRSpnChase), false, this);
+		Params.AddIgnoredActor(Bayu);
+		bSees = !GetWorld()->LineTraceTestByChannel(Loc + FVector(0.f, 0.f, 60.f), Bayu->GetActorLocation() + FVector(0.f, 0.f, 60.f), ECC_Visibility, Params);
+	}
+	Stuck = GetVelocity().SizeSquared2D() < FMath::Square(40.f) ? Stuck + DeltaSeconds : 0.f;
+	const bool bGone = Dist > 2000.f || Bayu->IsInTopDownMode() || (Bayu->IsRiding() && Dist > 700.f) || (!bSees && Dist > 900.f) || Stuck > 1.5f;
+	ChaseLost = bGone ? ChaseLost + DeltaSeconds : 0.f;
+	if (ChaseLost > 2.5f)
+	{
+		EndChase(true);
+	}
+}
+
+void AGRWarga::EndChase(bool bLost)
+{
+	UE_LOG(LogGRCrowd, Display, TEXT("GRSPN %s berhenti mengejar"), *GetName());
+	GetCharacterMovement()->MaxWalkSpeed = Speed;
+	ChaseCooldown = 25.f;
+	// Catch their breath and call it in.
+	Mode = EMode::Pause;
+	Wait = Rng.FRandRange(3.f, 4.5f);
+	Stuck = 0.f;
+	if (bLost)
+	{
+		RadioTime = 3.f;
+		UGRBubbleSubsystem::Show(this, Rng.FRand() < 0.5f ? TEXT("Pos, target lolos, ganti.") : TEXT("Ke mana dia..."), 2.5f, FLinearColor(WatchColor), BubbleZ, false);
+	}
+}
+
+void AGRWarga::TickArrest(float DeltaSeconds, const APawn* Player)
+{
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	const AGRCrowd* C = Crowd.Get();
+	const AGRWarga* Holder = C ? C->Arrester.Get() : nullptr;
+	if (!Player || !Holder)
+	{
+		Mode = EMode::Pause;
+		Wait = 2.f;
+		Move->MaxWalkSpeed = Speed;
+		return;
+	}
+	// The one who caught him holds him; the other comes round to his other side.
+	const bool bHolder = Holder == this;
+	const FVector Bayu = Player->GetActorLocation();
+	const FVector Spot = bHolder ? Bayu : Bayu + (Bayu - Holder->GetActorLocation()).GetSafeNormal2D() * 115.f;
+	const FVector2D To(Spot - GetActorLocation());
+	const float Dist = To.Size();
+	const float Stand = bHolder ? 85.f : 30.f;
+	if (Dist > Stand)
+	{
+		Move->MaxWalkSpeed = FMath::FInterpTo(Move->MaxWalkSpeed, FMath::Clamp(Dist * 1.5f, 70.f, 320.f), DeltaSeconds, 5.f);
+		AddMovementInput(FVector(To / Dist, 0.f), 1.f);
+	}
+	if (Dist < Stand + 60.f)
+	{
+		const FRotator Face(0.f, (Bayu - GetActorLocation()).Rotation().Yaw, 0.f);
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), Face, DeltaSeconds, 6.f));
+	}
+}
+
 void AGRWarga::StartFall(const FVector& Velocity)
 {
 	Mode = EMode::Down;
@@ -719,12 +1155,12 @@ void AGRWarga::PlayPose(UAnimSequenceBase* Anim, float Rate)
 	CurrentMontage = nullptr;
 	if (!Anim)
 	{
-		AnimInstance->StopSlotAnimation(0.3f, TEXT("DefaultSlot"));
+		AnimInstance->StopSlotAnimation(0.4f, TEXT("DefaultSlot"));
 		return;
 	}
 	// The pushing walk comes from a walk cycle, which can carry root motion; the crowd code moves people itself.
 	AnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
-	CurrentMontage = AnimInstance->PlaySlotAnimationAsDynamicMontage(Anim, TEXT("DefaultSlot"), 0.3f, 0.3f, Rate, 10000);
+	CurrentMontage = AnimInstance->PlaySlotAnimationAsDynamicMontage(Anim, TEXT("DefaultSlot"), 0.4f, 0.4f, Rate, 10000);
 }
 
 void AGRWarga::PinToHead(UStaticMeshComponent* Piece)
@@ -761,12 +1197,12 @@ void AGRWarga::SetSeatedLook(bool bSeated)
 
 FText AGRWarga::GetInteractionPrompt_Implementation(AActor* Interactor) const
 {
-	return Role == ERole::Vendor ? LOCTEXT("GreetVendor", "Sapa pedagang") : LOCTEXT("GreetWarga", "Sapa warga");
+	return Role == ERole::Vendor ? LOCTEXT("GreetVendor", "Sapa pedagang") : Role == ERole::Police ? LOCTEXT("GreetSpn", "Sapa petugas") : LOCTEXT("GreetWarga", "Sapa warga");
 }
 
 bool AGRWarga::CanInteract_Implementation(AActor* Interactor) const
 {
-	if (!bActive || IsHidden() || Dodge > 0.f || Mode == EMode::Down || Mode == EMode::Angry)
+	if (!CanChat() || Dodge > 0.f)
 	{
 		return false;
 	}
@@ -809,20 +1245,18 @@ FText AGRWarga::GetChatTitle() const
 {
 	return Role == ERole::Vendor ? LOCTEXT("ChatVendor", "Pedagang Gerobak")
 		: Role == ERole::Jogger ? LOCTEXT("ChatJogger", "Warga yang Lagi Joging")
+		: Role == ERole::Police ? LOCTEXT("ChatSpn", "Petugas SPN")
 		: LOCTEXT("ChatWarga", "Warga Sentosa");
 }
 
 bool AGRWarga::CanChat() const
 {
-	return bActive && !IsHidden() && Mode != EMode::Down && Mode != EMode::Angry;
+	return bActive && !IsHidden() && Mode != EMode::Down && Mode != EMode::Angry && Mode != EMode::Chase && Mode != EMode::Arrest
+		&& !(IsPolice() && Mode == EMode::Follow);
 }
 
 void AGRWarga::HoldChat(float Seconds)
 {
-	if (Mode == EMode::Walk && TalkPause <= 0.f)
-	{
-		GetCharacterMovement()->StopMovementImmediately();
-	}
 	TalkPause = FMath::Max(TalkPause, Seconds);
 }
 
@@ -848,6 +1282,13 @@ void AGRWarga::Chat(int32 Topic)
 			Lines.Add(TEXT("Laris, Mas. Tapi minyak goreng naik lagi, untung tipis."));
 			Lines.Add(TEXT("Katanya mau ada penertiban PKL. Kami mau dagang di mana?"));
 			Lines.Add(TEXT("Murah, Mas. Belum kena pajak."));
+		}
+		else if (Role == ERole::Police)
+		{
+			for (const TCHAR* Line : PoliceGreetLines)
+			{
+				Lines.Add(Line);
+			}
 		}
 		else if (Role == ERole::Jogger)
 		{
@@ -930,14 +1371,23 @@ void AGRWarga::Tick(float DeltaSeconds)
 	DodgeCooldown -= DeltaSeconds;
 	HitCooldown -= DeltaSeconds;
 	ShoveCooldown -= DeltaSeconds;
-	// Bayu sprinting into someone shoves them (walking pace only brushes past).
-	if (const AGRCharacter* Bayu = Cast<AGRCharacter>(Player); Bayu && !Bayu->IsRiding() && ShoveCooldown <= 0.f && Mode != EMode::Down)
+	GlanceCooldown -= DeltaSeconds;
+	ChaseCooldown -= DeltaSeconds;
+	RadioTime -= DeltaSeconds;
+	// Running (a chase, a dodge) starts and turns quickly; strolling eases in and out.
+	const bool bRunning = Mode == EMode::Chase || Dodge > 0.f;
+	GetCharacterMovement()->MaxAcceleration = bRunning ? 1400.f : 700.f;
+	GetCharacterMovement()->RotationRate.Yaw = bRunning ? 420.f : 260.f;
+	// Bayu on foot walking into someone startles them; sprinting into them shoves them aside.
+	if (const AGRCharacter* Bayu = Cast<AGRCharacter>(Player); Bayu && !Bayu->IsRiding() && ShoveCooldown <= 0.f && Mode != EMode::Down && Mode != EMode::Sit
+		&& Mode != EMode::Chase && Mode != EMode::Arrest)
 	{
 		const FVector2D Rel(GetActorLocation() - Bayu->GetActorLocation());
-		if (Rel.SizeSquared() < FMath::Square(120.f) && FVector2D::DotProduct(FVector2D(Bayu->GetVelocity()), Rel.GetSafeNormal()) > 560.f)
+		const float Closing = FVector2D::DotProduct(FVector2D(Bayu->GetVelocity()), Rel.GetSafeNormal());
+		if (Rel.SizeSquared() < FMath::Square(120.f) && Closing > 150.f)
 		{
-			ShoveCooldown = 4.f;
-			KnockedBy(Player, 260.f, FVector(Rel.GetSafeNormal(), 0.f), 1.f);
+			ShoveCooldown = 3.f;
+			Bumped(Player, FVector(Rel.GetSafeNormal(), 0.f), Closing > 560.f);
 		}
 	}
 	if (FurnitureIgnore > 0.f)
@@ -952,11 +1402,13 @@ void AGRWarga::Tick(float DeltaSeconds)
 	NoticeCooldown -= DeltaSeconds;
 	// Bayu walking past: some look up, stop, wave and say hello.
 	if (const AGRCharacter* Bayu = Cast<AGRCharacter>(Player); Bayu && !Bayu->IsRiding() && NoticeCooldown <= 0.f && TalkPause <= 0.f
-		&& (Mode == EMode::Walk || Mode == EMode::Pause) && Role != ERole::Jogger && !DriverCar.IsValid() && Dodge <= 0.f
+		&& (Mode == EMode::Walk || Mode == EMode::Pause) && Role != ERole::Jogger && Role != ERole::Police && !DriverCar.IsValid() && Dodge <= 0.f
 		&& FVector::DistSquared2D(GetActorLocation(), Bayu->GetActorLocation()) < FMath::Square(300.f))
 	{
 		NoticeCooldown = Rng.FRandRange(30.f, 60.f);
-		if (Rng.FRand() < 0.45f)
+		// Fewer hellos for a face the town has been told to watch.
+		const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
+		if (Rng.FRand() < (Status && Status->GetDiawasi() >= 50.f ? 0.15f : 0.45f))
 		{
 			static const TCHAR* Hello[] = { TEXT("Eh, Mas Bayu!"), TEXT("Mari, Mas."), TEXT("Mas Bayu! Sehat?"), TEXT("Monggo, Mas."), TEXT("Salam buat Ibu, Mas!") };
 			HoldChat(2.2f);
@@ -965,13 +1417,18 @@ void AGRWarga::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (TalkPause > 0.f)
+	if (StartleTime > 0.f)
+	{
+		// Flinching where they stand (MM_GR_Kaget); the word with him comes after.
+		StartleTime -= DeltaSeconds;
+	}
+	else if (TalkPause > 0.f)
 	{
 		TalkPause -= DeltaSeconds;
 		if (Player && Mode != EMode::Sit)
 		{
 			const FRotator Face(0.f, (Player->GetActorLocation() - GetActorLocation()).Rotation().Yaw, 0.f);
-			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Face, DeltaSeconds, 6.f));
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), Face, DeltaSeconds, 4.5f));
 		}
 	}
 	else
@@ -980,13 +1437,26 @@ void AGRWarga::Tick(float DeltaSeconds)
 		switch (Mode)
 		{
 		case EMode::Walk:
-			TickWalk(DeltaSeconds);
-			break;
 		case EMode::Pause:
-			Wait -= DeltaSeconds;
-			if (Wait <= 0.f)
+			if (IsPolice() && !IsLeader())
 			{
-				NextTarget(false);
+				TickPartner(DeltaSeconds);
+			}
+			else if (Mode == EMode::Walk)
+			{
+				TickWalk(DeltaSeconds);
+			}
+			else if (IsPolice())
+			{
+				TickPolicePause(DeltaSeconds, Player);
+			}
+			else
+			{
+				Wait -= DeltaSeconds;
+				if (Wait <= 0.f)
+				{
+					NextTarget(false);
+				}
 			}
 			break;
 		case EMode::Chat:
@@ -1000,6 +1470,18 @@ void AGRWarga::Tick(float DeltaSeconds)
 			break;
 		case EMode::Angry:
 			TickAngry(DeltaSeconds);
+			break;
+		case EMode::Glance:
+			TickGlance(DeltaSeconds, Player);
+			break;
+		case EMode::Follow:
+			TickFollow(DeltaSeconds, Player);
+			break;
+		case EMode::Chase:
+			TickChase(DeltaSeconds, Player);
+			break;
+		case EMode::Arrest:
+			TickArrest(DeltaSeconds, Player);
 			break;
 		}
 	}
@@ -1034,6 +1516,25 @@ void AGRWarga::UpdatePose()
 		// Shaking a fist while standing; walking up to him (or staggering) uses the walk.
 		Want = GetVelocity().SizeSquared2D() < FMath::Square(60.f) && GetCharacterMovement()->IsMovingOnGround() ? AngryAnim.Get() : nullptr;
 	}
+	else if (StartleTime > 0.f && StartleAnim && Role != ERole::Vendor)
+	{
+		Want = StartleAnim.Get();
+	}
+	else if (Mode == EMode::Chase && Wait > 0.f)
+	{
+		// Pointing him out before running.
+		Want = AngryAnim.Get();
+	}
+	else if (IsPolice() && (Mode == EMode::Arrest || Mode == EMode::Pause || Mode == EMode::Follow) && TalkPause <= 0.f
+		&& GetVelocity().SizeSquared2D() < FMath::Square(40.f))
+	{
+		// Holding Bayu, on the radio, eyeing him while tailing, chatting, or on watch with hands behind the back.
+		const AGRCrowd* C = Crowd.Get();
+		Want = Mode == EMode::Arrest && C && C->Arrester.Get() == this ? GrabAnim.Get()
+			: RadioTime > 0.f || Mode == EMode::Arrest ? RadioAnim.Get()
+			: Mode == EMode::Follow ? GlanceAnim.Get()
+			: bTalking ? TalkAnim.Get() : GuardAnim.Get();
+	}
 	else if (Role == ERole::Vendor && CartAnim)
 	{
 		// Both hands stay on the cart's handlebar; the steps keep pace with the cart.
@@ -1049,11 +1550,15 @@ void AGRWarga::UpdatePose()
 	{
 		Want = WaveAnim.Get();
 	}
-	else if (bTalking && Mode != EMode::Walk)
+	else if (TalkPause > 0.f)
 	{
 		Want = TalkAnim.Get();
 	}
-	else if (TalkPause > 0.f)
+	else if (GlanceAnim && (Mode == EMode::Glance || (Mode == EMode::Follow && GetVelocity().SizeSquared2D() < FMath::Square(40.f))))
+	{
+		Want = GlanceAnim.Get();
+	}
+	else if (bTalking && Mode != EMode::Walk)
 	{
 		Want = TalkAnim.Get();
 	}
@@ -1180,7 +1685,9 @@ void AGRWarga::TickChat(float DeltaSeconds)
 	TArray<AGRWarga*> Mates;
 	for (AGRWarga* Other : C->People)
 	{
-		if (Other != this && Other->bActive && Other->Mode == EMode::Chat && Other->Group == Group)
+		// Someone glancing over at Bayu is still part of the group.
+		if (Other != this && Other->bActive && Other->Group == Group
+			&& (Other->Mode == EMode::Chat || (Other->Mode == EMode::Glance && Other->GlanceResume == EMode::Chat)))
 		{
 			if (Other->BarkHide > 0.f)
 			{
@@ -1404,6 +1911,8 @@ AGRCrowd::AGRCrowd()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> SurrenderSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Menyerah.MM_GR_Menyerah"));
+	SurrenderAnim = SurrenderSeq.Object;
 }
 
 AGRCrowd* AGRCrowd::Get(const UObject* WorldContext)
@@ -1614,6 +2123,7 @@ void AGRCrowd::RefreshKeepOut()
 void AGRCrowd::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickArrest(DeltaSeconds);
 	Timer -= DeltaSeconds;
 	KeepOutTimer -= DeltaSeconds;
 	if (Timer > 0.f)
@@ -1626,6 +2136,8 @@ void AGRCrowd::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+	UpdateWatchers(Player, 0.5f);
+	UpdatePolice(Player, 0.5f);
 	const FVector Center = Player->GetActorLocation();
 	// A teleport (story jump, waking up at home): fill the new place at once, even in view.
 	const bool bJumped = FVector::DistSquared2D(Center, LastPlayerPos) > FMath::Square(4000.f);
@@ -1654,7 +2166,7 @@ void AGRCrowd::Tick(float DeltaSeconds)
 		for (AGRWarga* Person : People)
 		{
 			if (Person->bActive && Person->Mode != AGRWarga::EMode::Chat && Person->Mode != AGRWarga::EMode::Down
-				&& Person->Mode != AGRWarga::EMode::Angry && !Person->DriverCar.IsValid() && !InView(Person->GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf)))
+				&& Person->Mode != AGRWarga::EMode::Angry && Person->Mode != AGRWarga::EMode::Follow && !Person->IsPolice() && !Person->DriverCar.IsValid() && !InView(Person->GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf)))
 			{
 				Person->Deactivate();
 				break;
@@ -1669,6 +2181,358 @@ void AGRCrowd::Tick(float DeltaSeconds)
 			--Budget;
 		}
 		Active = CountActive(Vendors);
+	}
+}
+
+float AGRCrowd::NoteBump(bool bHard)
+{
+	// Running into people counts double; a few bumps in a while are just a busy pavement.
+	const double Now = GetWorld()->GetTimeSeconds();
+	Bumps.RemoveAll([Now](const TPair<double, float>& B) { return Now - B.Key > 15.0; });
+	Bumps.Emplace(Now, bHard ? 2.f : 1.f);
+	float Score = 0.f;
+	for (const TPair<double, float>& B : Bumps)
+	{
+		Score += B.Value;
+	}
+	UE_LOG(LogGRCrowd, Display, TEXT("GRTABRAK %s, skor %.0f dalam 15 dtk"), bHard ? TEXT("keras") : TEXT("senggol"), Score);
+	// A streak is reported once; the next report takes a new streak.
+	if (Score >= 5.f)
+	{
+		Bumps.Reset();
+	}
+	return Score;
+}
+
+void AGRCrowd::UpdateWatchers(const APawn* Player, float Step)
+{
+	GlanceGap -= Step;
+	FollowGap -= Step;
+	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
+	const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
+	if (!Bayu || !Status || Bayu->IsRiding() || Bayu->IsInTopDownMode() || Bayu->IsKnockedDown())
+	{
+		return;
+	}
+	// Eyes on him at once: Diawasi 50 one, 60 two, 70 three, 80 five. From 80 someone tails him, from 90 two do.
+	const float Diawasi = Status->GetDiawasi();
+	const int32 Lookers = Diawasi >= 80.f ? 5 : Diawasi >= 70.f ? 3 : Diawasi >= 60.f ? 2 : Diawasi >= 50.f ? 1 : 0;
+	const int32 Tails = Diawasi >= 90.f ? 2 : Diawasi >= 80.f ? 1 : 0;
+	if (Lookers == 0)
+	{
+		return;
+	}
+	int32 Looking = 0;
+	int32 Following = 0;
+	for (const AGRWarga* Person : People)
+	{
+		Looking += Person->bActive && Person->Mode == AGRWarga::EMode::Glance ? 1 : 0;
+		Following += Person->bActive && Person->Mode == AGRWarga::EMode::Follow && !Person->IsPolice() ? 1 : 0;
+	}
+	const FVector Eye = Bayu->GetActorLocation() + FVector(0.f, 0.f, 60.f);
+	// The nearest passer-by in sight of him (and of the camera, so the look is not wasted).
+	auto Pick = [&](float Reach, bool bGlance) -> AGRWarga*
+	{
+		AGRWarga* Best = nullptr;
+		float BestDist = FMath::Square(Reach);
+		for (AGRWarga* Person : People)
+		{
+			const FVector L = Person->GetActorLocation();
+			const float D = FVector::DistSquared2D(L, Eye);
+			if (!Person->bActive || D >= BestDist || D < FMath::Square(150.f) || (Person->Mode != AGRWarga::EMode::Walk && Person->Mode != AGRWarga::EMode::Pause && (!bGlance || Person->Mode != AGRWarga::EMode::Chat))
+				|| Person->Role == AGRWarga::ERole::Vendor || (!bGlance && (Person->Role == AGRWarga::ERole::Jogger || Person->IsPolice())) || Person->DriverCar.IsValid()
+				|| Person->Dodge > 0.f || Person->TalkPause > 0.f || Person->StartleTime > 0.f || (bGlance && Person->GlanceCooldown > 0.f)
+				|| !InView(L - FVector(0.f, 0.f, CapsuleHalf)))
+			{
+				continue;
+			}
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(GRWargaWatch), false, Person);
+			Params.AddIgnoredActor(Bayu);
+			if (GetWorld()->LineTraceTestByChannel(L + FVector(0.f, 0.f, 60.f), Eye, ECC_Visibility, Params))
+			{
+				continue;
+			}
+			Best = Person;
+			BestDist = D;
+		}
+		return Best;
+	};
+	if (Following < Tails && FollowGap <= 0.f)
+	{
+		if (AGRWarga* Person = Pick(1200.f, false))
+		{
+			Person->StartFollow();
+			FollowGap = 20.f;
+			return;
+		}
+	}
+	if (Looking < Lookers && GlanceGap <= 0.f)
+	{
+		if (AGRWarga* Person = Pick(900.f, true))
+		{
+			Person->StartGlance();
+			// The higher Diawasi, the quicker the next one looks: every 5 s at 50, every half second from 80.
+			GlanceGap = FMath::GetMappedRangeValueClamped(FVector2f(50.f, 80.f), FVector2f(5.f, 0.f), Diawasi);
+		}
+	}
+}
+
+void AGRCrowd::SpawnPoliceNear()
+{
+	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Player)
+	{
+		SpawnPolice(Player->GetActorLocation(), true, true);
+		SpawnPolice(Player->GetActorLocation(), true, false);
+	}
+}
+
+bool AGRCrowd::SpawnPolice(const FVector& Around, bool bAnywhere, bool bPair)
+{
+	using ERole = AGRWarga::ERole;
+	FVector Feet;
+	if (!FindSpot(Around, bAnywhere ? 600.f : 2500.f, bAnywhere ? 1600.f : 5200.f, !bAnywhere, true, Feet))
+	{
+		return false;
+	}
+	AGRWarga* Lead = TakeFromPool();
+	if (!Lead)
+	{
+		return false;
+	}
+	const int32 Hour = HourNow(this);
+	const bool bNight = Hour >= 20 || Hour < 5;
+	const float Yaw = Rng.FRandRange(0.f, 360.f);
+	Lead->Dress(NextSeed++, ERole::Police, bNight);
+	Lead->Activate(Feet, Yaw);
+	Lead->NextTarget(false);
+	UE_LOG(LogGRCrowd, Display, TEXT("GRSPN patroli %s di (%.0f, %.0f)"), bPair ? TEXT("berdua") : TEXT("sendiri"), Feet.X, Feet.Y);
+	if (!bPair)
+	{
+		return true;
+	}
+	// The partner starts at the leader's right shoulder.
+	const FVector2D P(Feet + FRotator(0.f, Yaw, 0.f).RotateVector(FVector(0.f, 95.f, 0.f)));
+	float Z = 0.f;
+	AGRWarga* Mate = IsWalkable(P, Z) ? TakeFromPool() : nullptr;
+	if (!Mate)
+	{
+		return true;
+	}
+	Mate->Dress(NextSeed++, ERole::Police, bNight);
+	Mate->Activate(FVector(P, Z), Yaw);
+	Mate->Mode = AGRWarga::EMode::Walk;
+	Mate->Partner = Lead;
+	Mate->bLeader = false;
+	Lead->Partner = Mate;
+	Lead->bLeader = true;
+	return true;
+}
+
+void AGRCrowd::UpdatePolice(const APawn* Player, float Step)
+{
+	using EMode = AGRWarga::EMode;
+	PoliceCalm -= Step;
+	PoliceSpawnGap -= Step;
+	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
+	int32 Units = 0;
+	int32 Pairs = 0;
+	int32 Chasers = 0;
+	int32 Tailing = 0;
+	for (const AGRWarga* Person : People)
+	{
+		if (Person->bActive && Person->IsPolice())
+		{
+			Chasers += Person->Mode == EMode::Chase || Person->Mode == EMode::Arrest ? 1 : 0;
+			Tailing += Person->Mode == EMode::Follow ? 1 : 0;
+			if (Person->IsLeader())
+			{
+				++Units;
+				Pairs += Person->Partner.IsValid() ? 1 : 0;
+			}
+		}
+	}
+	// One officer alone and one pair by day, two pairs at night, a single patrol in the small hours.
+	const int32 Hour = HourNow(this);
+	const bool bNight = Hour >= 20 || Hour < 5;
+	const int32 WantUnits = Hour >= 1 && Hour < 5 ? 1 : 2;
+	if (Bayu && Units < WantUnits && PoliceSpawnGap <= 0.f)
+	{
+		PoliceSpawnGap = 8.f;
+		SpawnPolice(Bayu->GetActorLocation(), false, bNight || Pairs < Units || (Units == 0 && Rng.FRand() < 0.5f));
+	}
+
+	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+	if (Story && Chasers > 0 && !bWasChased)
+	{
+		Story->Run(TEXT("notifburuk SPN mengejarmu! Lari (Shift), jangan sampai tertangkap."));
+	}
+	else if (Story && Chasers == 0 && bWasChased && !IsArresting())
+	{
+		Story->Run(TEXT("notif Kamu lolos dari kejaran SPN."));
+	}
+	bWasChased = Chasers > 0;
+
+	const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
+	const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	const UGRUISubsystem* UI = PC && PC->GetLocalPlayer() ? PC->GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (!Bayu || !Status || IsArresting() || PoliceCalm > 0.f || Bayu->IsInTopDownMode() || Bayu->IsKnockedDown() || (UI && UI->HasScreens()))
+	{
+		return;
+	}
+	// Diawasi 65: an officer who sees him tails him from a distance. 85: they run him down.
+	const float Diawasi = Status->GetDiawasi();
+	if (Diawasi < 65.f)
+	{
+		return;
+	}
+	const FVector Eye = Bayu->GetActorLocation() + FVector(0.f, 0.f, 60.f);
+	for (AGRWarga* Officer : People)
+	{
+		if (!Officer->bActive || !Officer->IsPolice() || !Officer->IsLeader() || Officer->ChaseCooldown > 0.f
+			|| (Officer->Mode != EMode::Walk && Officer->Mode != EMode::Pause && Officer->Mode != EMode::Glance && Officer->Mode != EMode::Follow))
+		{
+			continue;
+		}
+		const FVector L = Officer->GetActorLocation() + FVector(0.f, 0.f, 60.f);
+		const float Dist = FVector::Dist2D(L, Eye);
+		// Seen ahead of them, or anywhere close by.
+		if (Dist > 1800.f || (Dist > 600.f && FVector::DotProduct(Officer->GetActorForwardVector(), (Eye - L).GetSafeNormal2D()) < 0.2f))
+		{
+			continue;
+		}
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(GRSpnSee), false, Officer);
+		Params.AddIgnoredActor(Bayu);
+		if (GetWorld()->LineTraceTestByChannel(L, Eye, ECC_Visibility, Params))
+		{
+			continue;
+		}
+		AGRWarga* Mate = Officer->Partner.Get();
+		const bool bMate = Mate && Mate->bActive && Mate->Mode != EMode::Down && Mate->Mode != EMode::Angry && Mate->Mode != EMode::Sit;
+		if (Diawasi >= 85.f && !Bayu->IsRiding())
+		{
+			Officer->StartChase(true);
+			if (bMate)
+			{
+				Mate->StartChase(false);
+			}
+		}
+		else if (Officer->Mode != EMode::Follow && Tailing == 0 && Dist < 1300.f)
+		{
+			Officer->StartFollow();
+			if (bMate)
+			{
+				Mate->StartFollow();
+			}
+			++Tailing;
+		}
+	}
+}
+
+void AGRCrowd::StartArrest(AGRWarga* Officer)
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	AGRCharacter* Bayu = PC ? Cast<AGRCharacter>(PC->GetPawn()) : nullptr;
+	if (!Bayu || !Officer || ArrestTime >= 0.f)
+	{
+		return;
+	}
+	UE_LOG(LogGRCrowd, Display, TEXT("GRSPN %s menangkap Bayu"), *Officer->GetName());
+	Arrester = Officer;
+	ArrestTime = 0.f;
+	// He stops where he is (no dead stop: the run brakes out) and puts his hands up.
+	PC->SetIgnoreMoveInput(true);
+	if (UAnimInstance* Anim = Bayu->GetMesh()->GetAnimInstance(); Anim && SurrenderAnim)
+	{
+		Anim->PlaySlotAnimationAsDynamicMontage(SurrenderAnim, TEXT("DefaultSlot"), 0.35f, 0.35f, 1.f, 10000);
+	}
+	for (AGRWarga* Person : People)
+	{
+		if (Person->bActive && Person->IsPolice() && (Person == Officer || Person == Officer->Partner.Get() || Person->Mode == AGRWarga::EMode::Chase))
+		{
+			Person->Mode = AGRWarga::EMode::Arrest;
+			Person->TalkPause = 0.f;
+			Person->StartleTime = 0.f;
+		}
+	}
+	Officer->Say(TEXT("Diam di tempat! Angkat tangan!"), 2.2f, AngryColor);
+	// Passers-by stop and stare.
+	int32 Left = 4;
+	for (AGRWarga* Person : People)
+	{
+		using EMode = AGRWarga::EMode;
+		if (Left > 0 && Person->bActive && !Person->IsPolice() && (Person->Mode == EMode::Walk || Person->Mode == EMode::Pause || Person->Mode == EMode::Chat)
+			&& FVector::DistSquared2D(Person->GetActorLocation(), Bayu->GetActorLocation()) < FMath::Square(1200.f))
+		{
+			Person->StartGlance();
+			--Left;
+		}
+	}
+}
+
+void AGRCrowd::TickArrest(float DeltaSeconds)
+{
+	if (ArrestTime < 0.f)
+	{
+		return;
+	}
+	const float Before = ArrestTime;
+	ArrestTime += DeltaSeconds;
+	auto Crossed = [Before, this](float T) { return Before < T && ArrestTime >= T; };
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	AGRCharacter* Bayu = PC ? Cast<AGRCharacter>(PC->GetPawn()) : nullptr;
+	AGRWarga* Officer = Arrester.Get();
+	const bool bHeld = Bayu && Officer && Officer->bActive && Officer->Mode == AGRWarga::EMode::Arrest;
+	if (bHeld && ArrestTime < 3.6f)
+	{
+		// He turns to the officer holding him; the partner radios it in.
+		const FRotator Face(0.f, (Officer->GetActorLocation() - Bayu->GetActorLocation()).Rotation().Yaw, 0.f);
+		Bayu->SetActorRotation(FMath::RInterpTo(Bayu->GetActorRotation(), Face, DeltaSeconds, 5.f));
+		if (Crossed(1.f))
+		{
+			UGRBubbleSubsystem::Show(Bayu, TEXT("I-iya, Pak... Saya nggak ngapa-ngapain."), 2.f);
+		}
+		if (AGRWarga* Mate = Officer->Partner.Get(); Crossed(1.7f) && Mate && Mate->Mode == AGRWarga::EMode::Arrest)
+		{
+			Mate->RadioTime = 2.5f;
+			Mate->Say(TEXT("Pos, satu orang diamankan, ganti."), 2.4f);
+		}
+		if (Crossed(2.4f))
+		{
+			Officer->Say(TEXT("Sudah, ikut kami ke pos."), 2.f);
+		}
+		return;
+	}
+	// Done, or the officer was knocked away (then he simply gets free).
+	ArrestTime = -1.f;
+	Arrester = nullptr;
+	bWasChased = false;
+	PoliceCalm = 60.f;
+	if (PC)
+	{
+		PC->SetIgnoreMoveInput(false);
+	}
+	if (UAnimInstance* Anim = Bayu ? Bayu->GetMesh()->GetAnimInstance() : nullptr; Anim && !Bayu->IsRiding())
+	{
+		Anim->StopSlotAnimation(0.35f, TEXT("DefaultSlot"));
+	}
+	for (AGRWarga* Person : People)
+	{
+		if (Person->bActive && Person->Mode == AGRWarga::EMode::Arrest)
+		{
+			Person->Mode = AGRWarga::EMode::Pause;
+			Person->Wait = 4.f;
+			Person->ChaseCooldown = 60.f;
+			Person->RadioTime = 0.f;
+			Person->GetCharacterMovement()->MaxWalkSpeed = Person->Speed;
+		}
+	}
+	UE_LOG(LogGRCrowd, Display, TEXT("GRSPN penangkapan selesai%s"), bHeld ? TEXT(", Bayu dibawa") : TEXT(", Bayu lepas"));
+	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+	if (bHeld && Story)
+	{
+		Story->CancelOrder();
+		Story->Run(Story->GetData().OnCaught);
 	}
 }
 
@@ -2166,8 +3030,8 @@ void AGRCrowd::Lineup()
 
 void AGRCrowd::LogCrowd() const
 {
-	int32 Modes[6] = {};
-	int32 Roles[3] = {};
+	int32 Modes[10] = {};
+	int32 Roles[4] = {};
 	int32 Active = 0;
 	int32 OnRoad = 0;
 	for (const AGRWarga* Person : People)
@@ -2185,8 +3049,8 @@ void AGRCrowd::LogCrowd() const
 	{
 		Hidden += B.bHidden ? 1 : 0;
 	}
-	UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA aktif %d/%d target %d | jalan %d diam %d ngobrol %d duduk %d jatuh %d marah %d | joging %d pedagang %d | di jalan raya %d | bangku %d (%d disimpan)"),
-		Active, People.Num(), TargetPopulation(), Modes[0], Modes[1], Modes[2], Modes[3], Modes[4], Modes[5], Roles[1], Roles[2], OnRoad, Benches.Num(), Hidden);
+	UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA aktif %d/%d target %d | jalan %d diam %d ngobrol %d duduk %d jatuh %d marah %d lirik %d buntuti %d kejar %d tangkap %d | joging %d pedagang %d polisi %d | di jalan raya %d | bangku %d (%d disimpan)"),
+		Active, People.Num(), TargetPopulation(), Modes[0], Modes[1], Modes[2], Modes[3], Modes[4], Modes[5], Modes[6], Modes[7], Modes[8], Modes[9], Roles[1], Roles[2], Roles[3], OnRoad, Benches.Num(), Hidden);
 	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
 	for (const FBox& Room : Rooms)
 	{
@@ -2233,7 +3097,7 @@ void AGRCrowd::LogCrowd() const
 		}
 		UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA titik: jalan %d ruang %d jaga %d tanpa-tanah %d tinggi %d terhalang %d bisa %d"), Why[0], Why[1], Why[2], Why[3], Why[4], Why[5], Why[6]);
 	}
-	const TCHAR* ModeNames[] = { TEXT("jalan"), TEXT("diam"), TEXT("ngobrol"), TEXT("duduk"), TEXT("jatuh"), TEXT("marah") };
+	const TCHAR* ModeNames[] = { TEXT("jalan"), TEXT("diam"), TEXT("ngobrol"), TEXT("duduk"), TEXT("jatuh"), TEXT("marah"), TEXT("lirik"), TEXT("buntuti"), TEXT("kejar"), TEXT("tangkap") };
 	for (int32 i = 0; i < People.Num(); ++i)
 	{
 		const AGRWarga* Person = People[i];
@@ -2244,7 +3108,8 @@ void AGRCrowd::LogCrowd() const
 			UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA %2d %-7s (%.0f, %.0f, %.0f) ke (%.0f, %.0f) laju %.0f kepala %.1f skala %.2f %s%s%s"), i, ModeNames[int32(Person->Mode)],
 				L.X, L.Y, L.Z, Person->Target.X, Person->Target.Y, Person->GetVelocity().Size2D(), HeadZ, Person->GetMesh()->GetRelativeScale3D().Z,
 				Person->GetMesh()->GetSkeletalMeshAsset() == Person->QuinnMesh ? TEXT("quinn") : TEXT("manny"), Person->bCrossing ? TEXT(" nyeberang") : TEXT(""),
-				Person->Role == AGRWarga::ERole::Vendor ? TEXT(" pedagang") : Person->Role == AGRWarga::ERole::Jogger ? TEXT(" joging") : TEXT(""));
+				Person->Role == AGRWarga::ERole::Vendor ? TEXT(" pedagang") : Person->Role == AGRWarga::ERole::Jogger ? TEXT(" joging")
+				: Person->IsPolice() ? TEXT(" polisi") : TEXT(""));
 		}
 	}
 }

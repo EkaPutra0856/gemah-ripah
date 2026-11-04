@@ -45,6 +45,11 @@ AGRNpc::AGRNpc()
 	Move->bOrientRotationToMovement = true;
 	Move->RotationRate = FRotator(0.f, 360.f, 0.f);
 	Move->MaxWalkSpeed = 160.f;
+	// Ease into a walk or a run and brake gently, instead of starting and stopping dead.
+	Move->MaxAcceleration = 900.f;
+	Move->bUseSeparateBrakingFriction = true;
+	Move->BrakingFriction = 3.f;
+	Move->BrakingDecelerationWalking = 400.f;
 	// Same limit as Bayu (see AGRCharacter): wanderers must not climb onto chairs and tables.
 	Move->MaxStepHeight = 34.f;
 	Move->bRunPhysicsWithNoController = true;
