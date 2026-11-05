@@ -1,4 +1,5 @@
 #include "World/GRCrowd.h"
+#include "World/GRCrossings.h"
 #include "UI/GRBubbles.h"
 #include "Camera/GRTopDownRoomVolume.h"
 #include "Player/GRCharacter.h"
@@ -510,6 +511,7 @@ void AGRWarga::Activate(const FVector& Feet, float Yaw)
 	Group = -1;
 	Bench = -1;
 	bCrossing = false;
+	bToZebra = false;
 	bReply = false;
 	TalkPause = 0.f;
 	Dodge = 0.f;
@@ -1866,6 +1868,13 @@ void AGRWarga::TickWalk(float DeltaSeconds)
 		bCrossing = false;
 		Dodge = 0.f;
 		Mode = EMode::Pause;
+		if (bToZebra)
+		{
+			// At the kerb of the crossing: look at the traffic, then go when it is clear (NextTarget).
+			bPhone = false;
+			Wait = Rng.FRandRange(0.3f, 0.8f);
+			return;
+		}
 		bPhone = Role == ERole::Stroller && Rng.FRand() < 0.35f;
 		Wait = Role == ERole::Jogger ? Rng.FRandRange(0.2f, 1.f)
 			: Role == ERole::Vendor ? Rng.FRandRange(6.f, 14.f)
@@ -2058,17 +2067,63 @@ void AGRWarga::NextTarget(bool bBlocked)
 	int32 Axis = 0;
 	float Side = 1.f;
 	float Along = 0.f;
-	if (C->PavementAt(Here, Axis, Side, Along) && (Role != ERole::Stroller || Rng.FRand() < 0.8f))
+	const bool bOnPavement = C->PavementAt(Here, Axis, Side, Along);
+	if (bToZebra && (!bOnPavement || bBlocked))
 	{
-		// Now and then a stroller crosses to the other pavement, only with no car close.
-		if (Role == ERole::Stroller && !bBlocked && Rng.FRand() < 0.12f && FMath::Abs(Along) > 4000.f)
+		bToZebra = false;   // pushed off the pavement or the way is blocked: forget the crossing
+	}
+	if (bOnPavement && (bToZebra || Role != ERole::Stroller || Rng.FRand() < 0.8f))
+	{
+		// Now and then a stroller goes over to the other pavement: only on a zebra crossing, never straight across.
+		if (!bToZebra && Role == ERole::Stroller && !bBlocked && Rng.FRand() < 0.12f && FMath::Abs(Along) > 4000.f)
 		{
-			const FVector2D Across = C->PavementPoint(Axis, -Side, Along + Rng.FRandRange(-150.f, 150.f), PavementLine + Rng.FRandRange(-60.f, 60.f));
-			float Z = 0.f;
-			if (C->IsWalkable(Across, Z) && !C->CarNear((Here + Across) * 0.5f, 3500.f))
+			const float Zebra = GRCrossings::Nearest(Along);
+			if (FMath::Abs(Zebra - Along) < 4500.f)
 			{
-				Go(Across, Z, true);
-				return;
+				bToZebra = true;
+				ZebraWait = 0.f;
+				ZebraAlong = Zebra + Rng.FRandRange(-0.6f, 0.6f) * GRCrossings::HalfBand;
+			}
+		}
+		if (bToZebra)
+		{
+			const FVector2D Kerb = C->PavementPoint(Axis, Side, ZebraAlong, RoadEdge + 90.f);
+			float Z = 0.f;
+			if (FVector2D::Distance(Here, Kerb) > 120.f)
+			{
+				// Along the pavement to the crossing first.
+				if (C->IsWalkable(Kerb, Z) && C->ClearPath(this, Loc, FVector(Kerb, Z + CapsuleHalf), false))
+				{
+					Go(Kerb, Z, false);
+					return;
+				}
+				bToZebra = false;
+			}
+			else
+			{
+				// At the kerb: wait, facing the road, until no car is near the crossing (cars stop for people on it).
+				const FVector2D Across = C->PavementPoint(Axis, -Side, ZebraAlong, RoadEdge + 90.f);
+				const FVector2D Middle = (Here + Across) * 0.5f;
+				if (!C->IsWalkable(Across, Z) || ZebraWait > 12.f)
+				{
+					bToZebra = false;
+				}
+				else if (C->CarNear(Middle, 2600.f))
+				{
+					const FVector2D Look = Across - Here;
+					SetActorRotation(FRotator(0.f, FMath::RadiansToDegrees(FMath::Atan2(Look.Y, Look.X)), 0.f));
+					Mode = EMode::Pause;
+					bPhone = false;
+					Wait = Rng.FRandRange(0.4f, 0.9f);
+					ZebraWait += Wait;
+					return;
+				}
+				else
+				{
+					bToZebra = false;
+					Go(Across, Z, true);
+					return;
+				}
 			}
 		}
 		if (bBlocked || Rng.FRand() < 0.18f)
@@ -3296,6 +3351,9 @@ void AGRCrowd::LogCrowd() const
 	int32 Roles[4] = {};
 	int32 Active = 0;
 	int32 OnRoad = 0;
+	int32 OnZebra = 0;
+	int32 Jaywalk = 0;
+	int32 ToZebra = 0;
 	for (const AGRWarga* Person : People)
 	{
 		if (Person->bActive)
@@ -3303,7 +3361,21 @@ void AGRCrowd::LogCrowd() const
 			++Active;
 			++Modes[int32(Person->Mode)];
 			++Roles[int32(Person->Role)];
-			OnRoad += IsRoad(FVector2D(Person->GetActorLocation())) ? 1 : 0;
+			const FVector2D P(Person->GetActorLocation());
+			OnRoad += IsRoad(P) ? 1 : 0;
+			ToZebra += Person->bToZebra ? 1 : 0;
+			// On the asphalt of Jl. Raya / Jl. Merdeka (not the roundabout): on a zebra crossing or not.
+			for (int32 Axis = 0; Axis < 2; ++Axis)
+			{
+				const float Across = Axis == 0 ? P.X : P.Y;
+				const float Along = Axis == 0 ? P.Y : P.X;
+				if (FMath::Abs(Across) < RoadEdge && FMath::Abs(Along) > 2600.f && FMath::Abs(Along) < AlongFar)
+				{
+					const bool bZebra = FMath::Abs(GRCrossings::Nearest(Along) - Along) < GRCrossings::HalfBand + 60.f;
+					OnZebra += bZebra ? 1 : 0;
+					Jaywalk += bZebra ? 0 : 1;
+				}
+			}
 		}
 	}
 	int32 Hidden = 0;
@@ -3311,8 +3383,8 @@ void AGRCrowd::LogCrowd() const
 	{
 		Hidden += B.bHidden ? 1 : 0;
 	}
-	UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA aktif %d/%d target %d | jalan %d diam %d ngobrol %d duduk %d jatuh %d marah %d lirik %d buntuti %d kejar %d tangkap %d | joging %d pedagang %d polisi %d | di jalan raya %d | bangku %d (%d disimpan)"),
-		Active, People.Num(), TargetPopulation(), Modes[0], Modes[1], Modes[2], Modes[3], Modes[4], Modes[5], Modes[6], Modes[7], Modes[8], Modes[9], Roles[1], Roles[2], Roles[3], OnRoad, Benches.Num(), Hidden);
+	UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA aktif %d/%d target %d | jalan %d diam %d ngobrol %d duduk %d jatuh %d marah %d lirik %d buntuti %d kejar %d tangkap %d | joging %d pedagang %d polisi %d | di jalan raya %d (zebra %d, sembarangan %d, menuju zebra %d) | bangku %d (%d disimpan)"),
+		Active, People.Num(), TargetPopulation(), Modes[0], Modes[1], Modes[2], Modes[3], Modes[4], Modes[5], Modes[6], Modes[7], Modes[8], Modes[9], Roles[1], Roles[2], Roles[3], OnRoad, OnZebra, Jaywalk, ToZebra, Benches.Num(), Hidden);
 	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
 	for (const FBox& Room : Rooms)
 	{
@@ -3369,7 +3441,7 @@ void AGRCrowd::LogCrowd() const
 			const float HeadZ = Person->GetMesh()->GetBoneLocation(TEXT("head")).Z - (L.Z - CapsuleHalf);
 			UE_LOG(LogGRCrowd, Warning, TEXT("GRWARGA %2d %-7s (%.0f, %.0f, %.0f) ke (%.0f, %.0f) laju %.0f kepala %.1f skala %.2f %s%s%s"), i, ModeNames[int32(Person->Mode)],
 				L.X, L.Y, L.Z, Person->Target.X, Person->Target.Y, Person->GetVelocity().Size2D(), HeadZ, Person->GetMesh()->GetRelativeScale3D().Z,
-				Person->GetMesh()->GetSkeletalMeshAsset() == Person->QuinnMesh ? TEXT("quinn") : TEXT("manny"), Person->bCrossing ? TEXT(" nyeberang") : TEXT(""),
+				Person->GetMesh()->GetSkeletalMeshAsset() == Person->QuinnMesh ? TEXT("quinn") : TEXT("manny"), Person->bCrossing ? TEXT(" nyeberang") : Person->bToZebra ? TEXT(" ke_zebra") : TEXT(""),
 				Person->Role == AGRWarga::ERole::Vendor ? TEXT(" pedagang") : Person->Role == AGRWarga::ERole::Jogger ? TEXT(" joging")
 				: Person->IsPolice() ? TEXT(" polisi") : TEXT(""));
 		}

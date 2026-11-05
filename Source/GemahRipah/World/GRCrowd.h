@@ -287,6 +287,12 @@ private:
 	int32 Seat = 0;
 	bool bActive = false;
 	bool bCrossing = false;
+	/** On the way to a zebra crossing (GRCrossings) to get to the other pavement: walk there, wait at the kerb for
+	 *  a gap in the traffic, then cross. ZebraAlong = where it is along the road. */
+	bool bToZebra = false;
+	float ZebraAlong = 0.f;
+	/** Waiting at the kerb this long; past 12 s they give up and walk on (a car parked by the crossing). */
+	float ZebraWait = 0.f;
 	/** Someone in the group just raised a topic: answer it. */
 	bool bReply = false;
 	bool bRagdoll = false;

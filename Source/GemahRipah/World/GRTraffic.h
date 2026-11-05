@@ -8,6 +8,7 @@
 class UBoxComponent;
 class USkeletalMeshComponent;
 class UStaticMeshComponent;
+class UInstancedStaticMeshComponent;
 class UTextRenderComponent;
 
 /**
@@ -167,6 +168,9 @@ private:
 	/** Asphalt over the pavement strips that cross at the Tugu, so the roundabout reads as road. */
 	UPROPERTY(Transient)
 	TObjectPtr<UStaticMeshComponent> RingRoad;
+	/** White stripes of the zebra crossings (GRCrossings), the only places townspeople cross. */
+	UPROPERTY(Transient)
+	TObjectPtr<UInstancedStaticMeshComponent> Zebra;
 	/** Fixed seed: the same cars take the same turns every run, which keeps scripted tests repeatable. */
 	FRandomStream Rng;
 	FVector2D PlayerPos = FVector2D::ZeroVector;

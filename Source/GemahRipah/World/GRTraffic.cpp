@@ -2,6 +2,7 @@
 #include "Player/GRCharacter.h"
 #include "Story/GRStoryUtil.h"
 #include "World/GRCrowd.h"
+#include "World/GRCrossings.h"
 #include "UI/GRBubbles.h"
 #include "World/GRMotor.h"
 #include "World/GRPropModels.h"
@@ -9,6 +10,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "Animation/AnimSequence.h"
 #include "Components/BoxComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
@@ -374,6 +376,31 @@ void AGRTraffic::BeginPlay()
 	RingRoad->SetCanEverAffectNavigation(false);
 	RingRoad->RegisterComponent();
 	GRStoryUtil::ApplyColor(RingRoad, FLinearColor(0.07f, 0.07f, 0.08f));
+	// Zebra crossings: 16 stripes across the 16 m road, half a metre wide, 4 m long, a hair above the asphalt
+	// (road top z 4).
+	Zebra = NewObject<UInstancedStaticMeshComponent>(this);
+	Zebra->SetStaticMesh(GRStoryUtil::LoadShape(TEXT("cube")));
+	Zebra->SetupAttachment(RootComponent);
+	Zebra->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Zebra->SetCanEverAffectNavigation(false);
+	Zebra->SetCastShadow(false);
+	Zebra->RegisterComponent();
+	GRStoryUtil::ApplyColor(Zebra, FLinearColor(0.82f, 0.82f, 0.78f));
+	for (int32 Axis = 0; Axis < 2; ++Axis)
+	{
+		for (const float A : GRCrossings::Along)
+		{
+			for (const float Sign : { -1.f, 1.f })
+			{
+				for (float Across = -GRCrossings::RoadHalf + 50.f; Across < GRCrossings::RoadHalf; Across += 100.f)
+				{
+					const FVector2D P = GRCrossings::Point(Axis, Sign * A, Across);
+					const FVector Size = Axis == 0 ? FVector(0.5f, GRCrossings::HalfBand / 50.f, 0.01f) : FVector(GRCrossings::HalfBand / 50.f, 0.5f, 0.01f);
+					Zebra->AddInstance(FTransform(FRotator::ZeroRotator, FVector(P, 4.6f), Size), true);
+				}
+			}
+		}
+	}
 	FActorSpawnParameters Params;
 	Params.Owner = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
