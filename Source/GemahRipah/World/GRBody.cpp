@@ -128,6 +128,8 @@ namespace
 		{ TEXT("Bu Ratna"), TEXT("N11_Bu_Ratna") },
 		{ TEXT("Satpam Dapur"), TEXT("N12_Petugas_dapur_pria") },
 		{ TEXT("Murid"), TEXT("N14_Siswi_SD") },
+		{ TEXT("Orang tua murid"), TEXT("N56_Ibu_muda") },
+		{ TEXT("Relawan"), TEXT("N36_Mahasiswa") },
 		{ TEXT("Pak RT"), TEXT("N15_Bapak_warga") },
 		{ TEXT("Koh Liong"), TEXT("N15_Bapak_warga") },
 		{ TEXT("Bu Yati"), TEXT("N16_Ibu_warga") },
@@ -138,7 +140,7 @@ namespace
 		{ TEXT("Pedagang"), TEXT("N20_Pedagang_pasar") },
 		{ TEXT("Pak Udin"), TEXT("N21_Ojol_bapak") },
 		{ TEXT("Ojol"), TEXT("N21_Ojol_bapak") },
-		{ TEXT("Satpam"), TEXT("N24_Buruh") },
+		{ TEXT("Satpam"), TEXT("N42_Satpam_kompleks") },
 		{ TEXT("Sari"), TEXT("N25_Wartawan") },
 		{ TEXT("Petugas"), TEXT("N07_Aparat_patroli") },
 		{ TEXT("SPN"), TEXT("N07_Aparat_patroli") },
@@ -147,9 +149,22 @@ namespace
 	const TCHAR* Strollers[] = {
 		TEXT("N15_Bapak_warga"), TEXT("N16_Ibu_warga"), TEXT("N17_Nenek"), TEXT("N18_Kakek"),
 		TEXT("N19_Pemuda"), TEXT("N21_Ojol_bapak"), TEXT("N24_Buruh"), TEXT("N16_Ibu_warga"), TEXT("N20_Pedagang_pasar"),
+		// NPC dunia (B3-B6) and pedestrians (P1-P4), Gemini lineups of three.
+		TEXT("N32_Pegawai_kantor_pria"), TEXT("N33_Pegawai_kantor_wanita"), TEXT("N34_Kurir_paket"),
+		TEXT("N35_Petugas_kebersihan"), TEXT("N36_Mahasiswa"), TEXT("N37_Mahasiswi"),
+		TEXT("N38_Kuli_panggul"), TEXT("N40_Pemuda_gondrong"), TEXT("N41_Ibu_PKK"),
+		TEXT("N42_Satpam_kompleks"), TEXT("N43_Montir_bengkel"), TEXT("N47_Ibu_berjilbab"),
+		TEXT("N49_Bapak_pulang_masjid"), TEXT("N50_Wanita_karier"), TEXT("N51_Pemuda_bertopi"),
+		TEXT("N52_Nenek_berjilbab"), TEXT("N53_Pria_flanel"), TEXT("N54_Siswi_SMP"),
+		TEXT("N55_Turis_lokal"), TEXT("N56_Ibu_muda"), TEXT("N57_Kakek_kaos_oblong"),
 	};
-	const TCHAR* Joggers[] = { TEXT("N19_Pemuda"), TEXT("N24_Buruh"), TEXT("N25_Wartawan") };
-	const TCHAR* Vendors[] = { TEXT("N20_Pedagang_pasar"), TEXT("N21_Ojol_bapak"), TEXT("N15_Bapak_warga") };
+	const TCHAR* Joggers[] = {
+		TEXT("N19_Pemuda"), TEXT("N24_Buruh"), TEXT("N25_Wartawan"),
+		TEXT("N46_Bapak_jogging"), TEXT("N48_Remaja_hoodie"), TEXT("N36_Mahasiswa"),
+	};
+	const TCHAR* Vendors[] = {
+		TEXT("N20_Pedagang_pasar"), TEXT("N21_Ojol_bapak"), TEXT("N15_Bapak_warga"), TEXT("N39_Penjual_jamu"),
+	};
 }
 
 FString ForStoryNpc(const FString& Name, const FString& Kind, const FString& Id)
