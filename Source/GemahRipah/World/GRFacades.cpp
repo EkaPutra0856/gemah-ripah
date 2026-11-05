@@ -1,4 +1,5 @@
 #include "World/GRFacades.h"
+#include "World/GRPlusDressing.h"
 #include "World/GRPosters.h"
 #include "Story/GRStoryUtil.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -78,7 +79,7 @@ void AGRFacades::BeginPlay()
 	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
 	{
 		const UStaticMeshComponent* Comp = It->GetStaticMeshComponent();
-		if (!Comp || Comp->GetStaticMesh() != Cube || !Comp->GetMaterial(0) || It->Tags.Contains(TEXT("GRPondasi")))
+		if (!Comp || Comp->GetStaticMesh() != Cube || !Comp->GetMaterial(0) || It->Tags.Contains(TEXT("GRPondasi")) || It->Tags.Contains(AGRPlusDressing::ReplacedTag))
 		{
 			continue;
 		}

@@ -1,5 +1,6 @@
 #include "World/GRDressing.h"
 
+#include "World/GRPlusDressing.h"
 #include "World/GRPosters.h"
 #include "World/GRTripoProps.h"
 #include "Components/BoxComponent.h"
@@ -235,6 +236,10 @@ void AGRDressing::SwapLampsAndTrees()
 	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
 	{
 		UStaticMeshComponent* Comp = It->GetStaticMeshComponent();
+		if (It->Tags.Contains(AGRPlusDressing::ReplacedTag))
+		{
+			continue;
+		}
 		const FString Material = MaterialOf(Comp);
 		const FBox Bounds = Comp ? Comp->Bounds.GetBox() : FBox(ForceInit);
 		const FVector Size = Bounds.GetSize();

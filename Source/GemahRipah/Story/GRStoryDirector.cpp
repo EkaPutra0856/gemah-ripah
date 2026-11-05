@@ -16,6 +16,7 @@
 #include "World/GRFacades.h"
 #include "World/GRTerrainDetails.h"
 #include "World/GRDressing.h"
+#include "World/GRPlusDressing.h"
 #include "World/GRTraffic.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -72,6 +73,11 @@ void AGRStoryDirector::BeginPlay()
 	}
 
 	SpawnAll();
+	// The pack-dressed copy of the city swaps its materials and buildings before the others look at the level.
+	if (AGRPlusDressing::IsPlusMap(this))
+	{
+		GetWorld()->SpawnActor<AGRPlusDressing>(AGRPlusDressing::StaticClass(), FTransform::Identity);
+	}
 	GetWorld()->SpawnActor<AGRTraffic>(AGRTraffic::StaticClass(), FTransform::Identity);
 	GetWorld()->SpawnActor<AGRFacades>(AGRFacades::StaticClass(), FTransform::Identity);
 	GetWorld()->SpawnActor<AGRTerrainDetails>(AGRTerrainDetails::StaticClass(), FTransform::Identity);

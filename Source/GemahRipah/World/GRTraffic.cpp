@@ -3,6 +3,8 @@
 #include "Story/GRStoryUtil.h"
 #include "World/GRCrowd.h"
 #include "World/GRCrossings.h"
+#include "World/GRPlusDressing.h"
+#include "Materials/MaterialInterface.h"
 #include "UI/GRBubbles.h"
 #include "World/GRMotor.h"
 #include "World/GRPropModels.h"
@@ -376,6 +378,12 @@ void AGRTraffic::BeginPlay()
 	RingRoad->SetCanEverAffectNavigation(false);
 	RingRoad->RegisterComponent();
 	GRStoryUtil::ApplyColor(RingRoad, FLinearColor(0.07f, 0.07f, 0.08f));
+	// L_KotaSentosa_Plus: pack asphalt on the ring, and AGRPlusDressing paints the zebras as decals.
+	const bool bPlus = AGRPlusDressing::IsPlusMap(this);
+	if (UMaterialInterface* Asphalt = bPlus ? LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/GemahRipah/Materials/Plus/MI_Jalan_Plus.MI_Jalan_Plus"), nullptr, LOAD_NoWarn | LOAD_Quiet) : nullptr)
+	{
+		RingRoad->SetMaterial(0, Asphalt);
+	}
 	// Zebra crossings: 16 stripes across the 16 m road, half a metre wide, 4 m long, a hair above the asphalt
 	// (road top z 4).
 	Zebra = NewObject<UInstancedStaticMeshComponent>(this);
@@ -386,7 +394,7 @@ void AGRTraffic::BeginPlay()
 	Zebra->SetCastShadow(false);
 	Zebra->RegisterComponent();
 	GRStoryUtil::ApplyColor(Zebra, FLinearColor(0.82f, 0.82f, 0.78f));
-	for (int32 Axis = 0; Axis < 2; ++Axis)
+	for (int32 Axis = 0; Axis < (bPlus ? 0 : 2); ++Axis)
 	{
 		for (const float A : GRCrossings::Along)
 		{
