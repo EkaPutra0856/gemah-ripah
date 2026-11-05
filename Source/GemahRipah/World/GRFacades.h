@@ -62,6 +62,8 @@ private:
 	TArray<FTransform> Parts[PaintCount][2];
 	int32 SignCount = 0;
 	int32 PosterCount = 0;
+	/** Ground floor height of the building being decorated (raised on the hills); every part is lifted by it. */
+	float BaseZ = 0.f;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Meshes;

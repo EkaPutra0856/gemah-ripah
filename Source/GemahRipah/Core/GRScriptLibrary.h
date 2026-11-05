@@ -18,4 +18,13 @@ public:
 	{
 		return FGameplayTag::RequestGameplayTag(TagName, false);
 	}
+
+	/**
+	 * Editor only (Tools/Python/build_terrain.py): replaces the flat ground of the open level with the GRTerrain
+	 * landscape, removes the buildings standing in the river, the kali, the field or the project site, and puts the
+	 * buildings on the hills on stone foundations. KeepFlat: story spots that keep level ground. Returns a report.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GemahRipah", meta = (DevelopmentOnly))
+	static FString BuildTerrain(UObject* WorldContext, const TArray<FVector2D>& KeepFlat, const FString& LandscapeMaterial,
+		const FString& FoundationMaterial);
 };

@@ -24,8 +24,15 @@ public class GemahRipah : ModuleRules
 			"JsonUtilities",
 			"MoviePlayer",
 			"IKRig",
-			"AnimationCore"
+			"AnimationCore",
+			"Landscape"
 		});
+
+		// Editor-only builders (Core/GRScriptLibrary: BuildTerrain).
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "AssetRegistry" });
+		}
 
 		// Subfolders (Core/, Player/, Systems/, ...) are included relative to the module root.
 		PublicIncludePaths.Add(ModuleDirectory);

@@ -213,7 +213,8 @@ int32 AGRDressing::Scatter(const TCHAR* Code, int32 Count, const FVector2D& Min,
 		// Only on open ground or pavement: not on a road, a roof, a floor inside or anything standing.
 		const UStaticMeshComponent* Under = Cast<UStaticMeshComponent>(Hit.GetComponent());
 		const FString Material = MaterialOf(Under);
-		if (Hit.ImpactPoint.Z > 20.f || Material.StartsWith(TEXT("MI_Jalan")) || Material.StartsWith(TEXT("MI_Lantai")))
+		// Below -40 is the kali or the river.
+		if (Hit.ImpactPoint.Z > 20.f || Hit.ImpactPoint.Z < -40.f || Material.StartsWith(TEXT("MI_Jalan")) || Material.StartsWith(TEXT("MI_Lantai")))
 		{
 			continue;
 		}

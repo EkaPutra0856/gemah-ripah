@@ -36,6 +36,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "Rendering/SkeletalMeshRenderData.h"
+#include "LandscapeProxy.h"
 #include "World/GROjol.h"
 
 UGameInstance* UGRCheatManager::GetGI() const
@@ -315,7 +316,18 @@ void UGRCheatManager::GRPos(float X, float Y, float Yaw)
 	{
 		return;
 	}
-	Pawn->TeleportTo(FVector(X, Y, 110.f), FRotator(0.f, Yaw, 0.f));
+	// On the hills, stand on the landscape; in town (ground at 0) this is the old fixed height.
+	float Z = 110.f;
+	for (TActorIterator<ALandscapeProxy> It(Pawn->GetWorld()); It; ++It)
+	{
+		if (const TOptional<float> Ground = It->GetHeightAtLocation(FVector(X, Y, 0.f)))
+		{
+			Z = FMath::Max(Z, Ground.GetValue() + 110.f);
+			break;
+		}
+	}
+	UE_LOG(LogGemahRipah, Display, TEXT("GRPos %.0f %.0f z %.0f"), X, Y, Z);
+	Pawn->TeleportTo(FVector(X, Y, Z), FRotator(0.f, Yaw, 0.f));
 	PC->SetControlRotation(FRotator(-15.f, Yaw, 0.f));
 }
 

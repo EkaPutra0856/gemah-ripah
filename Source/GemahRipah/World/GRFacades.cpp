@@ -78,7 +78,7 @@ void AGRFacades::BeginPlay()
 	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
 	{
 		const UStaticMeshComponent* Comp = It->GetStaticMeshComponent();
-		if (!Comp || Comp->GetStaticMesh() != Cube || !Comp->GetMaterial(0))
+		if (!Comp || Comp->GetStaticMesh() != Cube || !Comp->GetMaterial(0) || It->Tags.Contains(TEXT("GRPondasi")))
 		{
 			continue;
 		}
@@ -88,10 +88,12 @@ void AGRFacades::BeginPlay()
 		const FVector Half = Bounds.GetExtent();
 		const float Small = FMath::Min(Half.X, Half.Y) * 2.f;
 		const float Large = FMath::Max(Half.X, Half.Y) * 2.f;
-		if (FMath::Abs(Bounds.Min.Z) > 20.f || Half.Z * 2.f < 300.f || Small < 700.f || Large > 5200.f)
+		// Houses on the hills stand on their own foundation, up to the top of the highest hill.
+		if (Bounds.Min.Z < -20.f || Bounds.Min.Z > 4000.f || Half.Z * 2.f < 300.f || Small < 700.f || Large > 5200.f)
 		{
 			continue;
 		}
+		BaseZ = FMath::Abs(Bounds.Min.Z) <= 20.f ? 0.f : Bounds.Min.Z;
 		Decorate(Bounds.GetCenter(), Half, Comp->GetMaterial(0)->GetName());
 		++Count;
 	}
@@ -280,7 +282,7 @@ void AGRFacades::SidePosters(const FFace& Left, const FFace& Right, const FVecto
 				break;
 			}
 			GRPosters::Add(this, GRPosters::WallPoster(bSame ? First : First + i),
-				Face->Origin + Face->Along * Along + FVector(0.f, 0.f, 150.f + Rng.FRandRange(-6.f, 6.f)) + Face->Out * 1.5f,
+				Face->Origin + Face->Along * Along + FVector(0.f, 0.f, BaseZ + 150.f + Rng.FRandRange(-6.f, 6.f)) + Face->Out * 1.5f,
 				Face->Out, FVector::UpVector, 58.f, 86.f);
 			if (PosterCount == 0)
 			{
@@ -348,7 +350,7 @@ void AGRFacades::Sign(const FFace& Face, float Z, float Width, FRandomStream& Rn
 
 	UTextRenderComponent* Text = NewObject<UTextRenderComponent>(this);
 	Text->SetupAttachment(RootComponent);
-	Text->SetRelativeLocationAndRotation(Face.Origin + FVector::UpVector * Z + Face.Out * 10.5f, Face.Out.Rotation());
+	Text->SetRelativeLocationAndRotation(Face.Origin + FVector::UpVector * (Z + BaseZ) + Face.Out * 10.5f, Face.Out.Rotation());
 	Text->SetText(FText::FromString(ShopNames[Rng.RandRange(0, UE_ARRAY_COUNT(ShopNames) - 1)]));
 	Text->SetWorldSize(66.f);
 	Text->SetHorizontalAlignment(EHTA_Center);
@@ -453,5 +455,7 @@ void AGRFacades::Box(EPaint Paint, const FFace& Face, float U, float Z, float D,
 
 void AGRFacades::Add(EPaint Paint, const FTransform& Transform, bool bCylinder)
 {
-	Parts[Paint][bCylinder ? 1 : 0].Add(Transform);
+	FTransform Lifted = Transform;
+	Lifted.AddToTranslation(FVector(0.f, 0.f, BaseZ));
+	Parts[Paint][bCylinder ? 1 : 0].Add(Lifted);
 }

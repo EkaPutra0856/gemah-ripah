@@ -4,6 +4,7 @@
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRMapSubsystem.h"
 #include "World/GROjol.h"
+#include "World/GRTerrain.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Fonts/FontMeasure.h"
 #include "Framework/Application/SlateApplication.h"
@@ -77,6 +78,22 @@ int32 UGRMapView::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedG
 		FSlateBrush Ground;
 		Ground.TintColor = FSlateColor(FLinearColor(0.16f, 0.15f, 0.12f, 1.f));
 		FSlateDrawElement::MakeBox(OutDrawElements, Layer, AllottedGeometry.ToPaintGeometry(FVector2f(GroundSize), FSlateLayoutTransform(FVector2f(GroundTopLeft))), &Ground, ESlateDrawEffect::None, FLinearColor(0.16f, 0.15f, 0.12f, 1.f));
+		++Layer;
+
+		// The river and the kali, under the roads and buildings so the bridges show.
+		for (const GRTerrain::FWaterway* Way : { &GRTerrain::River(), &GRTerrain::Creek() })
+		{
+			TArray<FVector2f> Line;
+			Line.Reserve(Way->Points.Num() / 2 + 1);
+			for (int32 i = 0; i < Way->Points.Num(); i += 2)
+			{
+				Line.Add(FVector2f(ToLocal(Way->Points[i])));
+			}
+			Line.Add(FVector2f(ToLocal(Way->Points.Last())));
+			const float Thickness = FMath::Max(float(Way->HalfWidth * 2.0 * Scale), 1.5f);
+			FSlateDrawElement::MakeLines(OutDrawElements, Layer, AllottedGeometry.ToPaintGeometry(), Line, ESlateDrawEffect::None,
+				FLinearColor(0.20f, 0.36f, 0.42f, 1.f), true, Thickness);
+		}
 		++Layer;
 
 		FSlateBrush Solid;
