@@ -51,6 +51,7 @@ private:
 	void HandlePhone();
 	void HandleJournal();
 	void HandleMotor();
+	void HandleRadio();
 	friend class UGRCheatManager;
 	friend class AGRMotor;
 
@@ -89,6 +90,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputAction> MotorAction;
+
+	UPROPERTY()
+	TObjectPtr<UInputAction> RadioAction;
 
 	/** OjekKu: Y accept, N decline, 1-3 chat answers (World/GROjol.h). */
 	UPROPERTY(Transient)

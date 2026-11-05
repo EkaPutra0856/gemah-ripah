@@ -8,6 +8,7 @@
 #include "UI/GRMenuScreens.h"
 #include "UI/GRMapScreen.h"
 #include "UI/GRUISubsystem.h"
+#include "Systems/GRNotificationSubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
@@ -16,6 +17,7 @@
 #include "InputModifiers.h"
 #include "GemahRipah.h"
 #include "World/GROjol.h"
+#include "World/GRMusic.h"
 
 namespace
 {
@@ -74,6 +76,7 @@ void AGRPlayerController::BuildInputAssets()
 	PhoneAction = MakeAction(this, TEXT("IA_Phone"), EInputActionValueType::Boolean);
 	JournalAction = MakeAction(this, TEXT("IA_Journal"), EInputActionValueType::Boolean);
 	MotorAction = MakeAction(this, TEXT("IA_Motor"), EInputActionValueType::Boolean);
+	RadioAction = MakeAction(this, TEXT("IA_Radio"), EInputActionValueType::Boolean);
 
 	DefaultContext = NewObject<UInputMappingContext>(this, TEXT("IMC_GemahRipah"));
 
@@ -111,6 +114,7 @@ void AGRPlayerController::BuildInputAssets()
 	DefaultContext->MapKey(JournalAction, EKeys::Gamepad_DPad_Down);
 	DefaultContext->MapKey(MotorAction, EKeys::F);
 	DefaultContext->MapKey(MotorAction, EKeys::Gamepad_FaceButton_Top);
+	DefaultContext->MapKey(RadioAction, EKeys::R);
 
 	const FKey OjolKeys[] = { EKeys::Y, EKeys::N, EKeys::One, EKeys::Two, EKeys::Three };
 	for (int32 i = 0; i < UE_ARRAY_COUNT(OjolKeys); ++i)
@@ -158,6 +162,7 @@ void AGRPlayerController::SetupInputComponent()
 	Input->BindAction(PhoneAction, ETriggerEvent::Started, this, &AGRPlayerController::HandlePhone);
 	Input->BindAction(JournalAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleJournal);
 	Input->BindAction(MotorAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleMotor);
+	Input->BindAction(RadioAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleRadio);
 	for (int32 i = 0; i < OjolActions.Num(); ++i)
 	{
 		Input->BindActionValueLambda(OjolActions[i], ETriggerEvent::Started, [this, i](const FInputActionValue&)
@@ -334,6 +339,25 @@ void AGRPlayerController::HandleJournal()
 	{
 		UI->PushScreen<UGRJournalScreen>();
 	}
+}
+
+void AGRPlayerController::HandleRadio()
+{
+	UGRUISubsystem* UI = GetLocalPlayer() ? GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	const UGRMusicSubsystem* Music = UGRMusicSubsystem::Get(this);
+	if (!UI || UI->HasScreens() || !Music)
+	{
+		return;
+	}
+	if (!Music->CanUseRadio())
+	{
+		if (UGRNotificationSubsystem* Notify = GetGameInstance()->GetSubsystem<UGRNotificationSubsystem>())
+		{
+			Notify->Notify(NSLOCTEXT("GemahRipah", "RadioNeedMotor", "Radio ada di motor. Naik motor dulu (F)."));
+		}
+		return;
+	}
+	UI->PushScreen<UGRRadioScreen>();
 }
 
 void AGRPlayerController::HandleMotor()
