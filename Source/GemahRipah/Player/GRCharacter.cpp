@@ -372,7 +372,8 @@ bool AGRCharacter::RideIntoThing(const FHitResult& Hit, const FVector& Ahead, fl
 		const FVector Size = Box.GetSize();
 		return Box.IsValid && Size.Z <= 130.f && FMath::Max(Size.X, Size.Y) <= 140.f;
 	};
-	USceneComponent* Root = Cast<AGRStoryProp>(Thing) ? Thing->GetRootComponent() : nullptr;
+	const bool bLoose = Cast<AGRStoryProp>(Thing) || (Thing && Thing->ActorHasTag(TEXT("GRLepas")));
+	USceneComponent* Root = bLoose ? Thing->GetRootComponent() : nullptr;
 	USceneComponent* Piece = nullptr;
 	FBox Box(ForceInit);
 	if (Root && Root->Mobility == EComponentMobility::Movable && IsSmall(Box = Thing->GetComponentsBoundingBox(false)))

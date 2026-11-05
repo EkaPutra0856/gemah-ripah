@@ -43,11 +43,19 @@ public:
 private:
 	/** Builds a furniture model from parts; returns the height of its top. */
 	float BuildParts(const TArray<FGRPropPart>& Parts);
+	/**
+	 * Shows TripoMesh in place of the basic shapes, fitted to their footprint and height. The shapes stay as
+	 * invisible collision (seats, table tops and roofs keep working the same). Returns the new top.
+	 */
+	float ShowTripo(UStaticMesh* TripoMesh, const TArray<FGRPropPart>& Parts, float YawOffset);
 
 	/** Tent roofs and awnings, hidden while the player is underneath. */
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> RoofParts;
 	FVector2D RoofExtent = FVector2D::ZeroVector;
+	/** Basic shapes under a roof shown only while the Tripo roofed model is hidden (player underneath). */
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> UnderParts;
 
 	FString Prompt;
 	FString Actions;
