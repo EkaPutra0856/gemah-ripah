@@ -1,5 +1,7 @@
 #include "UI/GRWargaChat.h"
+#include "UI/GRJajanScreen.h"
 #include "UI/GRMenuButton.h"
+#include "UI/GRUISubsystem.h"
 #include "UI/GRUIStyle.h"
 #include "World/GRCrowd.h"
 #include "Blueprint/WidgetTree.h"
@@ -76,7 +78,7 @@ void UGRWargaChatScreen::SetWarga(AGRWarga* InWarga)
 	};
 	if (InWarga->IsVendor())
 	{
-		List.Add({ TopicBuy, LOCTEXT("ChatBuy", "Beli jajanan (Rp5.000)"), TEXT("item_gorengan") });
+		List.Add({ TopicBuy, LOCTEXT("ChatBuy", "Beli jajanan"), TEXT("item_gorengan") });
 	}
 	List.Add({ TopicLeave, LOCTEXT("ChatLeave", "Pamit"), TEXT("menu_keluar") });
 
@@ -110,16 +112,18 @@ void UGRWargaChatScreen::Pick(int32 Topic)
 		Close();
 		return;
 	}
-	Person->Chat(Topic);
-	// One snack per chat: the vendor has to serve the next customer too.
 	if (Topic == TopicBuy)
 	{
-		const int32 Index = Topics.IndexOfByKey(Topic);
-		if (Buttons.IsValidIndex(Index))
+		// The cart's menu has a screen of its own (order, pay, the hand-over).
+		UGRUISubsystem* UI = GetUI();
+		Close();
+		if (UGRJajanScreen* Screen = UI ? UI->PushScreen<UGRJajanScreen>() : nullptr)
 		{
-			Buttons[Index]->SetIsEnabled(false);
+			Screen->SetWarga(Person);
 		}
+		return;
 	}
+	Person->Chat(Topic);
 }
 
 void UGRWargaChatScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

@@ -21,9 +21,21 @@ void UGRBodyAnimInstance::Follow(UIKRetargeter* Retargeter, USkeletalMeshCompone
 
 void UGRBodyAnimInstance::SetGrip(bool bOn, const FVector& Left, const FVector& Right)
 {
-	bGrip = bOn;
-	Grip[0] = Left;
-	Grip[1] = Right;
+	SetHand(0, bOn, Left, 0.25f);
+	SetHand(1, bOn, Right, 0.25f);
+}
+
+void UGRBodyAnimInstance::SetHand(int32 Side, bool bOn, const FVector& Target, float BlendTime)
+{
+	if (Side == 0 || Side == 1)
+	{
+		bHandOn[Side] = bOn;
+		if (bOn)
+		{
+			HandTarget[Side] = Target;
+		}
+		HandBlend[Side] = FMath::Max(BlendTime, 0.01f);
+	}
 }
 
 void FGRBodyAnimProxy::PreUpdate(UAnimInstance* InAnimInstance, float DeltaSeconds)
@@ -31,16 +43,25 @@ void FGRBodyAnimProxy::PreUpdate(UAnimInstance* InAnimInstance, float DeltaSecon
 	FAnimInstanceProxy::PreUpdate(InAnimInstance, DeltaSeconds);
 	if (const UGRBodyAnimInstance* Anim = Cast<UGRBodyAnimInstance>(InAnimInstance))
 	{
-		bGrip = Anim->bGrip;
-		Grip[0] = Anim->Grip[0];
-		Grip[1] = Anim->Grip[1];
+		for (int32 Side = 0; Side < 2; ++Side)
+		{
+			bOn[Side] = Anim->bHandOn[Side];
+			Target[Side] = Anim->HandTarget[Side];
+			BlendTime[Side] = Anim->HandBlend[Side];
+		}
 	}
+	Delta = DeltaSeconds;
 }
 
 bool FGRBodyAnimProxy::Evaluate(FPoseContext& Output)
 {
 	EvaluateAnimationNode_WithRoot(Output, Node);
-	if (!bGrip)
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		Alpha[Side] = FMath::Clamp(Alpha[Side] + (bOn[Side] ? 1.f : -1.f) * Delta / BlendTime[Side], 0.f, 1.f);
+	}
+	Delta = 0.f;
+	if (Alpha[0] <= 0.f && Alpha[1] <= 0.f)
 	{
 		return true;
 	}
@@ -52,6 +73,10 @@ bool FGRBodyAnimProxy::Evaluate(FPoseContext& Output)
 	CS.InitPose(Output.Pose);
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
+		if (Alpha[Side] <= 0.f)
+		{
+			continue;
+		}
 		FCompactPoseBoneIndex Index[3] = { FCompactPoseBoneIndex(INDEX_NONE), FCompactPoseBoneIndex(INDEX_NONE), FCompactPoseBoneIndex(INDEX_NONE) };
 		bool bFound = true;
 		for (int32 k = 0; k < 3; ++k)
@@ -67,12 +92,13 @@ bool FGRBodyAnimProxy::Evaluate(FPoseContext& Output)
 		FTransform Upper = CS.GetComponentSpaceTransform(Index[0]);
 		FTransform Lower = CS.GetComponentSpaceTransform(Index[1]);
 		FTransform Hand = CS.GetComponentSpaceTransform(Index[2]);
-		const FVector Target = GetComponentTransform().InverseTransformPosition(GetActorTransform().TransformPosition(Grip[Side]));
+		const FVector Goal = GetComponentTransform().InverseTransformPosition(GetActorTransform().TransformPosition(Target[Side]));
+		const FVector Effector = FMath::Lerp(Hand.GetLocation(), Goal, FMath::SmoothStep(0.f, 1.f, Alpha[Side]));
 		// Mesh space faces +Y with the left side at +X: elbows out a little, down and back, close to the body.
 		const float Out = Side == 0 ? 1.f : -1.f;
 		const FVector Pole = Upper.GetLocation() + FVector(Out * 20.f, -15.f, -30.f);
 		const FQuat LowerBefore = Lower.GetRotation();
-		AnimationCore::SolveTwoBoneIK(Upper, Lower, Hand, Pole, Target, false, 1.0, 1.0);
+		AnimationCore::SolveTwoBoneIK(Upper, Lower, Hand, Pole, Effector, false, 1.0, 1.0);
 		// The hand turns with the forearm, as the animation held it.
 		Hand.SetRotation(Lower.GetRotation() * LowerBefore.Inverse() * Hand.GetRotation());
 		TArray<FBoneTransform, TInlineAllocator<3>> Out3;
@@ -83,6 +109,19 @@ bool FGRBodyAnimProxy::Evaluate(FPoseContext& Output)
 	}
 	FCSPose<FCompactPose>::ConvertComponentPosesToLocalPoses(CS, Output.Pose);
 	return true;
+}
+
+UGRBodyAnimInstance* GRBody::AnimOf(const AActor* Owner)
+{
+	TInlineComponentArray<USkeletalMeshComponent*> Meshes(Owner);
+	for (USkeletalMeshComponent* Mesh : Meshes)
+	{
+		if (UGRBodyAnimInstance* Anim = Mesh->IsVisible() ? Cast<UGRBodyAnimInstance>(Mesh->GetAnimInstance()) : nullptr)
+		{
+			return Anim;
+		}
+	}
+	return nullptr;
 }
 
 FAnimInstanceProxy* UGRBodyAnimInstance::CreateAnimInstanceProxy()

@@ -117,6 +117,7 @@ Gerak lebih halus: warga mempercepat dan mengerem perlahan (akselerasi 700, rem 
 | `GRPolisi` | Munculkan satu patroli SPN berdua dan satu petugas sendiri di dekat Bayu |
 | `GRTubuh` | Catat ke log tubuh Tripo di sekitar Bayu: model, material, tinggi kepala dan kaki (cek retarget) |
 | `GRGerobak` | Pindahkan Bayu ke samping pedagang gerobak terdekat dan catat animasi serta posisi pegangan tangannya |
+| `GRJajan "2 1 0 bungkus bayar"` | Buka layar beli jajanan di pedagang gerobak terdekat; angka = jumlah per menu, `bungkus`/`sini`, `bayar` |
 
 ## Map
 

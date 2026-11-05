@@ -49,6 +49,18 @@ public:
 	bool IsVendor() const { return Role == ERole::Vendor; }
 	/** For GRGerobak: anim playing, speed, and where the hands hold the handlebar (actor space). */
 	FString CartDebug() const;
+
+	/**
+	 * A sale from the cart (UGRJajanScreen): the vendor makes the order, holds it out and tosses it over the cart; Bayu
+	 * catches it, then eats it there (bEatHere) or puts it away. bDrink shows a cup instead of a paper parcel.
+	 */
+	void StartServe(bool bEatHere, bool bDrink);
+	/** Stops a sale halfway (Bayu walked off): hands back to the cart, nothing shown. */
+	void CancelServe();
+	/** 0 idle, 1 making it, 2 holding it out, 3 in the air, 4 Bayu has it, 5 done. */
+	int32 GetServeStage() const;
+	/** A speech bubble over them, for screens that talk through them (UGRJajanScreen). */
+	void Speak(const FString& Text, float Duration) { Say(Text, Duration); }
 	bool CanChat() const;
 	/** Keeps them standing and facing Bayu for Seconds more. */
 	void HoldChat(float Seconds);
@@ -102,6 +114,8 @@ private:
 	void UpdatePose();
 	/** Puts the cart's handlebar in the Tripo body's hands (their arms are not the mannequin's length). */
 	void FitCartToHands(float DeltaSeconds);
+	/** Moves the sale along (StartServe): the vendor's and Bayu's hands, the parcel, the lines. */
+	void TickServe(float DeltaSeconds);
 	/** Moves a head piece laid out around the actor onto the head bone, keeping where it sits. */
 	void PinToHead(UStaticMeshComponent* Piece);
 	void SetSeatedLook(bool bSeated);
@@ -166,6 +180,17 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
 	TObjectPtr<UStaticMeshComponent> PhoneProp;
+
+	/** The order being handed over (StartServe), placed in world space every tick. */
+	UPROPERTY(VisibleAnywhere, Category = "Warga")
+	TObjectPtr<UStaticMeshComponent> FoodProp;
+	/** Seconds into the sale, below zero when none; bServed once it is over. */
+	float ServeTime = -1.f;
+	bool bServeEat = false;
+	bool bServed = false;
+	int32 ServeLine = 0;
+	FVector TossFrom = FVector::ZeroVector;
+	FVector FoodScale = FVector::OneVector;
 
 	/** Wary side-glance, and flinching when bumped into. */
 	UPROPERTY()

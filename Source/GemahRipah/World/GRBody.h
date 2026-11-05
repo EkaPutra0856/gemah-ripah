@@ -29,9 +29,13 @@ struct FGRBodyAnimProxy : public FAnimInstanceProxy
 	virtual bool Evaluate(FPoseContext& Output) override;
 
 	FAnimNode_RetargetPoseFromMesh* Node = nullptr;
-	/** Copied from UGRBodyAnimInstance::SetGrip on the game thread, actor space. */
-	bool bGrip = false;
-	FVector Grip[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	/** Copied from UGRBodyAnimInstance on the game thread: per hand (0 left, 1 right), wanted on/off and target in actor space. */
+	bool bOn[2] = { false, false };
+	FVector Target[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	float BlendTime[2] = { 0.25f, 0.25f };
+	/** How far each hand is on its target, eased in and out so the arms never snap. */
+	float Alpha[2] = { 0.f, 0.f };
+	float Delta = 0.f;
 };
 
 /**
@@ -50,9 +54,12 @@ public:
 	 * after the retargeted pose; for a cart's handlebar. bOn false lets the arms do what the animation does.
 	 */
 	void SetGrip(bool bOn, const FVector& Left = FVector::ZeroVector, const FVector& Right = FVector::ZeroVector);
+	/** One hand only (0 left, 1 right): reach for Target (actor space), taking about BlendTime s to get there or let go. */
+	void SetHand(int32 Side, bool bOn, const FVector& Target = FVector::ZeroVector, float BlendTime = 0.25f);
 
-	bool bGrip = false;
-	FVector Grip[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	bool bHandOn[2] = { false, false };
+	FVector HandTarget[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	float HandBlend[2] = { 0.25f, 0.25f };
 
 protected:
 	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;
@@ -77,6 +84,9 @@ namespace GRBody
 
 	/** Model for a story NPC, from its name in the chapter data (and "spn" guards). Empty when none fits. */
 	GEMAHRIPAH_API FString ForStoryNpc(const FString& Name, const FString& Kind, const FString& Id);
+
+	/** The Tripo body's anim instance on Owner (a townsperson, story NPC or Bayu), or null when it has none. */
+	GEMAHRIPAH_API UGRBodyAnimInstance* AnimOf(const AActor* Owner);
 
 	/** Model for a townsperson: Role 0 stroller, 1 jogger, 2 vendor, 3 SPN; Pick spreads them. */
 	GEMAHRIPAH_API FString ForTownsperson(int32 Role, int32 Pick);

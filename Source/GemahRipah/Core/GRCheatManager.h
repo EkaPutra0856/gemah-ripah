@@ -145,6 +145,13 @@ public:
 	UFUNCTION(Exec)
 	void GRGerobak();
 
+	/**
+	 * Cart food (UGRJajanScreen). With the screen closed: puts Bayu in front of the nearest vendor and opens it. Then
+	 * words: amounts in menu order ("2 1 0"), "bungkus" or "sini", "bayar". Example: GRJajan "3 1 0 bungkus bayar"
+	 */
+	UFUNCTION(Exec)
+	void GRJajan(const FString& Order);
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;

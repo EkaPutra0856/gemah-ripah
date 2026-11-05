@@ -59,6 +59,12 @@ namespace
 	constexpr int32 MaxVendors = 2;
 	/** Walking pace of MM_GR_GerobakJalan at rate 1, cm/s (make_talk_anims.py logs it as speed=). */
 	constexpr float CartWalkSpeed = 68.f;
+	// A sale from the cart (AGRWarga::TickServe), seconds from StartServe.
+	constexpr float ServeShow = 1.6f;   // the parcel comes out in the vendor's hand
+	constexpr float ServeToss = 2.4f;   // thrown over the cart
+	constexpr float ServeCatch = 2.95f; // in Bayu's hand
+	constexpr float ServeEatEnd = 5.6f;
+	constexpr float ServeKeepEnd = 4.4f;
 
 	const TCHAR* const ShirtColors[] = {
 		TEXT("#F2F2EE"), TEXT("#8E2C2C"), TEXT("#2B4C7E"), TEXT("#6E8FB5"), TEXT("#5E6B3A"), TEXT("#C99A2E"),
@@ -307,6 +313,13 @@ AGRWarga::AGRWarga()
 	PhoneProp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PhoneProp->SetCastShadow(false);
 	PhoneProp->SetHiddenInGame(true);
+	FoodProp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FoodProp"));
+	FoodProp->SetupAttachment(RootComponent);
+	FoodProp->SetUsingAbsoluteLocation(true);
+	FoodProp->SetUsingAbsoluteRotation(true);
+	FoodProp->SetUsingAbsoluteScale(true);
+	FoodProp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	FoodProp->SetHiddenInGame(true);
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ClothesMat(TEXT("/Game/GemahRipah/Materials/M_GR_Warga.M_GR_Warga"));
 	ClothesBase = ClothesMat.Object;
 
@@ -1509,6 +1522,187 @@ void AGRWarga::Tick(float DeltaSeconds)
 	}
 	UpdatePose();
 	FitCartToHands(DeltaSeconds);
+	TickServe(DeltaSeconds);
+}
+
+void AGRWarga::StartServe(bool bEatHere, bool bDrink)
+{
+	ServeTime = 0.f;
+	bServeEat = bEatHere;
+	bServed = false;
+	ServeLine = 0;
+	HoldChat(8.f);
+	FoodProp->SetStaticMesh(GRStoryUtil::LoadShape(bDrink ? TEXT("cylinder") : TEXT("cube")));
+	GRStoryUtil::ApplyColor(FoodProp, GRStoryUtil::ParseColor(bDrink ? TEXT("#5A3A22") : TEXT("#C8A272")));
+	FoodScale = bDrink ? FVector(0.07f, 0.07f, 0.11f) : FVector(0.15f, 0.11f, 0.07f);
+	FoodProp->SetHiddenInGame(true);
+	Say(TEXT("Siap, Mas! Sebentar, ya."), 1.6f);
+}
+
+void AGRWarga::CancelServe()
+{
+	if (ServeTime < 0.f)
+	{
+		return;
+	}
+	ServeTime = -1.f;
+	FoodProp->SetHiddenInGame(true);
+	if (UGRBodyAnimInstance* Bayu = GRBody::AnimOf(UGameplayStatics::GetPlayerPawn(this, 0)))
+	{
+		Bayu->SetHand(1, false, FVector::ZeroVector, 0.3f);
+	}
+}
+
+int32 AGRWarga::GetServeStage() const
+{
+	return bServed ? 5 : ServeTime < 0.f ? 0 : ServeTime < ServeShow ? 1 : ServeTime < ServeToss ? 2 : ServeTime < ServeCatch ? 3 : 4;
+}
+
+void AGRWarga::TickServe(float DeltaSeconds)
+{
+	if (ServeTime < 0.f)
+	{
+		return;
+	}
+	ACharacter* Bayu = Cast<ACharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (!Bayu || FVector::Dist2D(Bayu->GetActorLocation(), GetActorLocation()) > 450.f)
+	{
+		CancelServe();
+		return;
+	}
+	ServeTime += DeltaSeconds;
+	HoldChat(1.f);
+	UGRBodyAnimInstance* Mine = GRBody::AnimOf(this);
+	UGRBodyAnimInstance* His = GRBody::AnimOf(Bayu);
+	const USkeletalMeshComponent* MyBody = TripoBody && TripoBody->IsVisible() ? TripoBody.Get() : GetMesh();
+	const FName MyHand = MyBody == GetMesh() ? FName(TEXT("hand_r")) : FName(TEXT("RightHand"));
+	const USkeletalMeshComponent* HisBody = nullptr;
+	{
+		TInlineComponentArray<USkeletalMeshComponent*> Meshes(Bayu);
+		for (const USkeletalMeshComponent* Part : Meshes)
+		{
+			if (Part->IsVisible() && Part->GetSkeletalMeshAsset())
+			{
+				HisBody = Part;
+				break;
+			}
+		}
+	}
+	const bool bHisTripo = HisBody && HisBody->DoesSocketExist(TEXT("RightHand"));
+	const FName HisHand = bHisTripo ? FName(TEXT("RightHand")) : FName(TEXT("hand_r"));
+	const FName HisHead = bHisTripo ? FName(TEXT("Head")) : FName(TEXT("head"));
+	const FName HisShoulder = bHisTripo ? FName(TEXT("RightArm")) : FName(TEXT("upperarm_r"));
+	const float End = bServeEat ? ServeEatEnd : ServeKeepEnd;
+
+	// Bayu turns to the cart while he is served.
+	const FRotator Face(0.f, (GetActorLocation() - Bayu->GetActorLocation()).Rotation().Yaw, 0.f);
+	Bayu->SetActorRotation(FMath::RInterpTo(Bayu->GetActorRotation(), Face, DeltaSeconds, 5.f));
+
+	const FTransform& Me = GetActorTransform();
+	const FTransform& Him = Bayu->GetActorTransform();
+	auto PlaceFood = [this](const FVector& Where, float Grow)
+	{
+		FoodProp->SetHiddenInGame(Grow <= 0.f);
+		FoodProp->SetWorldLocation(Where);
+		FoodProp->SetWorldScale3D(FoodScale * FMath::Max(Grow, 0.01f) * GetActorScale3D().X);
+	};
+	// The parcel sits in the palm, a little past the wrist.
+	auto InHand = [](const USkeletalMeshComponent* Body, FName Hand, const FTransform& Holder)
+	{
+		return Body ? Body->GetBoneLocation(Hand) + Holder.GetRotation().GetForwardVector() * 6.f - FVector(0.f, 0.f, 2.f) : Holder.GetLocation();
+	};
+
+	if (ServeTime < ServeShow)
+	{
+		// Making it: hands off the bar (UpdatePose plays the talk gestures), the parcel not out yet.
+		if (Mine)
+		{
+			Mine->SetHand(1, false, FVector::ZeroVector, 0.3f);
+		}
+		FoodProp->SetHiddenInGame(true);
+	}
+	else if (ServeTime < ServeToss)
+	{
+		// Holding it out over the cart, at shoulder height.
+		if (Mine && MyBody == TripoBody)
+		{
+			const FVector Shoulder = Me.InverseTransformPosition(TripoBody->GetBoneLocation(TEXT("RightArm")));
+			Mine->SetHand(1, true, FVector(Shoulder.X + 38.f, Shoulder.Y + 4.f, Shoulder.Z + 6.f), 0.35f);
+		}
+		FoodProp->SetWorldRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
+		PlaceFood(InHand(MyBody, MyHand, Me), FMath::Clamp((ServeTime - ServeShow) / 0.15f, 0.f, 1.f));
+		TossFrom = FoodProp->GetComponentLocation();
+		if (ServeLine == 0)
+		{
+			ServeLine = 1;
+			Say(bServeEat ? TEXT("Ini, Mas! Tangkap!") : TEXT("Sudah dibungkus. Tangkap, Mas!"), 1.8f);
+		}
+	}
+	else if (ServeTime < ServeCatch)
+	{
+		// Tossed over the cart into Bayu's open hand, on a little arc, turning over once (the vendor's hands go back
+		// to the handlebar: FitCartToHands).
+		if (His && HisBody)
+		{
+			const FVector Shoulder = Him.InverseTransformPosition(HisBody->GetBoneLocation(HisShoulder));
+			His->SetHand(1, true, FVector(Shoulder.X + 34.f, Shoulder.Y - 4.f, Shoulder.Z - 8.f), 0.25f);
+		}
+		const float T = (ServeTime - ServeToss) / (ServeCatch - ServeToss);
+		FVector Where = FMath::Lerp(TossFrom, InHand(HisBody, HisHand, Him), T);
+		Where.Z += FMath::Sin(T * PI) * 45.f;
+		FoodProp->SetWorldRotation(FRotator(0.f, GetActorRotation().Yaw, 360.f * T));
+		PlaceFood(Where, 1.f);
+	}
+	else
+	{
+		const float T = ServeTime - ServeCatch;
+		const float Hold = End - ServeCatch;
+		float Grow = 1.f;
+		if (His && HisBody)
+		{
+			const FVector Shoulder = Him.InverseTransformPosition(HisBody->GetBoneLocation(HisShoulder));
+			const FVector Front(Shoulder.X + 30.f, Shoulder.Y - 4.f, Shoulder.Z - 22.f);
+			if (bServeEat && T > 0.45f && T < Hold - 0.4f)
+			{
+				// Three bites: hand up to the mouth and down a little, the parcel getting smaller.
+				const FVector Mouth = Him.InverseTransformPosition(HisBody->GetBoneLocation(HisHead)) + FVector(16.f, 2.f, -10.f);
+				const float Bite = FMath::Fmod(T - 0.45f, 0.75f) / 0.75f;
+				His->SetHand(1, true, Bite < 0.55f ? Mouth : Front, 0.22f);
+				Grow = 1.f - 0.28f * FMath::FloorToFloat((T - 0.45f) / 0.75f);
+			}
+			else if (!bServeEat && T > 0.6f)
+			{
+				// Into the bag at his hip.
+				His->SetHand(1, true, FVector(Shoulder.X + 4.f, Shoulder.Y + 10.f, Shoulder.Z - 55.f), 0.3f);
+			}
+			else
+			{
+				His->SetHand(1, true, Front, 0.2f);
+			}
+		}
+		if ((bServeEat && T >= Hold - 0.4f) || (!bServeEat && T >= Hold - 0.3f))
+		{
+			Grow = 0.f;
+		}
+		FoodProp->SetWorldRotation(FRotator(0.f, Bayu->GetActorRotation().Yaw, 0.f));
+		PlaceFood(InHand(HisBody, HisHand, Him), FMath::Clamp(Grow, 0.f, 1.f));
+		if (bServeEat && ServeLine == 1 && T > 1.2f)
+		{
+			ServeLine = 2;
+			Say(TEXT("Gimana, Mas? Enak, toh?"), 2.f);
+		}
+		if (T >= Hold)
+		{
+			if (His)
+			{
+				His->SetHand(1, false, FVector::ZeroVector, 0.35f);
+			}
+			FoodProp->SetHiddenInGame(true);
+			ServeTime = -1.f;
+			bServed = true;
+			HoldChat(2.f);
+		}
+	}
 }
 
 FString AGRWarga::CartDebug() const
@@ -1597,6 +1791,11 @@ void AGRWarga::UpdatePose()
 			: RadioTime > 0.f || Mode == EMode::Arrest ? RadioAnim.Get()
 			: Mode == EMode::Follow ? GlanceAnim.Get()
 			: bTalking ? TalkAnim.Get() : GuardAnim.Get();
+	}
+	else if (Role == ERole::Vendor && ServeTime >= 0.f && ServeTime < ServeToss && TalkAnim)
+	{
+		// Making the order behind the cart.
+		Want = TalkAnim.Get();
 	}
 	else if (Role == ERole::Vendor && CartAnim)
 	{

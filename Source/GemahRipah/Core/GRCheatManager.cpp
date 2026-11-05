@@ -15,6 +15,7 @@
 #include "UI/GRSettingsScreen.h"
 #include "UI/GRMapScreen.h"
 #include "UI/GRUISubsystem.h"
+#include "UI/GRJajanScreen.h"
 #include "Engine/LocalPlayer.h"
 #include "Systems/GRClockSubsystem.h"
 #include "World/GRBed.h"
@@ -375,6 +376,72 @@ void UGRCheatManager::GRGerobak()
 	Pawn->SetActorRotation(Face);
 	PC->SetControlRotation(Face);
 	UE_LOG(LogGemahRipah, Display, TEXT("GRGerobak: %s yaw=%.0f %s"), *Best->GetName(), Best->GetActorRotation().Yaw, *Best->CartDebug());
+}
+
+void UGRCheatManager::GRJajan(const FString& Order)
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	UGRUISubsystem* UI = PC && PC->GetLocalPlayer() ? PC->GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (!Pawn || !UI)
+	{
+		return;
+	}
+	UGRJajanScreen* Screen = Cast<UGRJajanScreen>(UI->GetTopScreen());
+	if (!Screen)
+	{
+		AGRWarga* Best = nullptr;
+		for (TActorIterator<AGRWarga> It(GetWorld()); It; ++It)
+		{
+			if (It->IsVendor() && !It->IsHidden() && (!Best || FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation()) < FVector::DistSquared(Best->GetActorLocation(), Pawn->GetActorLocation())))
+			{
+				Best = *It;
+			}
+		}
+		if (!Best)
+		{
+			UE_LOG(LogGemahRipah, Display, TEXT("GRJajan: tidak ada pedagang"));
+			return;
+		}
+		// In front of the cart, facing the vendor across it.
+		const FVector Spot = Best->GetActorLocation() + Best->GetActorForwardVector() * 230.f;
+		Pawn->SetActorLocation(Spot, false, nullptr, ETeleportType::ResetPhysics);
+		const FRotator Face(0.f, (Best->GetActorLocation() - Spot).Rotation().Yaw, 0.f);
+		Pawn->SetActorRotation(Face);
+		PC->SetControlRotation(Face);
+		Screen = UI->PushScreen<UGRJajanScreen>();
+		if (!Screen)
+		{
+			return;
+		}
+		Screen->SetWarga(Best);
+		UE_LOG(LogGemahRipah, Display, TEXT("GRJajan: buka %s"), *Best->GetName());
+	}
+	TArray<FString> Words;
+	Order.ParseIntoArrayWS(Words);
+	TArray<int32> Amounts;
+	for (const FString& Word : Words)
+	{
+		if (Word.IsNumeric())
+		{
+			Amounts.Add(FCString::Atoi(*Word));
+		}
+	}
+	if (!Amounts.IsEmpty())
+	{
+		Screen->SetOrder(Amounts);
+	}
+	for (const FString& Word : Words)
+	{
+		if (Word == TEXT("bungkus") || Word == TEXT("sini"))
+		{
+			Screen->SetTakeAway(Word == TEXT("bungkus"));
+		}
+		else if (Word == TEXT("bayar"))
+		{
+			UE_LOG(LogGemahRipah, Display, TEXT("GRJajan: bayar %s"), Screen->Pay() ? TEXT("ok") : TEXT("gagal"));
+		}
+	}
 }
 
 void UGRCheatManager::GRTubuh()
