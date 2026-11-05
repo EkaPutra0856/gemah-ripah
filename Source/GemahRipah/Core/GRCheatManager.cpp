@@ -35,6 +35,15 @@
 #include "Containers/Ticker.h"
 #include "Engine/SkeletalMesh.h"
 #include "Materials/MaterialInterface.h"
+#include "Materials/Material.h"
+#include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
+#include "Components/DecalComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "Rendering/SkeletalMeshRenderData.h"
 #include "LandscapeProxy.h"
 #include "World/GROjol.h"
@@ -387,6 +396,211 @@ void UGRCheatManager::GRPolisi()
 	{
 		Crowd->SpawnPoliceNear();
 	}
+}
+
+namespace
+{
+	/** One gallery item: its world bounds and every component drawn for it (mesh or tile, decal, label). */
+	struct FGaleriItem
+	{
+		FBox Box;
+		TArray<TWeakObjectPtr<USceneComponent>> Parts;
+	};
+	TArray<FGaleriItem> GGaleriItems;
+	TWeakObjectPtr<ACameraActor> GGaleriCam;
+}
+
+void UGRCheatManager::GRGaleri(const FString& ListFile)
+{
+	GGaleriItems.Reset();
+	UWorld* World = GetWorld();
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!World || !Pawn)
+	{
+		return;
+	}
+	for (TActorIterator<AActor> It(World); It; ++It)
+	{
+		if (It->ActorHasTag(TEXT("GRGaleri")))
+		{
+			It->Destroy();
+		}
+	}
+	TArray<FString> Lines;
+	FFileHelper::LoadFileToStringArray(Lines, *ListFile);
+
+	// 25 m above Bayu, over the roofs; the floor hides the town below.
+	const FVector Origin = Pawn->GetActorLocation() + FVector(-1500.f, -1000.f, 2500.f);
+	const float Gap = 120.f;
+	// Rows about as wide as the gallery is deep, so one camera shot shows all of it.
+	float Area = 0.f;
+	for (const FString& Line : Lines)
+	{
+		const FString Path = Line.TrimStartAndEnd();
+		if (UStaticMesh* Mesh = Path.IsEmpty() ? nullptr : LoadObject<UStaticMesh>(nullptr, *(Path + TEXT(".") + FPaths::GetBaseFilename(Path)), nullptr, LOAD_NoWarn | LOAD_Quiet))
+		{
+			const FVector Size = Mesh->GetBoundingBox().GetSize();
+			Area += (Size.X + Gap) * (Size.Y + Gap + 80.f);
+		}
+		else if (!Path.IsEmpty())
+		{
+			Area += 420.f * 500.f;
+		}
+	}
+	const float RowWidth = FMath::Max(2500.f, FMath::Sqrt(Area) * 1.4f);
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	UStaticMesh* Plane = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane.Plane"));
+	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+
+	AActor* Gallery = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform(Origin), Params);
+	Gallery->Tags.Add(TEXT("GRGaleri"));
+	USceneComponent* Root = NewObject<USceneComponent>(Gallery);
+	Gallery->SetRootComponent(Root);
+	Root->RegisterComponent();
+	Root->SetWorldLocation(Origin);
+	auto AddMesh = [&](UStaticMesh* Mesh, const FVector& At, const FVector& Scale, UMaterialInterface* Material)
+	{
+		UStaticMeshComponent* Comp = NewObject<UStaticMeshComponent>(Gallery);
+		Comp->SetStaticMesh(Mesh);
+		Comp->SetupAttachment(Root);
+		Comp->SetRelativeLocation(At);
+		Comp->SetRelativeScale3D(Scale);
+		Comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (Material)
+		{
+			Comp->SetMaterial(0, Material);
+		}
+		Comp->RegisterComponent();
+		if (GGaleriItems.Num() > 0)
+		{
+			GGaleriItems.Last().Parts.Add(Comp);
+		}
+		return Comp;
+	};
+
+	float X = 0.f;
+	float Y = 0.f;
+	float RowDepth = 0.f;
+	float MaxX = 0.f;
+	int32 Count = 0;
+	for (FString Line : Lines)
+	{
+		Line.TrimStartAndEndInline();
+		if (Line.IsEmpty() || Line.StartsWith(TEXT("#")))
+		{
+			continue;
+		}
+		const FString Name = FPaths::GetBaseFilename(Line);
+		UObject* Asset = LoadObject<UObject>(nullptr, *(Line + TEXT(".") + Name), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		UStaticMesh* Mesh = Cast<UStaticMesh>(Asset);
+		UMaterialInterface* Material = Cast<UMaterialInterface>(Asset);
+		if (!Mesh && !Material)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GRGaleri tidak ketemu: %s"), *Line);
+			continue;
+		}
+		FVector Size(300.f, 300.f, 10.f);
+		FBox Bounds(ForceInit);
+		if (Mesh)
+		{
+			Bounds = Mesh->GetBoundingBox();
+			Size = Bounds.GetSize();
+		}
+		if (X > 0.f && X + Size.X > RowWidth)
+		{
+			Y += RowDepth + Gap + 80.f;
+			X = 0.f;
+			RowDepth = 0.f;
+		}
+		const FVector Center(X + Size.X * 0.5f, Y + Size.Y * 0.5f, 0.f);
+		FGaleriItem& Item = GGaleriItems.AddDefaulted_GetRef();
+		Item.Box = FBox::BuildAABB(Origin + Center + FVector(0.f, 0.f, Size.Z * 0.5f), FVector(Size.X, Size.Y, FMath::Max(Size.Z, 10.f)) * 0.5f);
+		if (Mesh)
+		{
+			AddMesh(Mesh, Center - FVector(Bounds.GetCenter().X, Bounds.GetCenter().Y, Bounds.Min.Z), FVector::OneVector, nullptr);
+		}
+		else if (Material->GetMaterial() && Material->GetMaterial()->MaterialDomain == MD_DeferredDecal)
+		{
+			AddMesh(Cube, Center + FVector(0.f, 0.f, 2.f), FVector(3.f, 3.f, 0.04f), nullptr)->SetMaterial(0, LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")));
+			UDecalComponent* Decal = NewObject<UDecalComponent>(Gallery);
+			Decal->SetupAttachment(Root);
+			Decal->SetDecalMaterial(Material);
+			Decal->DecalSize = FVector(60.f, 150.f, 150.f);
+			Decal->SetRelativeLocation(Center + FVector(0.f, 0.f, 5.f));
+			Decal->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+			Decal->RegisterComponent();
+			Item.Parts.Add(Decal);
+		}
+		else
+		{
+			AddMesh(Plane, Center + FVector(0.f, 0.f, 3.f), FVector(3.f, 3.f, 1.f), Material);
+		}
+		UTextRenderComponent* Label = NewObject<UTextRenderComponent>(Gallery);
+		Label->SetupAttachment(Root);
+		Label->SetText(FText::FromString(FString::Printf(TEXT("%d %s"), Count + 1, *Name.Replace(TEXT("SM_"), TEXT("")).Replace(TEXT("MI_"), TEXT("")).Left(28))));
+		Label->SetWorldSize(FMath::Clamp(Size.X * 0.09f, 14.f, 60.f));
+		Label->SetHorizontalAlignment(EHTA_Center);
+		Label->SetTextRenderColor(FColor::Yellow);
+		Label->SetRelativeLocation(FVector(Center.X, Y - 40.f, 4.f));
+		Label->SetRelativeRotation(FRotator(90.f, -90.f, 0.f));
+		Label->RegisterComponent();
+		Item.Parts.Add(Label);
+		UE_LOG(LogTemp, Display, TEXT("GRGaleri %d %s size %.0f %.0f %.0f"), Count + 1, *Name, Size.X, Size.Y, Size.Z);
+
+		X += Size.X + Gap;
+		MaxX = FMath::Max(MaxX, X);
+		RowDepth = FMath::Max(RowDepth, Size.Y);
+		++Count;
+	}
+	const float Depth = Y + RowDepth;
+	// The floor goes into a scratch item that is dropped again, so focusing never hides it.
+	GGaleriItems.AddDefaulted();
+	AddMesh(Plane, FVector(MaxX * 0.5f, Depth * 0.5f, 0.f), FVector((MaxX + 2000.f) / 100.f, (Depth + 3000.f) / 100.f, 1.f),
+		LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")));
+	UStaticMeshComponent* Floor = AddMesh(Cube, FVector(MaxX * 0.5f, Depth * 0.5f, -50.f), FVector((MaxX + 2000.f) / 100.f, (Depth + 3000.f) / 100.f, 1.f), nullptr);
+	Floor->SetVisibility(false);
+	Floor->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GGaleriItems.Pop();
+	// Bayu stays at home (moving him up here trips the fall safety net); a gallery camera looks down at the middle.
+	const float Span = FMath::Max(900.f, FMath::Max(MaxX * 0.62f, Depth * 1.05f));
+	const FRotator View(-62.f, 90.f, 0.f);
+	const FVector Middle = Origin + FVector(MaxX * 0.5f, Depth * 0.5f, 0.f);
+	ACameraActor* Cam = World->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), FTransform(View, Middle - View.Vector() * Span), Params);
+	Cam->Tags.Add(TEXT("GRGaleri"));
+	Cam->GetCameraComponent()->bConstrainAspectRatio = false;
+	PC->SetViewTarget(Cam);
+	GGaleriCam = Cam;
+	UE_LOG(LogTemp, Display, TEXT("GRGaleri %d aset, lebar %.0f dalam %.0f"), Count, MaxX, Depth);
+}
+
+void UGRCheatManager::GRGaleriFokus(int32 Index)
+{
+	ACameraActor* Cam = GGaleriCam.Get();
+	if (!Cam)
+	{
+		return;
+	}
+	for (int32 i = 0; i < GGaleriItems.Num(); ++i)
+	{
+		for (const TWeakObjectPtr<USceneComponent>& Part : GGaleriItems[i].Parts)
+		{
+			if (USceneComponent* Comp = Part.Get())
+			{
+				// Labels stay hidden in close-ups; the contact sheet prints the names instead.
+				Comp->SetVisibility((Index <= 0 || i == Index - 1) && !Comp->IsA<UTextRenderComponent>());
+			}
+		}
+	}
+	if (!GGaleriItems.IsValidIndex(Index - 1))
+	{
+		return;
+	}
+	const FBox& Box = GGaleriItems[Index - 1].Box;
+	const FRotator View(-35.f, 60.f, 0.f);
+	const float Radius = FMath::Max(Box.GetExtent().Size(), 60.f);
+	Cam->SetActorLocationAndRotation(Box.GetCenter() - View.Vector() * Radius * 2.4f, View);
 }
 
 void UGRCheatManager::GRBarang(const FString& Models)

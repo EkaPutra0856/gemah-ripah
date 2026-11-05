@@ -26,7 +26,7 @@ namespace
 	constexpr int32 SectionQuads = 63;
 	constexpr int32 SectionsPerComponent = 2;
 
-	float Smooth(float Edge0, float Edge1, float X)
+	float BuilderSmooth(float Edge0, float Edge1, float X)
 	{
 		const float T = FMath::Clamp((X - Edge0) / (Edge1 - Edge0), 0.f, 1.f);
 		return T * T * (3.f - 2.f * T);
@@ -68,7 +68,7 @@ namespace
 					{
 						continue;
 					}
-					const float Weight = Strength * (1.f - Smooth(Inner, Reach, BoxDistance(VertexAt(X, Y), Box)));
+					const float Weight = Strength * (1.f - BuilderSmooth(Inner, Reach, BoxDistance(VertexAt(X, Y), Box)));
 					Z[I] = FMath::Lerp(Z[I], Target, Weight);
 				}
 			}

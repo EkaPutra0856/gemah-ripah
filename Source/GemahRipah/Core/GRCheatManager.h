@@ -156,6 +156,18 @@ public:
 	UFUNCTION(Exec)
 	void GRBarang(const FString& Models);
 
+	/**
+	 * Asset gallery for picking store packs: reads a text file of object paths (one per line, e.g.
+	 * /Game/PA_UrbanCity/StaticMeshes/SM_Road_01), lays the meshes out in rows on a grey floor far from town, labelled,
+	 * materials on tiles and decals on tiles, and moves Bayu to the front middle. A new call clears the old gallery.
+	 */
+	UFUNCTION(Exec)
+	void GRGaleri(const FString& ListFile);
+
+	/** Close-up of gallery item N (1-based): hides the other items and frames this one. 0 shows all again. */
+	UFUNCTION(Exec)
+	void GRGaleriFokus(int32 Index);
+
 	/** Puts Bayu 2.5 m beside the nearest cart vendor, facing them (check the hands on the handlebar). */
 	UFUNCTION(Exec)
 	void GRGerobak();
