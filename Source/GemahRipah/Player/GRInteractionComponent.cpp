@@ -1,6 +1,7 @@
 #include "Player/GRInteractionComponent.h"
 #include "Interaction/GRInteractable.h"
 #include "Player/GRCharacter.h"
+#include "World/GRMusic.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/World.h"
 
@@ -76,8 +77,9 @@ AActor* UGRInteractionComponent::FindBestInteractable() const
 		const FVector ToCandidate = Candidate->GetActorLocation() - Origin;
 		const float Distance = ToCandidate.Size2D();
 		const float Facing = FVector::DotProduct(Forward, ToCandidate.GetSafeNormal2D());
-		// Prefer what the player faces, then what is closest.
-		const float Score = Facing * 100.f - Distance;
+		// Prefer what the player faces, then what is closest. Speakers only when nothing else is near, so a radio
+		// on an office desk never takes the key from the person sitting behind it.
+		const float Score = Facing * 100.f - Distance - (Candidate->IsA<AGRSpeaker>() ? 100000.f : 0.f);
 		if (Score > BestScore)
 		{
 			BestScore = Score;
