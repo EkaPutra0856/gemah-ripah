@@ -1,4 +1,5 @@
 #include "World/GRFacades.h"
+#include "World/GRPosters.h"
 #include "Story/GRStoryUtil.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
@@ -125,7 +126,7 @@ void AGRFacades::BeginPlay()
 			Items.Empty();
 		}
 	}
-	UE_LOG(LogGRFacades, Display, TEXT("GRFASAD %d bangunan, %d bagian, %d papan nama, %d mesh"), Count, Instances, SignCount, Meshes.Num());
+	UE_LOG(LogGRFacades, Display, TEXT("GRFASAD %d bangunan, %d bagian, %d papan nama, %d poster, %d mesh"), Count, Instances, SignCount, PosterCount, Meshes.Num());
 }
 
 AGRFacades::FFace AGRFacades::MakeFace(const FVector& Center, const FVector& Half, const FVector& Out) const
@@ -215,6 +216,7 @@ void AGRFacades::Decorate(const FVector& Center, const FVector& Half, const FStr
 		}
 		// Terrace in front of the door, sometimes a potted plant.
 		Box(Sill, Front, DoorU * 0.5f, 3.f, 75.f, FVector(150.f, Front.Width * 0.55f, 6.f));
+		SidePosters(Left, Right, Center, 3);
 		if (Rng.FRand() < 0.6f)
 		{
 			const FVector Spot = Front.Origin + Front.Along * (DoorU + 90.f * Side) + Front.Out * 45.f;
@@ -248,6 +250,45 @@ void AGRFacades::Decorate(const FVector& Center, const FVector& Half, const FStr
 			}
 		}
 		FlatRoof(Center, Half, Rng);
+		SidePosters(Left, Right, Center, 1);
+	}
+}
+
+void AGRFacades::SidePosters(const FFace& Left, const FFace& Right, const FVector& Center, int32 MaxCount)
+{
+	// Its own stream, so the posters leave every other random choice of the building as it was.
+	FRandomStream Rng(int32(Center.X * 0.71f) * 4099 + int32(Center.Y * 0.29f));
+	for (const FFace* Face : { &Left, &Right })
+	{
+		if (Face->Width < 400.f || Rng.FRand() > 0.4f)
+		{
+			continue;
+		}
+		// Near a corner: houses have one window in the middle of a side wall, other buildings a row of windows
+		// from about 170 cm in, so only one poster fits there.
+		const float Edge = Face->Width * 0.5f - 85.f;
+		const float U = Rng.FRand() < 0.5f ? -Edge : Edge;
+		// Pasted in a row, the same poster over and over or a mix.
+		const int32 Count = Rng.RandRange(1, MaxCount);
+		const int32 First = Rng.RandRange(0, 3);
+		const bool bSame = Rng.FRand() < 0.5f;
+		for (int32 i = 0; i < Count; ++i)
+		{
+			const float Along = U - FMath::Sign(U) * i * 66.f;
+			if (FMath::Abs(Along) < 105.f)
+			{
+				break;
+			}
+			GRPosters::Add(this, GRPosters::WallPoster(bSame ? First : First + i),
+				Face->Origin + Face->Along * Along + FVector(0.f, 0.f, 150.f + Rng.FRandRange(-6.f, 6.f)) + Face->Out * 1.5f,
+				Face->Out, FVector::UpVector, 58.f, 86.f);
+			if (PosterCount == 0)
+			{
+				const FVector Spot = Face->Origin + Face->Along * Along;
+				UE_LOG(LogGRFacades, Display, TEXT("GRFASAD poster pertama di %.0f %.0f, menghadap %.0f"), Spot.X, Spot.Y, Face->Out.Rotation().Yaw);
+			}
+			++PosterCount;
+		}
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "World/GRDressing.h"
 
+#include "World/GRPosters.h"
 #include "World/GRTripoProps.h"
 #include "Components/BoxComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -150,6 +151,7 @@ bool AGRDressing::Place(const TCHAR* Code, const FVector& Where, float Yaw, bool
 		return false;
 	}
 	const FTransform Transform(Turn, Where - FVector(0.f, 0.f, Box.Min.Z * Scale), FVector(Scale));
+	LastPlaced = Transform;
 	if (Piece->bLoose)
 	{
 		UStaticMeshComponent* Comp = NewObject<UStaticMeshComponent>(this);
@@ -318,6 +320,7 @@ void AGRDressing::SwapLampsAndTrees()
 
 void AGRDressing::Roads(FRandomStream& Rng)
 {
+	int32 Billboards = 0;
 	// Along both main roads, both sides. Raya: X across, Y along; Merdeka the other way round.
 	for (int32 Road = 0; Road < 2; ++Road)
 	{
@@ -376,7 +379,7 @@ void AGRDressing::Roads(FRandomStream& Rng)
 				}
 			}
 		}
-		// Billboards just behind the pavement.
+		// Billboards just behind the pavement, a printed picture on each face.
 		for (const float Along : { -36000.f, -21000.f, 9000.f, 22000.f, 38000.f })
 		{
 			const float Side = Along > 0.f ? 1800.f : -1800.f;
@@ -384,6 +387,7 @@ void AGRDressing::Roads(FRandomStream& Rng)
 			{
 				if (Place(TEXT("P07"), At(Side, Along + Shift, 0.f), FaceRoad(Side)))
 				{
+					GRPosters::DressProp(this, TEXT("P07"), LastPlaced, Billboards++);
 					break;
 				}
 			}
@@ -407,9 +411,13 @@ void AGRDressing::Roads(FRandomStream& Rng)
 	}
 
 	// Banners outside the Dewan fence, where Bab 2 gathers, and a few burnt tyres.
+	int32 Banner = 0;
 	for (const float Y : { -3600.f, -1500.f, 1500.f, 3600.f })
 	{
-		Place(TEXT("P08"), FVector(36450.f, Y, 0.f), 180.f);
+		if (Place(TEXT("P08"), FVector(36450.f, Y, 0.f), 180.f))
+		{
+			GRPosters::DressProp(this, TEXT("P08"), LastPlaced, Banner++);
+		}
 	}
 	Place(TEXT("P12"), FVector(35700.f, -2600.f, 0.f), 30.f);
 	Place(TEXT("P12"), FVector(35800.f, 2700.f, 0.f), 200.f);

@@ -56,9 +56,12 @@ private:
 	/** A box on a wall: U along it, Z up, D out from it; Size is (depth, width, height). */
 	void Box(EPaint Paint, const FFace& Face, float U, float Z, float D, const FVector& Size);
 	void Add(EPaint Paint, const FTransform& Transform, bool bCylinder = false);
+	/** Paper posters (GRPosters) near a corner of the side walls, up to MaxCount in a row. */
+	void SidePosters(const FFace& Left, const FFace& Right, const FVector& Center, int32 MaxCount);
 
 	TArray<FTransform> Parts[PaintCount][2];
 	int32 SignCount = 0;
+	int32 PosterCount = 0;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Meshes;

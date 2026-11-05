@@ -44,4 +44,6 @@ private:
 	UPROPERTY()
 	TMap<FString, TObjectPtr<UInstancedStaticMeshComponent>> Instances;
 	int32 Placed = 0;
+	/** Where the last Place() put its piece (GRPosters dresses billboards and banners from it). */
+	FTransform LastPlaced;
 };
