@@ -73,6 +73,17 @@ public:
 	 * A bump shakes the camera, a harder one costs energy, and from about 27 km/h he comes off (ragdoll) for a moment.
 	 */
 	void HandleCarImpact(float Closing, const FVector& Fling, bool bRammed);
+	/**
+	 * Rode into something big and solid (a wall, a tree, a lamp post, a stall) at Closing cm/s head-on: fast enough
+	 * and Bayu goes over the bars, a bit slower and the scooter bounces back, slower still and it just stops.
+	 * Returns true when the scooter's speed was set here.
+	 */
+	bool HandleWallImpact(float Closing, const FVector& Heading);
+	/** The scooter's nose met something that is not a person or a car: small things fly off or go under the wheel. */
+	bool RideIntoThing(const FHitResult& Hit, const FVector& Ahead, float SpeedAbs);
+	/** Head-on speeds into something big: below Bounce it just stops, from Crash on Bayu comes off (cm/s, 11 and 25 km/h). */
+	static constexpr float WallBounceSpeed = 300.f;
+	static constexpr float WallCrashSpeed = 700.f;
 
 	bool IsKnockedDown() const { return bKnockedDown; }
 

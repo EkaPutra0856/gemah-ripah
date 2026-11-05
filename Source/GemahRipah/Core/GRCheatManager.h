@@ -141,6 +141,13 @@ public:
 	UFUNCTION(Exec)
 	void GRTubuh();
 
+	/**
+	 * Test for riding into things: loose props in a line ahead of Bayu, 5 m apart. Models from GRPropModels, space
+	 * separated; default "kursi_plastik pot kotak_suara karpet sembako meja_kecil".
+	 */
+	UFUNCTION(Exec)
+	void GRBarang(const FString& Models);
+
 	/** Puts Bayu 2.5 m beside the nearest cart vendor, facing them (check the hands on the handlebar). */
 	UFUNCTION(Exec)
 	void GRGerobak();

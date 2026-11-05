@@ -15,6 +15,8 @@
 #include "Engine/World.h"
 #include "Story/GRStorySubsystem.h"
 #include "World/GRCrowd.h"
+#include "World/GRKnockAway.h"
+#include "World/GRStoryProp.h"
 #include "World/GRMotor.h"
 #include "World/GRTraffic.h"
 #include "HAL/PlatformTime.h"
@@ -318,6 +320,95 @@ void AGRCharacter::HandleCarImpact(float Closing, const FVector& Fling, bool bRa
 	}
 }
 
+bool AGRCharacter::HandleWallImpact(float Closing, const FVector& Heading)
+{
+	if (bKnockedDown || bPendingKnock || ImpactCooldown > 0.f || Closing < WallBounceSpeed)
+	{
+		return false;
+	}
+	ImpactCooldown = 0.6f;
+	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
+	UE_LOG(LogTemp, Display, TEXT("Ride: hit a wall head-on at %.0f (%s)"), Closing, Closing >= WallCrashSpeed ? TEXT("crash") : TEXT("bounce"));
+	if (Closing >= WallCrashSpeed)
+	{
+		// Over the bars: the scooter stops dead and Bayu is thrown up and forward against it, with slow motion.
+		ShakeCamera(15.f, 0.6f);
+		UGameplayStatics::SetGlobalTimeDilation(this, 0.25f);
+		HitStopEnd = FPlatformTime::Seconds() + 0.09;
+		bPendingKnock = true;
+		PendingKnock = Heading.GetSafeNormal2D() * Closing * 0.25f + FVector(0.f, 0.f, 320.f);
+		if (Story)
+		{
+			Story->AddEnergi(-8.f);
+			Story->Run(TEXT("notifburuk Bayu ngebut lalu menabrak! Jatuh dari motor. Energi -8."));
+		}
+		return true;
+	}
+	// A knock that throws the scooter back a little; Bayu stays on.
+	ShakeCamera(7.f, 0.35f);
+	RideSpeedNow = -RideSpeedNow * 0.22f;
+	if (Story)
+	{
+		Story->AddEnergi(-2.f);
+		Story->Run(TEXT("notif Motor Bayu membentur. Energi -2."));
+	}
+	return true;
+}
+
+bool AGRCharacter::RideIntoThing(const FHitResult& Hit, const FVector& Ahead, float SpeedAbs)
+{
+	AActor* Thing = Hit.GetActor();
+	UPrimitiveComponent* Part = Hit.GetComponent();
+	UGRKnockAway* Knock = GetWorld()->GetSubsystem<UGRKnockAway>();
+	if (Knock && Knock->IsFlying(Thing, Part))
+	{
+		// Already in the air from the last hit: ride on through.
+		return true;
+	}
+	// What gets knocked: a loose prop (chairs, pots, boxes) when it is small, else only the small part of it that was
+	// hit (a crate on a stall). Buildings, their facades and everything fixed in place are walls.
+	auto IsSmall = [](const FBox& Box)
+	{
+		const FVector Size = Box.GetSize();
+		return Box.IsValid && Size.Z <= 130.f && FMath::Max(Size.X, Size.Y) <= 140.f;
+	};
+	USceneComponent* Root = Cast<AGRStoryProp>(Thing) ? Thing->GetRootComponent() : nullptr;
+	USceneComponent* Piece = nullptr;
+	FBox Box(ForceInit);
+	if (Root && Root->Mobility == EComponentMobility::Movable && IsSmall(Box = Thing->GetComponentsBoundingBox(false)))
+	{
+		Piece = Root;
+	}
+	else if (Root && Part && Part != Root && Part->Mobility == EComponentMobility::Movable && Part->GetNumChildrenComponents() == 0
+		&& IsSmall(Box = Part->Bounds.GetBox()))
+	{
+		Piece = Part;
+	}
+	if (Piece && Knock)
+	{
+		if (Box.GetSize().Z <= 45.f && SpeedAbs > 200.f)
+		{
+			// Low enough to go under the front wheel: flattened, with a jolt through the bars.
+			Knock->Squash(Piece);
+			UE_LOG(LogTemp, Display, TEXT("Ride: ran over %s at %.0f"), *GetNameSafe(Thing), SpeedAbs);
+			ShakeCamera(3.f, 0.15f);
+			RideSpeedNow *= 0.93f;
+		}
+		else
+		{
+			// Sent flying ahead and up, tumbling; the scooter loses a little speed (a lot when it was crawling).
+			Knock->Launch(Piece, Ahead * SpeedAbs * 1.1f + FVector(0.f, 0.f, 120.f + SpeedAbs * 0.35f));
+			UE_LOG(LogTemp, Display, TEXT("Ride: knocked %s at %.0f"), *GetNameSafe(Thing), SpeedAbs);
+			ShakeCamera(SpeedAbs > 450.f ? 5.f : 2.f, 0.2f);
+			RideSpeedNow *= SpeedAbs > 450.f ? 0.85f : 0.6f;
+		}
+		return true;
+	}
+	// Big or fixed: only the speed straight into it counts, so scraping along a wall is not a crash.
+	const float HeadOn = SpeedAbs * FMath::Clamp(-FVector::DotProduct(Ahead, Hit.ImpactNormal.GetSafeNormal2D()), 0.f, 1.f);
+	return HandleWallImpact(HeadOn, Ahead);
+}
+
 void AGRCharacter::ShakeCamera(float Amplitude, float Duration)
 {
 	ShakeAmp = Amplitude;
@@ -561,6 +652,14 @@ void AGRCharacter::TickRide(float DeltaSeconds)
 					{
 						return;
 					}
+				}
+			}
+			else if (!Cast<APawn>(Hit.GetActor()) && Hit.GetActor() != Motor)
+			{
+				bRideOn = RideIntoThing(Hit, Heading * Dir, SpeedAbs);
+				if (bPendingKnock)
+				{
+					return;
 				}
 			}
 			if (!bRideOn)

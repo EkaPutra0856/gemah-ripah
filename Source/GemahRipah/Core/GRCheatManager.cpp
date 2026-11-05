@@ -24,6 +24,8 @@
 #include "World/GRNpc.h"
 #include "World/GRCrowd.h"
 #include "World/GRTraffic.h"
+#include "World/GRStoryProp.h"
+#include "Story/GRStoryTypes.h"
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "Story/GRStorySubsystem.h"
@@ -346,6 +348,37 @@ void UGRCheatManager::GRPolisi()
 	if (AGRCrowd* Crowd = AGRCrowd::Get(GetOuterAPlayerController()))
 	{
 		Crowd->SpawnPoliceNear();
+	}
+}
+
+void UGRCheatManager::GRBarang(const FString& Models)
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+	TArray<FString> Names;
+	(Models.IsEmpty() ? FString(TEXT("kursi_plastik pot kotak_suara karpet sembako meja_kecil")) : Models).ParseIntoArrayWS(Names);
+	const FVector Ahead = Pawn->GetActorForwardVector().GetSafeNormal2D();
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	for (int32 i = 0; i < Names.Num(); ++i)
+	{
+		const FVector Where = Pawn->GetActorLocation() + Ahead * (500.f + i * 500.f);
+		FGRSpawnDef Def;
+		Def.Id = FString::Printf(TEXT("tes_barang_%d"), i);
+		Def.Model = Names[i];
+		Def.Pos = { static_cast<float>(Where.X), static_cast<float>(Where.Y) };
+		Def.Yaw = FMath::FRandRange(0.f, 360.f);
+		AGRStoryProp* Prop = GetWorld()->SpawnActor<AGRStoryProp>(AGRStoryProp::StaticClass(), FVector(Where.X, Where.Y, 0.f), FRotator(0.f, Def.Yaw, 0.f), Params);
+		if (Prop)
+		{
+			Prop->Setup(Def);
+			const FVector Size = Prop->GetComponentsBoundingBox(false).GetSize();
+			UE_LOG(LogTemp, Display, TEXT("GRBarang %s at %.0f %.0f size %.0f %.0f %.0f"), *Def.Model, Where.X, Where.Y, Size.X, Size.Y, Size.Z);
+		}
 	}
 }
 
