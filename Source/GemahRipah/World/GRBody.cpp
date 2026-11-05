@@ -4,6 +4,8 @@
 #include "Engine/SkeletalMesh.h"
 #include "GameFramework/Character.h"
 #include "Retargeter/IKRetargeter.h"
+#include "BonePose.h"
+#include "TwoBoneIK.h"
 
 void UGRBodyAnimInstance::Follow(UIKRetargeter* Retargeter, USkeletalMeshComponent* Source)
 {
@@ -15,6 +17,72 @@ void UGRBodyAnimInstance::Follow(UIKRetargeter* Retargeter, USkeletalMeshCompone
 	{
 		Processor->SetNeedsInitialized();
 	}
+}
+
+void UGRBodyAnimInstance::SetGrip(bool bOn, const FVector& Left, const FVector& Right)
+{
+	bGrip = bOn;
+	Grip[0] = Left;
+	Grip[1] = Right;
+}
+
+void FGRBodyAnimProxy::PreUpdate(UAnimInstance* InAnimInstance, float DeltaSeconds)
+{
+	FAnimInstanceProxy::PreUpdate(InAnimInstance, DeltaSeconds);
+	if (const UGRBodyAnimInstance* Anim = Cast<UGRBodyAnimInstance>(InAnimInstance))
+	{
+		bGrip = Anim->bGrip;
+		Grip[0] = Anim->Grip[0];
+		Grip[1] = Anim->Grip[1];
+	}
+}
+
+bool FGRBodyAnimProxy::Evaluate(FPoseContext& Output)
+{
+	EvaluateAnimationNode_WithRoot(Output, Node);
+	if (!bGrip)
+	{
+		return true;
+	}
+	const FBoneContainer& Bones = Output.Pose.GetBoneContainer();
+	static const FName Chain[2][3] = {
+		{ TEXT("LeftArm"), TEXT("LeftForeArm"), TEXT("LeftHand") },
+		{ TEXT("RightArm"), TEXT("RightForeArm"), TEXT("RightHand") } };
+	FCSPose<FCompactPose> CS;
+	CS.InitPose(Output.Pose);
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		FCompactPoseBoneIndex Index[3] = { FCompactPoseBoneIndex(INDEX_NONE), FCompactPoseBoneIndex(INDEX_NONE), FCompactPoseBoneIndex(INDEX_NONE) };
+		bool bFound = true;
+		for (int32 k = 0; k < 3; ++k)
+		{
+			const int32 Mesh = Bones.GetPoseBoneIndexForBoneName(Chain[Side][k]);
+			Index[k] = Mesh == INDEX_NONE ? FCompactPoseBoneIndex(INDEX_NONE) : Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(Mesh));
+			bFound &= Index[k] != INDEX_NONE;
+		}
+		if (!bFound)
+		{
+			continue;
+		}
+		FTransform Upper = CS.GetComponentSpaceTransform(Index[0]);
+		FTransform Lower = CS.GetComponentSpaceTransform(Index[1]);
+		FTransform Hand = CS.GetComponentSpaceTransform(Index[2]);
+		const FVector Target = GetComponentTransform().InverseTransformPosition(GetActorTransform().TransformPosition(Grip[Side]));
+		// Mesh space faces +Y with the left side at +X: elbows out a little, down and back, close to the body.
+		const float Out = Side == 0 ? 1.f : -1.f;
+		const FVector Pole = Upper.GetLocation() + FVector(Out * 20.f, -15.f, -30.f);
+		const FQuat LowerBefore = Lower.GetRotation();
+		AnimationCore::SolveTwoBoneIK(Upper, Lower, Hand, Pole, Target, false, 1.0, 1.0);
+		// The hand turns with the forearm, as the animation held it.
+		Hand.SetRotation(Lower.GetRotation() * LowerBefore.Inverse() * Hand.GetRotation());
+		TArray<FBoneTransform, TInlineAllocator<3>> Out3;
+		Out3.Emplace(Index[0], Upper);
+		Out3.Emplace(Index[1], Lower);
+		Out3.Emplace(Index[2], Hand);
+		CS.SafeSetCSBoneTransforms(Out3);
+	}
+	FCSPose<FCompactPose>::ConvertComponentPosesToLocalPoses(CS, Output.Pose);
+	return true;
 }
 
 FAnimInstanceProxy* UGRBodyAnimInstance::CreateAnimInstanceProxy()

@@ -141,6 +141,10 @@ public:
 	UFUNCTION(Exec)
 	void GRTubuh();
 
+	/** Puts Bayu 2.5 m beside the nearest cart vendor, facing them (check the hands on the handlebar). */
+	UFUNCTION(Exec)
+	void GRGerobak();
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;

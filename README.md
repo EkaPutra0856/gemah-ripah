@@ -116,6 +116,7 @@ Gerak lebih halus: warga mempercepat dan mengerem perlahan (akselerasi 700, rem 
 | `GRWargaBaris` | Jejerkan warga diam (tidak menghindar) di depan Bayu dan dudukkan dua di bangku terdekat (cek tampilan, uji tabrakan) |
 | `GRPolisi` | Munculkan satu patroli SPN berdua dan satu petugas sendiri di dekat Bayu |
 | `GRTubuh` | Catat ke log tubuh Tripo di sekitar Bayu: model, material, tinggi kepala dan kaki (cek retarget) |
+| `GRGerobak` | Pindahkan Bayu ke samping pedagang gerobak terdekat dan catat animasi serta posisi pegangan tangannya |
 
 ## Map
 

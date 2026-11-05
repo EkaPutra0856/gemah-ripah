@@ -47,6 +47,8 @@ public:
 	/** Talk menu (UGRWargaChatScreen): who they are, whether they still listen, and their answers. */
 	FText GetChatTitle() const;
 	bool IsVendor() const { return Role == ERole::Vendor; }
+	/** For GRGerobak: anim playing, speed, and where the hands hold the handlebar (actor space). */
+	FString CartDebug() const;
 	bool CanChat() const;
 	/** Keeps them standing and facing Bayu for Seconds more. */
 	void HoldChat(float Seconds);
@@ -98,6 +100,8 @@ private:
 	/** Steps out of the way of Bayu's scooter coming straight at them. */
 	void TickDodge(const APawn* Player);
 	void UpdatePose();
+	/** Puts the cart's handlebar in the Tripo body's hands (their arms are not the mannequin's length). */
+	void FitCartToHands(float DeltaSeconds);
 	/** Moves a head piece laid out around the actor onto the head bone, keeping where it sits. */
 	void PinToHead(UStaticMeshComponent* Piece);
 	void SetSeatedLook(bool bSeated);
@@ -188,6 +192,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UStaticMeshComponent>> CartParts;
+	/** Where the hands hold the handlebar, actor space, smoothed (zero until first measured); bar length. */
+	FVector CartGrip = FVector::ZeroVector;
+	float CartGripWidth = 62.f;
 
 	TWeakObjectPtr<AGRCrowd> Crowd;
 	FRandomStream Rng;

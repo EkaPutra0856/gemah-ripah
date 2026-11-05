@@ -348,6 +348,35 @@ void UGRCheatManager::GRPolisi()
 	}
 }
 
+void UGRCheatManager::GRGerobak()
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+	const AGRWarga* Best = nullptr;
+	for (TActorIterator<AGRWarga> It(GetWorld()); It; ++It)
+	{
+		if (It->IsVendor() && !It->IsHidden() && (!Best || FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation()) < FVector::DistSquared(Best->GetActorLocation(), Pawn->GetActorLocation())))
+		{
+			Best = *It;
+		}
+	}
+	if (!Best)
+	{
+		UE_LOG(LogGemahRipah, Display, TEXT("GRGerobak: tidak ada pedagang"));
+		return;
+	}
+	const FVector Spot = Best->GetActorLocation() + Best->GetActorRightVector() * 250.f;
+	Pawn->SetActorLocation(Spot, false, nullptr, ETeleportType::ResetPhysics);
+	const FRotator Face(0.f, (Best->GetActorLocation() - Spot).Rotation().Yaw, 0.f);
+	Pawn->SetActorRotation(Face);
+	PC->SetControlRotation(Face);
+	UE_LOG(LogGemahRipah, Display, TEXT("GRGerobak: %s yaw=%.0f %s"), *Best->GetName(), Best->GetActorRotation().Yaw, *Best->CartDebug());
+}
+
 void UGRCheatManager::GRTubuh()
 {
 	const APlayerController* PC = GetOuterAPlayerController();

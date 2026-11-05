@@ -25,8 +25,13 @@ struct FGRBodyAnimProxy : public FAnimInstanceProxy
 
 	virtual FAnimNode_Base* GetCustomRootNode() override { return Node; }
 	virtual void GetCustomNodes(TArray<FAnimNode_Base*>& OutNodes) override { OutNodes.Add(Node); }
+	virtual void PreUpdate(UAnimInstance* InAnimInstance, float DeltaSeconds) override;
+	virtual bool Evaluate(FPoseContext& Output) override;
 
 	FAnimNode_RetargetPoseFromMesh* Node = nullptr;
+	/** Copied from UGRBodyAnimInstance::SetGrip on the game thread, actor space. */
+	bool bGrip = false;
+	FVector Grip[2] = { FVector::ZeroVector, FVector::ZeroVector };
 };
 
 /**
@@ -40,6 +45,14 @@ class UGRBodyAnimInstance : public UAnimInstance
 
 public:
 	void Follow(UIKRetargeter* Retargeter, USkeletalMeshComponent* Source);
+	/**
+	 * Puts the wrists (LeftHand, RightHand) on Left and Right, owner actor space, bending the arms with two-bone IK
+	 * after the retargeted pose; for a cart's handlebar. bOn false lets the arms do what the animation does.
+	 */
+	void SetGrip(bool bOn, const FVector& Left = FVector::ZeroVector, const FVector& Right = FVector::ZeroVector);
+
+	bool bGrip = false;
+	FVector Grip[2] = { FVector::ZeroVector, FVector::ZeroVector };
 
 protected:
 	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;

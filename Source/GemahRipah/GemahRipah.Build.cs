@@ -23,7 +23,8 @@ public class GemahRipah : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"MoviePlayer",
-			"IKRig"
+			"IKRig",
+			"AnimationCore"
 		});
 
 		// Subfolders (Core/, Player/, Systems/, ...) are included relative to the module root.

@@ -1508,6 +1508,60 @@ void AGRWarga::Tick(float DeltaSeconds)
 		}
 	}
 	UpdatePose();
+	FitCartToHands(DeltaSeconds);
+}
+
+FString AGRWarga::CartDebug() const
+{
+	auto Bone = [this](const TCHAR* Name)
+	{
+		return TripoBody && TripoBody->GetSkeletalMeshAsset() ? GetActorTransform().InverseTransformPosition(TripoBody->GetBoneLocation(Name)) : FVector::ZeroVector;
+	};
+	return FString::Printf(TEXT("anim=%s v=%.0f mode=%d grip=(%.0f %.0f %.0f) w=%.0f handL=(%.0f %.0f %.0f) handR=(%.0f %.0f %.0f) head=%.0f"),
+		CurrentPose ? *CurrentPose->GetName() : TEXT("-"), GetVelocity().Size2D(), int32(Mode), CartGrip.X, CartGrip.Y, CartGrip.Z, CartGripWidth,
+		Bone(TEXT("LeftHand")).X, Bone(TEXT("LeftHand")).Y, Bone(TEXT("LeftHand")).Z, Bone(TEXT("RightHand")).X, Bone(TEXT("RightHand")).Y,
+		Bone(TEXT("RightHand")).Z, Bone(TEXT("Head")).Z);
+}
+
+void AGRWarga::FitCartToHands(float DeltaSeconds)
+{
+	// Parts laid out in Dress: 10 is the handlebar, 11 and 12 the side bars joining it to the cart body (front at 70).
+	UGRBodyAnimInstance* Anim = TripoBody ? Cast<UGRBodyAnimInstance>(TripoBody->GetAnimInstance()) : nullptr;
+	const bool bPushing = CurrentPose && (CurrentPose == CartAnim || CurrentPose == CartWalkAnim);
+	if (Role != ERole::Vendor || CartParts.Num() < 13 || !Anim || !TripoBody->IsVisible() || !bPushing)
+	{
+		if (Anim)
+		{
+			Anim->SetGrip(false);
+		}
+		CartGrip = FVector::ZeroVector;
+		return;
+	}
+	// MM_GR_Gerobak and MM_GR_GerobakJalan were made for the mannequin's arms, and the walk swings them besides: the
+	// bar goes where this body's hands reach comfortably (elbows bent), and IK in the body's anim puts the hands on it.
+	const FTransform& Me = GetActorTransform();
+	const FVector ShoulderL = Me.InverseTransformPosition(TripoBody->GetBoneLocation(TEXT("LeftArm")));
+	const FVector ShoulderR = Me.InverseTransformPosition(TripoBody->GetBoneLocation(TEXT("RightArm")));
+	const float Reach = FVector::Dist(TripoBody->GetBoneLocation(TEXT("LeftArm")), TripoBody->GetBoneLocation(TEXT("LeftForeArm")))
+		+ FVector::Dist(TripoBody->GetBoneLocation(TEXT("LeftForeArm")), TripoBody->GetBoneLocation(TEXT("LeftHand")));
+	const FVector Shoulders = (ShoulderL + ShoulderR) * 0.5f;
+	const FVector Want(Shoulders.X + Reach * 0.5f, 0.f, Shoulders.Z - Reach * 0.62f);
+	const float HalfGrip = FMath::Max(FMath::Abs(ShoulderL.Y - ShoulderR.Y) * 0.5f, 12.f);
+	// The cart is rigid while the shoulders bob with each step: follow them slowly.
+	CartGrip = CartGrip.IsZero() ? Want : FMath::Lerp(CartGrip, Want, 1.f - FMath::Exp(-3.f * DeltaSeconds));
+	CartGripWidth = FMath::Max(HalfGrip * 2.f + 16.f, 62.f);
+	const float BarX = FMath::Clamp(CartGrip.X, 12.f, 60.f);
+	const float BarZ = CartGrip.Z;
+	CartParts[10]->SetRelativeLocation(FVector(BarX, 0.f, BarZ));
+	CartParts[10]->SetRelativeScale3D(FVector(0.035f, CartGripWidth / 100.f, 0.035f));
+	for (int32 k = 0; k < 2; ++k)
+	{
+		const float PY = k == 0 ? -1.f : 1.f;
+		CartParts[11 + k]->SetRelativeLocation(FVector((BarX + 70.f) * 0.5f, PY * 29.f, BarZ));
+		CartParts[11 + k]->SetRelativeScale3D(FVector((70.f - BarX) / 100.f, 0.035f, 0.035f));
+	}
+	// Wrists just behind and above the bar, so the palms close over it.
+	Anim->SetGrip(true, FVector(BarX - 5.f, -HalfGrip, BarZ + 2.f), FVector(BarX - 5.f, HalfGrip, BarZ + 2.f));
 }
 
 void AGRWarga::UpdatePose()
