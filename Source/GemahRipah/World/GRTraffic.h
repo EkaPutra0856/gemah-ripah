@@ -6,6 +6,7 @@
 #include "GRTraffic.generated.h"
 
 class UBoxComponent;
+class USkeletalMeshComponent;
 class UStaticMeshComponent;
 class UTextRenderComponent;
 
@@ -24,7 +25,11 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	void Build(bool bInAngkot, const TCHAR* Color, float InCruise);
+	/**
+	 * Body box and looks. Uses the rigged Tripo vehicle (Props/Kendaraan/Rig) when it is there: angkot, or car
+	 * model Variant (MPV, hatchback, official car), wheels turning with the speed. Without it: primitive parts in Color.
+	 */
+	void Build(bool bInAngkot, int32 Variant, const TCHAR* Color, float InCruise);
 
 	/** Pushes the car as a physics body (impulse in kg cm/s at a world point). */
 	void Knock(const FVector& Impulse, const FVector& Point);
@@ -50,6 +55,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Komponen")
 	TObjectPtr<UBoxComponent> Body;
 
+	/** Rigged Tripo vehicle; null when the primitive model is used. */
+	UPROPERTY(VisibleAnywhere, Category = "Komponen")
+	TObjectPtr<USkeletalMeshComponent> Model;
+
 private:
 	friend class AGRTraffic;
 
@@ -60,6 +69,8 @@ private:
 	void EndKnock();
 
 	bool bAngkot = false;
+	/** Tire radius of the Tripo model (cm): its wheel animation (one turn per second) plays at speed / (2 pi r). */
+	float WheelRadius = 0.f;
 	float HalfLength = 210.f;
 	float HalfWidth = 88.f;
 	float HalfHeight = 70.f;

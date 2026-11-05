@@ -7,7 +7,9 @@
 #include "World/GRPropModels.h"
 #include "Algo/BinarySearch.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Animation/AnimSequence.h"
 #include "Components/BoxComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Engine/World.h"
@@ -64,6 +66,32 @@ namespace
 	const TCHAR* const CarColors[] = { TEXT("#B8BEC6"), TEXT("#F0F0EC"), TEXT("#26282C"), TEXT("#9B2A22"), TEXT("#2D4E86"),
 		TEXT("#6E7378"), TEXT("#D9D2C0"), TEXT("#3E6B4A") };
 	const TCHAR* const AngkotColors[] = { TEXT("#2A8C82"), TEXT("#2F6DB5"), TEXT("#C9A227"), TEXT("#B23A3A") };
+
+	/** Rigged Tripo vehicles (Tools/Python/import_tripo_vehicles.py). Radius = mean tire radius from rig.json. */
+	struct FTripoCar
+	{
+		const TCHAR* Name;
+		float WheelRadius;
+		float MassKg;
+	};
+	constexpr FTripoCar TripoAngkot = { TEXT("V02_Angkot"), 30.4f, 1500.f };
+	constexpr FTripoCar TripoCars[] = {
+		{ TEXT("V07_Mobil_pribadi_MPV"), 34.7f, 1300.f },
+		{ TEXT("V08_Mobil_hatchback_kecil"), 28.4f, 1000.f },
+		{ TEXT("V07_Mobil_pribadi_MPV"), 34.7f, 1300.f },
+		{ TEXT("V08_Mobil_hatchback_kecil"), 28.4f, 1000.f },
+		{ TEXT("V07_Mobil_pribadi_MPV"), 34.7f, 1300.f },
+		{ TEXT("V08_Mobil_hatchback_kecil"), 28.4f, 1000.f },
+		// Now and then an official's black car among the townspeople's.
+		{ TEXT("V04_Mobil_dinas_mewah"), 47.3f, 2200.f },
+	};
+
+	template <typename T>
+	T* LoadRigAsset(const FString& Folder, const FString& Asset)
+	{
+		const FString Path = FString::Printf(TEXT("/Game/GemahRipah/Props/Kendaraan/Rig/%s/%s.%s"), *Folder, *Asset, *Asset);
+		return LoadObject<T>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -92,14 +120,44 @@ AGRTrafficCar::AGRTrafficCar()
 
 }
 
-void AGRTrafficCar::Build(bool bInAngkot, const TCHAR* Color, float InCruise)
+void AGRTrafficCar::Build(bool bInAngkot, int32 Variant, const TCHAR* Color, float InCruise)
 {
 	bAngkot = bInAngkot;
 	Cruise = InCruise;
+	Body->OnComponentHit.AddDynamic(this, &AGRTrafficCar::OnBodyHit);
+
+	const FTripoCar& Tripo = bAngkot ? TripoAngkot : TripoCars[Variant % UE_ARRAY_COUNT(TripoCars)];
+	if (USkeletalMesh* Mesh = LoadRigAsset<USkeletalMesh>(Tripo.Name, FString(TEXT("SK_")) + Tripo.Name))
+	{
+		// The box is the model's bounds and reaches the ground, so a sliding car rests on its wheels.
+		const FBoxSphereBounds Bounds = Mesh->GetBounds();
+		HalfLength = Bounds.BoxExtent.X;
+		HalfWidth = Bounds.BoxExtent.Y;
+		HalfHeight = Bounds.BoxExtent.Z;
+		WheelRadius = Tripo.WheelRadius;
+		Body->SetBoxExtent(Bounds.BoxExtent);
+		Body->SetMassOverrideInKg(NAME_None, Tripo.MassKg, true);
+		Model = NewObject<USkeletalMeshComponent>(this, TEXT("Model"));
+		Model->SetupAttachment(Body);
+		Model->SetSkeletalMeshAsset(Mesh);
+		// Mesh pivot is the bottom center: put its bounds on the box.
+		Model->SetRelativeLocation(-Bounds.Origin);
+		Model->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Model->SetCanEverAffectNavigation(false);
+		// Twenty cars mostly off screen: no wheel posing for those nobody sees.
+		Model->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
+		Model->RegisterComponent();
+		if (UAnimSequence* Spin = LoadRigAsset<UAnimSequence>(Tripo.Name, FString::Printf(TEXT("A_%s_Roda"), Tripo.Name)))
+		{
+			Model->PlayAnimation(Spin, true);
+			Model->SetPlayRate(0.f);
+		}
+		return;
+	}
+
 	HalfLength = bAngkot ? 237.f : 212.f;
 	HalfWidth = 88.f;
 	HalfHeight = bAngkot ? 96.f : 70.f;
-	// The box reaches the ground so a sliding car rests on its wheels.
 	Body->SetBoxExtent(FVector(HalfLength, HalfWidth, HalfHeight));
 	Body->SetMassOverrideInKg(NAME_None, bAngkot ? 1500.f : 1100.f, true);
 
@@ -123,7 +181,6 @@ void AGRTrafficCar::Build(bool bInAngkot, const TCHAR* Color, float InCruise)
 		Comp->SetMaterial(0, Material);
 		Comp->RegisterComponent();
 	}
-	Body->OnComponentHit.AddDynamic(this, &AGRTrafficCar::OnBodyHit);
 }
 
 FVector AGRTrafficCar::GetMoveVelocity() const
@@ -273,6 +330,13 @@ void AGRTrafficCar::Tick(float DeltaSeconds)
 			EndKnock();
 		}
 	}
+	if (Model && WheelRadius > 0.f)
+	{
+		// Wheel animation = one turn per second forward; sliding sideways after a knock turns them only by the
+		// forward part of the motion.
+		const float Forward = FVector::DotProduct(GetMoveVelocity(), GetActorForwardVector());
+		Model->SetPlayRate(Forward / (2.f * PI * WheelRadius));
+	}
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -319,7 +383,7 @@ void AGRTraffic::BeginPlay()
 		const int32 Slot = i / 4;
 		const bool bAngkot = i % 5 == 2;
 		AGRTrafficCar* Car = GetWorld()->SpawnActor<AGRTrafficCar>(AGRTrafficCar::StaticClass(), FVector(0.f, 0.f, -5000.f), FRotator::ZeroRotator, Params);
-		Car->Build(bAngkot, bAngkot ? AngkotColors[i % UE_ARRAY_COUNT(AngkotColors)] : CarColors[i % UE_ARRAY_COUNT(CarColors)],
+		Car->Build(bAngkot, i, bAngkot ? AngkotColors[i % UE_ARRAY_COUNT(AngkotColors)] : CarColors[i % UE_ARRAY_COUNT(CarColors)],
 			bAngkot ? Rng.FRandRange(800.f, 1000.f) : Rng.FRandRange(950.f, 1300.f));
 		Car->NextArm = Arm;
 		AppendLeg(*Car);
@@ -833,9 +897,13 @@ void AGRTraffic::LogCars() const
 	{
 		const AGRTrafficCar* Car = Cars[i];
 		const FVector L = Car->GetActorLocation();
-		UE_LOG(LogGRTraffic, Warning, TEXT("GRLALIN %2d %s (%.0f, %.0f, %.0f) yaw %.0f %.0f km/j %s"), i, Car->bAngkot ? TEXT("angkot") : TEXT("mobil "),
+		// Model and wheels: turns per second and where the wheel animation is (s, of one turn).
+		const FString Look = Car->Model && Car->Model->GetSkeletalMeshAsset()
+			? FString::Printf(TEXT("%s roda %.2f/s @%.2f"), *Car->Model->GetSkeletalMeshAsset()->GetName(), Car->Model->GetPlayRate(), Car->Model->GetPosition())
+			: FString(TEXT("primitif"));
+		UE_LOG(LogGRTraffic, Warning, TEXT("GRLALIN %2d %s (%.0f, %.0f, %.0f) yaw %.0f %.0f km/j %s %s"), i, Car->bAngkot ? TEXT("angkot") : TEXT("mobil "),
 			L.X, L.Y, L.Z, Car->GetActorRotation().Yaw, Car->GetMoveVelocity().Size() * 0.036f,
-			Car->bKnocked ? TEXT("TERPENTAL") : (Car->HoldTime > 0.f ? TEXT("DITAHAN") : TEXT("")));
+			Car->bKnocked ? TEXT("TERPENTAL") : (Car->HoldTime > 0.f ? TEXT("DITAHAN") : TEXT("")), *Look);
 	}
 	// Any two cars overlapping means something drove through something.
 	for (int32 i = 0; i < Cars.Num(); ++i)
