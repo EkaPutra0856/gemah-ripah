@@ -15,6 +15,7 @@
 #include "InputMappingContext.h"
 #include "InputModifiers.h"
 #include "GemahRipah.h"
+#include "World/GROjol.h"
 
 namespace
 {
@@ -110,6 +111,14 @@ void AGRPlayerController::BuildInputAssets()
 	DefaultContext->MapKey(JournalAction, EKeys::Gamepad_DPad_Down);
 	DefaultContext->MapKey(MotorAction, EKeys::F);
 	DefaultContext->MapKey(MotorAction, EKeys::Gamepad_FaceButton_Top);
+
+	const FKey OjolKeys[] = { EKeys::Y, EKeys::N, EKeys::One, EKeys::Two, EKeys::Three };
+	for (int32 i = 0; i < UE_ARRAY_COUNT(OjolKeys); ++i)
+	{
+		UInputAction* Action = MakeAction(this, *FString::Printf(TEXT("IA_Ojol%d"), i), EInputActionValueType::Boolean);
+		OjolActions.Add(Action);
+		DefaultContext->MapKey(Action, OjolKeys[i]);
+	}
 }
 
 void AGRPlayerController::AddMappingContext()
@@ -149,6 +158,29 @@ void AGRPlayerController::SetupInputComponent()
 	Input->BindAction(PhoneAction, ETriggerEvent::Started, this, &AGRPlayerController::HandlePhone);
 	Input->BindAction(JournalAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleJournal);
 	Input->BindAction(MotorAction, ETriggerEvent::Started, this, &AGRPlayerController::HandleMotor);
+	for (int32 i = 0; i < OjolActions.Num(); ++i)
+	{
+		Input->BindActionValueLambda(OjolActions[i], ETriggerEvent::Started, [this, i](const FInputActionValue&)
+		{
+			UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this);
+			if (!Ojol)
+			{
+				return;
+			}
+			if (i == 0)
+			{
+				Ojol->Accept();
+			}
+			else if (i == 1)
+			{
+				Ojol->Decline();
+			}
+			else
+			{
+				Ojol->Choose(i - 2);
+			}
+		});
+	}
 }
 
 void AGRPlayerController::BeginPlay()

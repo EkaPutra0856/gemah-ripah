@@ -36,6 +36,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "Rendering/SkeletalMeshRenderData.h"
+#include "World/GROjol.h"
 
 UGameInstance* UGRCheatManager::GetGI() const
 {
@@ -279,6 +280,31 @@ void UGRCheatManager::GRMotor()
 		Story->SetVar(TEXT("punya_motor"), 1);
 	}
 	Character->SetRiding(!Character->IsRiding());
+}
+
+void UGRCheatManager::GROjol()
+{
+	APlayerController* PC = GetOuterAPlayerController();
+	UGRStorySubsystem* Story = PC ? PC->GetGameInstance()->GetSubsystem<UGRStorySubsystem>() : nullptr;
+	UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(PC);
+	if (!Story || !Ojol)
+	{
+		return;
+	}
+	if (Story->GetVar(TEXT("punya_motor")) == 0)
+	{
+		Story->SetVar(TEXT("punya_motor"), 1);
+	}
+	Ojol->SetOnline(true);
+	Ojol->ForceOffer();
+}
+
+void UGRCheatManager::GROjolLompat()
+{
+	if (UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(GetOuterAPlayerController()))
+	{
+		Ojol->CheatJumpToTarget();
+	}
 }
 
 void UGRCheatManager::GRPos(float X, float Y, float Yaw)

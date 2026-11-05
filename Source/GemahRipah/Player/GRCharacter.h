@@ -87,6 +87,16 @@ public:
 
 	bool IsKnockedDown() const { return bKnockedDown; }
 
+	AGRMotor* GetMotor() const { return Motor; }
+	UAnimSequenceBase* GetRideAnim() const { return RideAnim; }
+
+	/**
+	 * Looking at the phone (map, OjekKu): the camera comes in over Bayu's shoulder, looking down at his hands, and on
+	 * foot he holds the phone up. Off puts the camera back where it was.
+	 */
+	void SetPhoneView(bool bOn);
+	bool IsPhoneView() const { return bPhoneView; }
+
 	/** Back on his feet now: after the ragdoll settles, or straight away before a teleport. */
 	void EndKnockdown();
 
@@ -123,6 +133,16 @@ protected:
 	/** Seated on the scooter, feet on the floorboard, hands on the grips (MM_GR_Ride). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
 	TObjectPtr<UAnimSequenceBase> RideAnim;
+
+	/** Holding the phone up to look at it (MM_GR_Ponsel). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
+	TObjectPtr<UAnimSequenceBase> PhoneAnim;
+
+	bool bPhoneView = false;
+	bool bPhonePose = false;
+	float PhoneSavedArm = 450.f;
+	FVector PhoneSavedSocket = FVector::ZeroVector;
+	FRotator PhoneSavedRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kamera")
 	float MinZoom = 200.f;

@@ -67,6 +67,27 @@ public:
 	/** Answers a menu topic: 0 greet (with a wave), 1 how things are, 2 the way to Bayu's goal, 3 buy a snack (vendors). */
 	void Chat(int32 Topic);
 
+	/**
+	 * Ojol passenger (World/GROjol.h): while set, the crowd leaves them alone (no recycling, no wandering) and the
+	 * ojol subsystem moves them: waiting at the kerb, walking to the scooter, riding pillion, getting off.
+	 */
+	bool IsOjol() const { return bOjol; }
+	bool IsFemale() const { return bIsFemale; }
+	void OjolStart();
+	/** 0 stand, 1 phone in hand, 2 wave at the scooter. */
+	void OjolPose(int32 Kind);
+	void OjolWalkTo(const FVector& Where);
+	bool IsOjolWalking() const { return bOjolWalk; }
+	void OjolFace(const FVector& Where);
+	/** Sits on the scooter: Relative is in Seat's frame; side-saddle uses the bench pose turned sideways. */
+	void OjolBoard(USceneComponent* SeatPart, const FTransform& Relative, bool bSideSaddle, UAnimSequenceBase* RidePose);
+	void OjolAlight(const FVector& Feet, float Yaw);
+	/** Thrown off the scooter in a crash: down like anyone run over, then back to the crowd. */
+	void OjolFall(const FVector& Velocity);
+	/** Back to an ordinary townsperson (walks off, recycled later). */
+	void OjolRelease();
+	void OjolSay(const FString& Text, float Duration) { Say(Text, Duration); }
+
 protected:
 	/** Tripo model copying the (then hidden) mannequin's pose, see World/GRBody.h. */
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
@@ -307,6 +328,13 @@ private:
 	FVector DriverDoor = FVector::ZeroVector;
 	FName MeshProfile;
 	FString Cry;
+	bool bIsFemale = false;
+	bool bOjol = false;
+	bool bOjolWalk = false;
+	bool bOjolSeated = false;
+	float OjolWalkTime = 0.f;
+	FVector OjolTarget = FVector::ZeroVector;
+	void TickOjol(float DeltaSeconds);
 };
 
 /**
@@ -379,6 +407,14 @@ private:
 	/** Tops the crowd up near Bayu: a walker, a chatting group, bench sitters, a jogger or a vendor. */
 	bool SpawnActivity(const FVector& Around, bool bAnywhere);
 	AGRWarga* TakeFromPool();
+public:
+	/** A free spot for an ojol pickup MinR..MaxR from Around: a main-road pavement if there is one, else any open ground. */
+	bool FindPickupSpot(const FVector& Around, float MinR, float MaxR, FVector& OutFeet) const;
+	/** Open ground near Around (a drop-off by a building). */
+	bool FindGroundSpot(const FVector& Around, float MinR, float MaxR, FVector& OutFeet) const { return FindSpot(Around, MinR, MaxR, false, false, OutFeet); }
+	/** A townsperson waiting at Feet for Bayu's scooter: from the pool, or someone out of sight sent home for it. */
+	AGRWarga* SpawnPassenger(const FVector& Feet, float Yaw, int32 Seed, bool bFemale);
+private:
 	/** A free spot on the ground MinR..MaxR from Around; bOutOfSight keeps it out of the camera's view. */
 	bool FindSpot(const FVector& Around, float MinR, float MaxR, bool bOutOfSight, bool bPavement, FVector& OutFeet) const;
 	bool IsRoad(const FVector2D& P) const;

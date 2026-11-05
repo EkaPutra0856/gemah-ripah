@@ -3,6 +3,7 @@
 #include "World/GRDistrictVolume.h"
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRMapSubsystem.h"
+#include "World/GROjol.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Fonts/FontMeasure.h"
 #include "Framework/Application/SlateApplication.h"
@@ -119,6 +120,41 @@ int32 UGRMapView::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedG
 		}
 	}
 	Layer += 4;
+
+	// OjekKu: the route to follow and a pin on the pickup or drop-off.
+	if (const UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this))
+	{
+		const FLinearColor RouteColor(FColor(0, 200, 105));
+		const TArray<FVector2D>& Route = Ojol->GetRoute();
+		if (Route.Num() >= 2)
+		{
+			TArray<FVector2f> Line;
+			for (const FVector2D& Point : Route)
+			{
+				Line.Add(FVector2f(ToLocal(Point)));
+			}
+			FSlateDrawElement::MakeLines(OutDrawElements, Layer, AllottedGeometry.ToPaintGeometry(), Line, ESlateDrawEffect::None, FLinearColor(0.f, 0.f, 0.f, 0.75f), true, bFollowPlayer ? 7.f : 9.f);
+			FSlateDrawElement::MakeLines(OutDrawElements, Layer + 1, AllottedGeometry.ToPaintGeometry(), Line, ESlateDrawEffect::None, RouteColor, true, bFollowPlayer ? 4.f : 5.f);
+		}
+		FVector Target;
+		FText TargetLabel;
+		if (Ojol->GetTarget(Target, TargetLabel))
+		{
+			const float Pin = bFollowPlayer ? 18.f : 24.f;
+			FVector2D P = ToLocal(FVector2D(Target));
+			P.X = FMath::Clamp(P.X, Pin * 0.5, Size.X - Pin * 0.5);
+			P.Y = FMath::Clamp(P.Y, Pin * 0.5, Size.Y - Pin * 0.5);
+			const FSlateRoundedBoxBrush Circle(FSlateColor(RouteColor), Pin * 0.5f, FSlateColor(FLinearColor::White), 2.5f);
+			FSlateDrawElement::MakeBox(OutDrawElements, Layer + 2, AllottedGeometry.ToPaintGeometry(FVector2f(Pin, Pin), FSlateLayoutTransform(FVector2f(P - FVector2D(Pin * 0.5)))), &Circle, ESlateDrawEffect::None, RouteColor);
+			const bool bPickup = Ojol->GetStage() != EGROjolStage::Riding;
+			DrawText(OutDrawElements, Layer + 3, AllottedGeometry, bPickup ? TEXT("J") : TEXT("T"), GRStyle::Font(bFollowPlayer ? 9 : 11, true), P, FLinearColor::White);
+			if (!bFollowPlayer || Size.X > 400.0)
+			{
+				DrawText(OutDrawElements, Layer + 3, AllottedGeometry, TargetLabel.ToString(), GRStyle::Font(11, true), P + FVector2D(0.0, Pin * 0.5 + 10.0), RouteColor);
+			}
+		}
+		Layer += 5;
+	}
 
 	// Markers.
 	const float MarkerSize = bFollowPlayer ? 16.f : 22.f;

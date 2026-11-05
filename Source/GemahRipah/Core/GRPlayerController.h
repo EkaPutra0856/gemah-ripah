@@ -90,5 +90,9 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UInputAction> MotorAction;
 
+	/** OjekKu: Y accept, N decline, 1-3 chat answers (World/GROjol.h). */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UInputAction>> OjolActions;
+
 	TWeakObjectPtr<AGRTopDownRoomVolume> CurrentRoom;
 };

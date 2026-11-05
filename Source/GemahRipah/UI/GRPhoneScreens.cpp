@@ -25,6 +25,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
+#include "World/GROjol.h"
 
 #define LOCTEXT_NAMESPACE "GemahRipah"
 
@@ -219,6 +220,40 @@ void UGRPhoneScreen::FillApp(const FString& App)
 		if (!bAny)
 		{
 			AddLine(TEXT("Belum ada order di sekitarmu. Coba lagi besok, atau tunggu jam sibuk."), 15, GRStyle::ColorTextDim);
+		}
+		if (UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this))
+		{
+			const bool bOn = Ojol->IsOnline();
+			const float Average = Ojol->GetRatingAverage();
+			AddCard(bOn ? TEXT("STATUS: ONLINE (terima order)") : TEXT("STATUS: OFFLINE"),
+				FString::Printf(TEXT("Rating %s   |   %d perjalanan\nPendapatan OjekKu: %s"), Average > 0.f ? *FString::Printf(TEXT("%.1f / 5"), Average) : TEXT("baru"),
+					Ojol->GetTripsDone(), *UGRStatusSubsystem::FormatRupiah(Ojol->GetEarnings())), bOn ? GRStyle::ColorGood : GRStyle::ColorTextDim);
+			AddButton(Content, bOn ? LOCTEXT("OjolOff", "Jadi OFFLINE (stop order)") : LOCTEXT("OjolOn", "Jadi ONLINE (terima order)"), [this, bOn]()
+			{
+				UGROjolSubsystem::Get(this)->SetOnline(!bOn);
+				ShowApp(TEXT("ojekku"));
+				Super::OnShown();
+			});
+			const EGROjolStage Stage = Ojol->GetStage();
+			const FGROjolTrip& Trip = Ojol->GetTrip();
+			if (Stage == EGROjolStage::Offer)
+			{
+				AddCard(TEXT("ORDER MASUK"), FString::Printf(TEXT("%s %s  (bintang %.1f)\nJemput: %s\nTujuan: %s (%.0f m)\nTarif %s"), *Trip.Honorific, *Trip.Name, Trip.PaxRating,
+					*Trip.PickupLabel, *Trip.DestLabel, Trip.Meters, *UGRStatusSubsystem::FormatRupiah(Trip.Fare)), GRStyle::ColorAccent);
+				AddButton(Content, LOCTEXT("OjolAccept", "Terima order (Y)"), [this]() { UGROjolSubsystem::Get(this)->Accept(); Close(); });
+				AddButton(Content, LOCTEXT("OjolDecline", "Tolak (N)"), [this]() { UGROjolSubsystem::Get(this)->Decline(); ShowApp(TEXT("ojekku")); Super::OnShown(); });
+			}
+			else if (Stage == EGROjolStage::ToPickup || Stage == EGROjolStage::Boarding || Stage == EGROjolStage::Riding)
+			{
+				AddCard(TEXT("PERJALANAN AKTIF"), Ojol->GetStatusLine() + TEXT("\n") + Ojol->GetTurnText(), GRStyle::ColorGood);
+				AddButton(Content, LOCTEXT("OjolNav", "Navigasi (peta)"), [this]() { GetUI()->PushScreen<UGRMapScreen>(); });
+				AddButton(Content, LOCTEXT("OjolCancel", "Batalkan perjalanan"), [this]() { UGROjolSubsystem::Get(this)->CancelTrip(); ShowApp(TEXT("ojekku")); Super::OnShown(); });
+			}
+			else if (bOn)
+			{
+				AddLine(Ojol->GetStatusLine(), 14, GRStyle::ColorTextDim);
+			}
+			AddLine(TEXT("Tarif: Rp 5.000 + Rp 25/meter (min. Rp 8.000). Potongan aplikasi 20%. Bintang lima kadang dapat tip."), 12, GRStyle::ColorTextDim);
 		}
 	}
 	else if (App == TEXT("pesan"))

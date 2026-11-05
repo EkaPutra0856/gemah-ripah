@@ -104,6 +104,8 @@ Gerak lebih halus: warga mempercepat dan mengerem perlahan (akselerasi 700, rem 
 | `GRPetaUlang` | Hitung ulang gambar peta dari bangunan |
 | `GRCerita "aksi; aksi"` | Jalankan aksi cerita, mis. `GRCerita "quest Piring; teleport ibu_pkm"` |
 | `GRMotor` | Naik/turun motor di mana saja (motor didatangkan ke Bayu) |
+| `GROjol` | OjekKu online dan langsung ada order masuk (Y terima, N tolak, 1-3 jawab penumpang) |
+| `GROjolLompat` | Lompat ke dekat titik jemput / tujuan order OjekKu (tes otomatis) |
 | `GRTekan W 1.5` | Tahan tombol selama 1,5 detik, untuk tes otomatis (jalan, minigame, menu) |
 | `GRBab bab2` | Lompat ke bab tertentu (bab sebelumnya dianggap selesai) |
 | `GRCek "syarat"` | Cek syarat cerita, mis. `GRCek "q.Pagi>=2 && uang>10000"` (hasil di log) |

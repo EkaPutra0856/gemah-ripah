@@ -37,6 +37,8 @@
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Story/GRStoryDirector.h"
+#include "UI/GROjolHUD.h"
+#include "World/GROjol.h"
 
 #define LOCTEXT_NAMESPACE "GemahRipah"
 
@@ -185,6 +187,9 @@ void UGRHUDWidget::NativeOnInitialized()
 	BannerBox->AddChildToVerticalBox(BannerBody)->SetPadding(FMargin(0.f, 6.f, 0.f, 0.f));
 	BannerPanel->SetVisibility(ESlateVisibility::Collapsed);
 
+
+	// OjekKu: order card, trip bar, passenger chat, end-of-trip stars.
+	Place(Root, CreateWidget<UGROjolHUD>(this, UGROjolHUD::StaticClass()), HAlign_Fill, VAlign_Fill, FMargin(0.f));
 
 	// Right side: toasts.
 	ToastList = WidgetTree->ConstructWidget<UVerticalBox>();
@@ -467,9 +472,12 @@ void UGRHUDWidget::UpdateWaypoint(float DeltaTime)
 	const UGRUISubsystem* UI = LP ? LP->GetSubsystem<UGRUISubsystem>() : nullptr;
 	FVector Target;
 	FText Label;
+	// An OjekKu trip under way points at the passenger or the drop-off; otherwise the story's goal.
+	const UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this);
+	const bool bOjol = Ojol && Ojol->GetTarget(Target, Label);
 	// Hidden in menus, dialogs, cutscenes and the stealth rooms (those have their own goals).
-	if (!PC || !PC->PlayerCameraManager || !PC->GetPawn() || !Director || (UI && UI->HasScreens())
-		|| AGRStealthLevel::GetActive(GetWorld()) || !Director->GetTrackedTarget(Target, Label))
+	if (!PC || !PC->PlayerCameraManager || !PC->GetPawn() || (!Director && !bOjol) || (UI && UI->HasScreens())
+		|| AGRStealthLevel::GetActive(GetWorld()) || (!bOjol && !Director->GetTrackedTarget(Target, Label)))
 	{
 		Waypoint->SetVisibility(ESlateVisibility::Collapsed);
 		return;

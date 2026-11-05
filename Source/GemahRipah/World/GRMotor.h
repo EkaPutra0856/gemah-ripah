@@ -43,6 +43,9 @@ public:
 
 	bool IsCrashed() const { return bCrashed; }
 
+	/** The part that leans with the rider: a pillion passenger sits on it (World/GROjol.h). */
+	USceneComponent* GetSeat() const { return LeanPivot; }
+
 	/** Lean (roll) and steering in degrees, and how far the wheels rolled since the last call in cm. */
 	void SetRidePose(float Lean, float Steer, float Rolled);
 

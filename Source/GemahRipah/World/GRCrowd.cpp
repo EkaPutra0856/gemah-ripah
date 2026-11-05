@@ -1,4 +1,5 @@
 #include "World/GRCrowd.h"
+#include "World/GROjol.h"
 #include "World/GRCrossings.h"
 #include "UI/GRBubbles.h"
 #include "Camera/GRTopDownRoomVolume.h"
@@ -355,7 +356,19 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 	CurrentPose = nullptr;
 	// The look: a Tripo model (true height, own clothes, hair, hat or hijab) when imported, otherwise the
 	// mannequin in random colors and headwear.
-	const bool bTripo = GRBody::Apply(this, TripoBody, GRBody::Find(GRBody::ForTownsperson(static_cast<int32>(Role), Rng.RandRange(0, 9999))));
+	const FString Model = GRBody::ForTownsperson(static_cast<int32>(Role), Rng.RandRange(0, 9999));
+	const bool bTripo = GRBody::Apply(this, TripoBody, GRBody::Find(Model));
+	// The Tripo model decides who they look like (an ojol passenger is dressed to match the name on the order).
+	bIsFemale = bFemale;
+	if (bTripo)
+	{
+		static const TCHAR* const Women[] = { TEXT("Ibu"), TEXT("Nenek"), TEXT("wanita"), TEXT("Mahasiswi"), TEXT("Siswi"), TEXT("jamu") };
+		bIsFemale = false;
+		for (const TCHAR* Word : Women)
+		{
+			bIsFemale |= Model.Contains(Word, ESearchCase::CaseSensitive);
+		}
+	}
 	const float Scale = bTripo ? 1.f : Rng.FRandRange(0.93f, 1.04f) * (bFemale ? 0.97f : 1.f);
 	Body->SetRelativeScale3D(FVector(Scale));
 
@@ -543,10 +556,20 @@ void AGRWarga::Activate(const FVector& Feet, float Yaw)
 	DriverCar = nullptr;
 	UGRBubbleSubsystem::Hide(this);
 	SetSeatedLook(false);
+	bOjol = false;
+	bOjolWalk = false;
+	bOjolSeated = false;
 }
 
 void AGRWarga::Deactivate()
 {
+	if (bOjolSeated)
+	{
+		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	}
+	bOjol = false;
+	bOjolWalk = false;
+	bOjolSeated = false;
 	StopRagdoll();
 	if (AGRTrafficCar* Car = DriverCar.Get())
 	{
@@ -590,9 +613,18 @@ void AGRWarga::Say(const FString& Text, float Duration, const FColor& Color)
 
 bool AGRWarga::KnockedBy(AActor* Culprit, float Closing, const FVector& Direction, float Diawasi, const TCHAR* What)
 {
-	if (!bActive || Mode == EMode::Down || HitCooldown > 0.f)
+	if (!bActive || Mode == EMode::Down || HitCooldown > 0.f || bOjolSeated)
 	{
 		return false;
+	}
+	if (bOjol)
+	{
+		// The customer Bayu came to fetch, run over at the kerb: the trip is off.
+		OjolRelease();
+		if (UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this))
+		{
+			Ojol->PassengerHit(this);
+		}
 	}
 	HitCooldown = 1.f;
 	if (Mode == EMode::Sit)
@@ -1160,6 +1192,110 @@ void AGRWarga::StopRagdoll()
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
 
+void AGRWarga::OjolStart()
+{
+	bOjol = true;
+	bOjolWalk = false;
+	bOjolSeated = false;
+	Mode = EMode::Pause;
+	Wait = 1.f;
+	OjolPose(1);
+}
+
+void AGRWarga::OjolPose(int32 Kind)
+{
+	PlayPose(Kind == 1 ? PhoneAnim.Get() : Kind == 2 ? WaveAnim.Get() : nullptr);
+}
+
+void AGRWarga::OjolWalkTo(const FVector& Where)
+{
+	OjolTarget = Where;
+	bOjolWalk = true;
+	OjolWalkTime = 0.f;
+	PlayPose(nullptr);
+}
+
+void AGRWarga::OjolFace(const FVector& Where)
+{
+	const FVector To = (Where - GetActorLocation()).GetSafeNormal2D();
+	if (!To.IsNearlyZero())
+	{
+		SetActorRotation(FRotator(0.f, To.Rotation().Yaw, 0.f));
+	}
+}
+
+void AGRWarga::TickOjol(float DeltaSeconds)
+{
+	BarkHide -= DeltaSeconds;
+	if (bOjolSeated || !bOjolWalk)
+	{
+		return;
+	}
+	OjolWalkTime += DeltaSeconds;
+	const FVector2D To(OjolTarget - GetActorLocation());
+	if (To.Size() < 40.f || OjolWalkTime > 5.f)
+	{
+		bOjolWalk = false;
+		GetCharacterMovement()->StopMovementImmediately();
+		return;
+	}
+	GetCharacterMovement()->MaxWalkSpeed = 180.f;
+	AddMovementInput(FVector(To.GetSafeNormal(), 0.f), 1.f);
+}
+
+void AGRWarga::OjolBoard(USceneComponent* SeatPart, const FTransform& Relative, bool bSideSaddle, UAnimSequenceBase* RidePose)
+{
+	bOjolWalk = false;
+	bOjolSeated = true;
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	Move->StopMovementImmediately();
+	Move->DisableMovement();
+	Move->SetComponentTickEnabled(false);
+	SetActorEnableCollision(false);
+	AttachToComponent(SeatPart, FAttachmentTransformRules::KeepWorldTransform);
+	SetActorRelativeTransform(Relative);
+	PlayPose(bSideSaddle || !RidePose ? SitAnim.Get() : RidePose);
+	SetSeatedLook(true);
+	UGRBubbleSubsystem::Hide(this);
+}
+
+void AGRWarga::OjolAlight(const FVector& Feet, float Yaw)
+{
+	if (bOjolSeated)
+	{
+		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	}
+	bOjolSeated = false;
+	SetActorEnableCollision(true);
+	SetActorLocationAndRotation(Feet + FVector(0.f, 0.f, CapsuleHalf + 2.f), FRotator(0.f, Yaw, 0.f), false, nullptr, ETeleportType::ResetPhysics);
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	Move->SetComponentTickEnabled(true);
+	Move->SetMovementMode(MOVE_Walking);
+	Move->Velocity = FVector::ZeroVector;
+	PlayPose(nullptr);
+	SetSeatedLook(false);
+}
+
+void AGRWarga::OjolFall(const FVector& Velocity)
+{
+	OjolAlight(GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf + 40.f), GetActorRotation().Yaw);
+	OjolRelease();
+	StartFall(Velocity);
+}
+
+void AGRWarga::OjolRelease()
+{
+	if (bOjolSeated)
+	{
+		OjolAlight(GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf), GetActorRotation().Yaw);
+	}
+	bOjol = false;
+	bOjolWalk = false;
+	Mode = EMode::Pause;
+	Wait = Rng.FRandRange(1.5f, 3.f);
+	PlayPose(nullptr);
+}
+
 void AGRWarga::PlayPose(UAnimSequenceBase* Anim, float Rate)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -1226,7 +1362,7 @@ FText AGRWarga::GetInteractionPrompt_Implementation(AActor* Interactor) const
 
 bool AGRWarga::CanInteract_Implementation(AActor* Interactor) const
 {
-	if (!CanChat() || Dodge > 0.f)
+	if (!CanChat() || Dodge > 0.f || bOjol)
 	{
 		return false;
 	}
@@ -1388,6 +1524,11 @@ void AGRWarga::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	if (!bActive)
 	{
+		return;
+	}
+	if (bOjol)
+	{
+		TickOjol(DeltaSeconds);
 		return;
 	}
 	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
@@ -2469,7 +2610,7 @@ void AGRCrowd::Tick(float DeltaSeconds)
 	for (AGRWarga* Person : People)
 	{
 		const FVector L = Person->GetActorLocation();
-		if (Person->bActive && (FVector::DistSquared2D(L, Center) > FMath::Square(RecycleRange) || L.Z < -1000.f))
+		if (Person->bActive && !Person->bOjol && (FVector::DistSquared2D(L, Center) > FMath::Square(RecycleRange) || L.Z < -1000.f))
 		{
 			Person->Deactivate();
 		}
@@ -2482,7 +2623,7 @@ void AGRCrowd::Tick(float DeltaSeconds)
 	{
 		for (AGRWarga* Person : People)
 		{
-			if (Person->bActive && Person->Mode != AGRWarga::EMode::Chat && Person->Mode != AGRWarga::EMode::Down
+			if (Person->bActive && !Person->bOjol && Person->Mode != AGRWarga::EMode::Chat && Person->Mode != AGRWarga::EMode::Down
 				&& Person->Mode != AGRWarga::EMode::Angry && Person->Mode != AGRWarga::EMode::Follow && !Person->IsPolice() && !Person->DriverCar.IsValid() && !InView(Person->GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf)))
 			{
 				Person->Deactivate();
@@ -2961,6 +3102,46 @@ int32 AGRCrowd::CountActive(int32& OutVendors) const
 		}
 	}
 	return Active;
+}
+
+bool AGRCrowd::FindPickupSpot(const FVector& Around, float MinR, float MaxR, FVector& OutFeet) const
+{
+	return FindSpot(Around, MinR, MaxR, false, true, OutFeet) || FindSpot(Around, MinR, MaxR, false, false, OutFeet);
+}
+
+AGRWarga* AGRCrowd::SpawnPassenger(const FVector& Feet, float Yaw, int32 Seed, bool bFemale)
+{
+	AGRWarga* Person = TakeFromPool();
+	if (!Person)
+	{
+		for (AGRWarga* Other : People)
+		{
+			if (Other->bActive && !Other->bOjol && !Other->IsPolice() && !Other->DriverCar.IsValid() && Other->Mode != AGRWarga::EMode::Arrest
+				&& !InView(Other->GetActorLocation() - FVector(0.f, 0.f, CapsuleHalf)))
+			{
+				Other->Deactivate();
+				Person = Other;
+				break;
+			}
+		}
+	}
+	if (!Person)
+	{
+		return nullptr;
+	}
+	const int32 Hour = HourNow(this);
+	// The order already named them: dress until the body matches.
+	for (int32 Try = 0; Try < 12; ++Try)
+	{
+		Person->Dress(Seed + Try * 101, AGRWarga::ERole::Stroller, Hour >= 20 || Hour < 5);
+		if (Person->IsFemale() == bFemale)
+		{
+			break;
+		}
+	}
+	Person->Activate(Feet, Yaw);
+	Person->OjolStart();
+	return Person;
 }
 
 AGRWarga* AGRCrowd::TakeFromPool()

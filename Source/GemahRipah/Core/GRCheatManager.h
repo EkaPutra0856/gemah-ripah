@@ -101,6 +101,14 @@ public:
 	UFUNCTION(Exec)
 	void GRMotor();
 
+	/** OjekKu online with an order offer at once (and a motor if Bayu has none). Then Y takes it. */
+	UFUNCTION(Exec)
+	void GROjol();
+
+	/** Jumps Bayu to a few metres before the OjekKu pickup or drop-off (scripted tests). */
+	UFUNCTION(Exec)
+	void GROjolLompat();
+
 	/** Holds a key for a while, as if pressed by the player (for scripted tests). Example: GRTekan W 1.5 */
 	UFUNCTION(Exec)
 	void GRTekan(const FString& KeyName, float Seconds = 0.1f);

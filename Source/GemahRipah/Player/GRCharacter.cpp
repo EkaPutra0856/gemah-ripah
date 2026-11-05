@@ -70,6 +70,8 @@ AGRCharacter::AGRCharacter()
 
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RideSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Ride.MM_GR_Ride"));
 	RideAnim = RideSeq.Object;
+	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> PhoneSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Ponsel.MM_GR_Ponsel"));
+	PhoneAnim = PhoneSeq.Object;
 
 	// The mannequin runs the animation; BeginPlay puts Bayu's Tripo model over it (World/GRBody.h).
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MannyMesh(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
@@ -139,6 +141,48 @@ void AGRCharacter::LookFromInput(const FVector2D& Axis)
 	}
 	AddControllerYawInput(Axis.X * Sensitivity);
 	AddControllerPitchInput(Axis.Y * Sensitivity * InvertY);
+}
+
+void AGRCharacter::SetPhoneView(bool bOn)
+{
+	if (bPhoneView == bOn)
+	{
+		return;
+	}
+	bPhoneView = bOn;
+	UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+	if (bOn)
+	{
+		PhoneSavedArm = CameraBoom->TargetArmLength;
+		PhoneSavedSocket = CameraBoom->SocketOffset;
+		PhoneSavedRotation = GetControlRotation();
+		// Close behind the right shoulder, looking down at the hands where the phone is.
+		CameraBoom->TargetArmLength = 150.f;
+		CameraBoom->SocketOffset = FVector(0.f, 42.f, 58.f);
+		CameraBoom->bEnableCameraLag = false;
+		if (Controller)
+		{
+			Controller->SetControlRotation(FRotator(-34.f, GetActorRotation().Yaw - 12.f, 0.f));
+		}
+		bPhonePose = Anim && PhoneAnim && !bRiding && !bKnockedDown;
+		if (bPhonePose)
+		{
+			Anim->PlaySlotAnimationAsDynamicMontage(PhoneAnim, TEXT("DefaultSlot"), 0.25f, 0.25f, 1.f, 10000);
+		}
+		return;
+	}
+	CameraBoom->TargetArmLength = PhoneSavedArm;
+	CameraBoom->SocketOffset = PhoneSavedSocket;
+	CameraBoom->bEnableCameraLag = true;
+	if (Controller)
+	{
+		Controller->SetControlRotation(PhoneSavedRotation);
+	}
+	if (bPhonePose && Anim && !bRiding)
+	{
+		Anim->StopSlotAnimation(0.25f, TEXT("DefaultSlot"));
+	}
+	bPhonePose = false;
 }
 
 void AGRCharacter::ZoomFromInput(float Delta)
