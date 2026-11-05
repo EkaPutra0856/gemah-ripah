@@ -57,6 +57,10 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "NPC")
 	TObjectPtr<UStaticMeshComponent> Hat;
 
+	/** Tripo model copying the (then hidden) mannequin's pose, see World/GRBody.h. */
+	UPROPERTY(VisibleAnywhere, Category = "NPC")
+	TObjectPtr<USkeletalMeshComponent> TripoBody;
+
 	UPROPERTY(VisibleAnywhere, Category = "NPC")
 	TObjectPtr<USpotLightComponent> Flashlight;
 

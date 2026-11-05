@@ -22,7 +22,8 @@ public class GemahRipah : ModuleRules
 			"SlateCore",
 			"Json",
 			"JsonUtilities",
-			"MoviePlayer"
+			"MoviePlayer",
+			"IKRig"
 		});
 
 		// Subfolders (Core/, Player/, Systems/, ...) are included relative to the module root.

@@ -1,6 +1,7 @@
 #include "Player/GRCharacter.h"
 #include "Core/GRGameUserSettings.h"
 #include "Player/GRInteractionComponent.h"
+#include "World/GRBody.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/CapsuleComponent.h"
@@ -68,7 +69,7 @@ AGRCharacter::AGRCharacter()
 	static ConstructorHelpers::FObjectFinder<UAnimSequenceBase> RideSeq(TEXT("/Game/GemahRipah/Anims/MM_GR_Ride.MM_GR_Ride"));
 	RideAnim = RideSeq.Object;
 
-	// Placeholder body until Bayu's model arrives from Tripo.
+	// The mannequin runs the animation; BeginPlay puts Bayu's Tripo model over it (World/GRBody.h).
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MannyMesh(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
 	static ConstructorHelpers::FClassFinder<UAnimInstance> MannyAnim(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed"));
 	if (MannyMesh.Succeeded())
@@ -85,6 +86,7 @@ AGRCharacter::AGRCharacter()
 void AGRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	GRBody::Apply(this, TripoBody, GRBody::Find(TEXT("C01_Bayu")));
 	FActorSpawnParameters Params;
 	Params.Owner = this;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

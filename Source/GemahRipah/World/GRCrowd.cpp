@@ -10,6 +10,7 @@
 #include "Systems/GRStatusSubsystem.h"
 #include "UI/GRUISubsystem.h"
 #include "UI/GRWargaChat.h"
+#include "World/GRBody.h"
 #include "World/GRNpc.h"
 #include "World/GRPropModels.h"
 #include "World/GRStealthLevel.h"
@@ -338,7 +339,10 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 	}
 	// A new mesh restarts the anim instance, and with it any pose montage.
 	CurrentPose = nullptr;
-	const float Scale = Rng.FRandRange(0.93f, 1.04f) * (bFemale ? 0.97f : 1.f);
+	// The look: a Tripo model (true height, own clothes, hair, hat or hijab) when imported, otherwise the
+	// mannequin in random colors and headwear.
+	const bool bTripo = GRBody::Apply(this, TripoBody, GRBody::Find(GRBody::ForTownsperson(static_cast<int32>(Role), Rng.RandRange(0, 9999))));
+	const float Scale = bTripo ? 1.f : Rng.FRandRange(0.93f, 1.04f) * (bFemale ? 0.97f : 1.f);
 	Body->SetRelativeScale3D(FVector(Scale));
 
 	// Clothes: one material over the whole mannequin, colored by height (shoes, trousers, shirt, skin).
@@ -406,6 +410,11 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 	}
 	PinToHead(Headwear);
 	PinToHead(HeadExtra);
+	if (bTripo)
+	{
+		Headwear->SetVisibility(false);
+		HeadExtra->SetVisibility(false);
+	}
 	BarkZ = Top + 40.f;
 	BubbleZ = BarkZ;
 

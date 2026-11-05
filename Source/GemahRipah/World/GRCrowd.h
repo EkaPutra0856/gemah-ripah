@@ -54,6 +54,10 @@ public:
 	void Chat(int32 Topic);
 
 protected:
+	/** Tripo model copying the (then hidden) mannequin's pose, see World/GRBody.h. */
+	UPROPERTY(VisibleAnywhere, Category = "Warga")
+	TObjectPtr<USkeletalMeshComponent> TripoBody;
+
 	UPROPERTY(VisibleAnywhere, Category = "Warga")
 	TObjectPtr<UStaticMeshComponent> Headwear;
 

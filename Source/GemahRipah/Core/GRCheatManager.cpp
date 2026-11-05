@@ -30,6 +30,9 @@
 #include "GemahRipah.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Containers/Ticker.h"
+#include "Engine/SkeletalMesh.h"
+#include "Materials/MaterialInterface.h"
+#include "Rendering/SkeletalMeshRenderData.h"
 
 UGameInstance* UGRCheatManager::GetGI() const
 {
@@ -342,6 +345,54 @@ void UGRCheatManager::GRPolisi()
 	if (AGRCrowd* Crowd = AGRCrowd::Get(GetOuterAPlayerController()))
 	{
 		Crowd->SpawnPoliceNear();
+	}
+}
+
+void UGRCheatManager::GRTubuh()
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+	int32 Count = 0;
+	for (TActorIterator<ACharacter> It(GetWorld()); It; ++It)
+	{
+		ACharacter* Who = *It;
+		if (Who->IsHidden() || FVector::Dist(Who->GetActorLocation(), Pawn->GetActorLocation()) > 2500.f || ++Count > 8)
+		{
+			continue;
+		}
+		TArray<USkeletalMeshComponent*> Meshes;
+		Who->GetComponents(Meshes);
+		for (const USkeletalMeshComponent* Mesh : Meshes)
+		{
+			const bool bTripo = Mesh != Who->GetMesh();
+			const FName Head = bTripo ? FName(TEXT("Head")) : FName(TEXT("head"));
+			const FName Foot = bTripo ? FName(TEXT("LeftFoot")) : FName(TEXT("foot_l"));
+			const float Z = Who->GetActorLocation().Z;
+			UE_LOG(LogGemahRipah, Display, TEXT("GRTubuh %s %s mesh=%s visible=%d anim=%s head=%.0f foot=%.0f bounds=%.0f scale=%.2f"),
+				*Who->GetName(), bTripo ? TEXT("tripo") : TEXT("manekin"), *GetNameSafe(Mesh->GetSkeletalMeshAsset()), Mesh->IsVisible() ? 1 : 0,
+				*GetNameSafe(Mesh->GetAnimInstance()), Mesh->GetBoneLocation(Head).Z - Z, Mesh->GetBoneLocation(Foot).Z - Z,
+				Mesh->Bounds.SphereRadius, Mesh->GetComponentScale().Z);
+			if (bTripo && Mesh->GetSkeletalMeshAsset())
+			{
+				UMaterialInterface* Mat = Mesh->GetMaterial(0);
+				UTexture* Base = nullptr;
+				if (Mat)
+				{
+					Mat->GetTextureParameterValue(FHashedMaterialParameterInfo(TEXT("Base")), Base);
+				}
+				UE_LOG(LogGemahRipah, Display, TEXT("GRTubuh   material %s base=%s uv=%d"), *GetPathNameSafe(Mat), *GetNameSafe(Base),
+					Mesh->GetSkeletalMeshAsset()->GetResourceForRendering() ? Mesh->GetSkeletalMeshAsset()->GetResourceForRendering()->LODRenderData[0].GetNumTexCoords() : -1);
+				const FReferenceSkeleton& Ref = Mesh->GetSkeletalMeshAsset()->GetRefSkeleton();
+				for (int32 i = 0; i < FMath::Min(3, Ref.GetNum()); ++i)
+				{
+					UE_LOG(LogGemahRipah, Display, TEXT("GRTubuh   ref %s %s"), *Ref.GetBoneName(i).ToString(), *Ref.GetRefBonePose()[i].ToString());
+				}
+			}
+		}
 	}
 }
 

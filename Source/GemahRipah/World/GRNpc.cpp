@@ -3,6 +3,7 @@
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
 #include "UI/GRBubbles.h"
+#include "World/GRBody.h"
 #include "UI/GRUISubsystem.h"
 #include "UI/GRStoryScreens.h"
 #include "Animation/AnimInstance.h"
@@ -135,6 +136,11 @@ void AGRNpc::Setup(const FGRSpawnDef& Def)
 	NameText->SetText(FText::FromString(Def.Name));
 	Hat->SetStaticMesh(GRStoryUtil::LoadShape(bSpn ? TEXT("cube") : TEXT("cylinder")));
 	GRStoryUtil::ApplyColor(Hat, GRStoryUtil::ParseColor(Def.Color));
+	// The person's own Tripo model (by name in the chapter data); the colored hat marker was the placeholder.
+	if (GRBody::Apply(this, TripoBody, GRBody::Find(GRBody::ForStoryNpc(Def.Name, Def.Kind, Def.Id))))
+	{
+		Hat->SetVisibility(false);
+	}
 	if (bSpn)
 	{
 		Hat->SetRelativeScale3D(FVector(0.34f, 0.34f, 0.22f));

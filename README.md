@@ -76,6 +76,10 @@ Diawasi tinggi di jalan: warga yang berpapasan melirik Bayu sambil bergumam (ani
 
 Patroli SPN: di sekitar Bayu selalu ada petugas SPN berseragam biru tua dan bertopi, satu berjalan sendiri dan satu berpasangan pada siang hari (malam hari dua pasang, dini hari satu patroli). Pasangan berjalan berdampingan, berhenti berjaga dengan tangan di belakang sambil memandang jalan (`MM_GR_Siaga`), dan sesekali mengobrol. Mereka bisa disapa dengan E. Saat Diawasi 65 ke atas, petugas yang melihat Bayu melapor lewat radio (`MM_GR_Radio`) dan membuntuti dari jauh; berlari di depan mereka memicu pengejaran, dan setelah 25 detik dekat mereka melaporkan Bayu (Diawasi +3). Saat Diawasi 85 ke atas, mereka menunjuk dan berteriak "Hei! Berhenti!" selama sekejap, lalu mengejar (560 cm/s, lebih cepat dari Bayu berjalan, lebih lambat dari Bayu berlari); petugas kedua memotong dari samping. Bayu lolos bila jaraknya lebih dari 20 m, tidak terlihat beberapa detik, naik motor, atau masuk ruangan. Kalau tertangkap, Bayu angkat tangan (`MM_GR_Menyerah`), petugas memegangnya (`MM_GR_Tangkap`), pasangannya melapor lewat radio, warga sekitar menonton, lalu aksi `onCaught` bab berjalan (sama seperti Diawasi penuh: dibawa ke pos, denda, Diawasi turun). Setelah itu SPN tenang selama 60 detik.
 
+Model orang dari Tripo: Bayu, keluarganya, NPC cerita, warga, dan SPN memakai model Tripo yang sudah di-rig di `Art/<Nama>/` (lihat `Art/_skrip_rig/BACA.txt`). Manekin UE tetap menjalankan semua animasi (ABP_Unarmed dan semua `MM_GR_*`) tetapi tidak digambar; tubuh Tripo di atasnya menyalin posenya tiap frame lewat retarget runtime (`World/GRBody.*`, `UGRBodyAnimInstance` menjalankan node Retarget Pose From Mesh dengan `RTG_GR_MannyKeTripo`, tanpa IK). Pilihan model: NPC cerita menurut nama di data bab (`GRBody::ForStoryNpc`, misalnya "Pak Darmo" ke `N01_Pak_Darmo`, "Ibu" ke `C02_Ibu_Bayu`, SPN ke `N07_Aparat_patroli`), figuran tanpa nama dan warga dari kumpulan warga (`GRBody::ForTownsperson`). Model yang belum diimpor jatuh kembali ke manekin berwarna. Topi warna penanda NPC dan topi/jilbab tempelan warga disembunyikan karena model Tripo sudah lengkap.
+
+Menambah atau memperbarui karakter: (1) rig di Blender seperti biasa; (2) ekspor dengan `blender -b Art/<Nama>/<Nama>_rig_detail.blend --python Art/_skrip_rig/exp_ue.py -- Art/_ekspor_ue/<Nama> <Nama> 40000 2048` (buang shape key wajah, decimate ke 40 ribu segitiga, tekstur 2K, satuan cm); (3) jalankan `Tools/Python/import_tripo_chars.py` di editor (set `GR_REIMPORT=1` untuk menimpa yang sudah ada); (4) daftarkan nama di `GRBody.cpp`. Bayu memakai `Art/C01_Bayu/C01_Bayu_rig.blend` (Tripo terbaru `c00.glb`, rig dasar, 80 ribu segitiga).
+
 Gerak lebih halus: warga mempercepat dan mengerem perlahan (akselerasi 700, rem lembut), berbelok lebih pelan, dan perpindahan pose dicampur 0,4 detik; saat berlari (dikejar, menghindar) akselerasi dan belok dipercepat. NPC cerita juga mengerem lembut.
 
 ## Perintah debug (konsol `~`, saat Play)
@@ -111,6 +115,7 @@ Gerak lebih halus: warga mempercepat dan mengerem perlahan (akselerasi 700, rem 
 | `GRWarga` | Catat jumlah warga per kegiatan, warga di dekat Bayu, dan alasan titik sekitar ditolak |
 | `GRWargaBaris` | Jejerkan warga diam (tidak menghindar) di depan Bayu dan dudukkan dua di bangku terdekat (cek tampilan, uji tabrakan) |
 | `GRPolisi` | Munculkan satu patroli SPN berdua dan satu petugas sendiri di dekat Bayu |
+| `GRTubuh` | Catat ke log tubuh Tripo di sekitar Bayu: model, material, tinggi kepala dan kaki (cek retarget) |
 
 ## Map
 
@@ -234,7 +239,7 @@ Bagian file: `ending`, `start`, `onCaught`, `onFaint`, `onMorning`, `suspicious`
 Content/
   GemahRipah/
     Maps/            map per kota + sandbox dev
-    Characters/      hasil Tripo (Bayu, keluarga, NPC)
+    Characters/      hasil Tripo (Bayu, keluarga, NPC), M_GR_Tripo, IK_GR_*, RTG_GR_MannyKeTripo
     Environment/     bangunan, properti
     Vehicles/
     UI/              ikon, potret dialog, logo (dari Gemini)

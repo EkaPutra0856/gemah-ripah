@@ -137,6 +137,10 @@ public:
 	UFUNCTION(Exec)
 	void GRPolisi();
 
+	/** Logs every Tripo body near Bayu (model, shown, head and foot bone heights) to check the retargeting. */
+	UFUNCTION(Exec)
+	void GRTubuh();
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;

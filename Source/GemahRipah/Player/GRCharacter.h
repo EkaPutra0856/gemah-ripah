@@ -89,6 +89,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaksi")
 	TObjectPtr<UGRInteractionComponent> Interaction;
 
+	/** Bayu's Tripo model, copying the hidden mannequin's pose (World/GRBody.h). */
+	UPROPERTY(VisibleAnywhere, Category = "Tubuh")
+	TObjectPtr<USkeletalMeshComponent> TripoBody;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
 	float WalkSpeed = 450.f;
 
