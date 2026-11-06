@@ -1,6 +1,8 @@
 #include "World/GRDressing.h"
 
 #include "World/GRPlusDressing.h"
+#include "World/GRTerrain.h"
+#include "LandscapeProxy.h"
 #include "World/GRPosters.h"
 #include "World/GRTripoProps.h"
 #include "Components/BoxComponent.h"
@@ -204,18 +206,20 @@ int32 AGRDressing::Scatter(const TCHAR* Code, int32 Count, const FVector2D& Min,
 	int32 Done = 0;
 	for (int32 Try = 0; Try < Tries && Done < Count; ++Try)
 	{
-		const FVector Top(Rng.FRandRange(Min.X, Max.X), Rng.FRandRange(Min.Y, Max.Y), 400.f);
+		const FVector Top(Rng.FRandRange(Min.X, Max.X), Rng.FRandRange(Min.Y, Max.Y), 1500.f);
 		FHitResult Hit;
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(GRDressingGround), false);
-		if (!GetWorld()->LineTraceSingleByChannel(Hit, Top, Top - FVector(0.f, 0.f, 600.f), ECC_Visibility, Params))
+		if (!GetWorld()->LineTraceSingleByChannel(Hit, Top, Top - FVector(0.f, 0.f, 2100.f), ECC_Visibility, Params))
 		{
 			continue;
 		}
 		// Only on open ground or pavement: not on a road, a roof, a floor inside or anything standing.
 		const UStaticMeshComponent* Under = Cast<UStaticMeshComponent>(Hit.GetComponent());
 		const FString Material = MaterialOf(Under);
-		// Below -40 is the kali or the river.
-		if (Hit.ImpactPoint.Z > 20.f || Hit.ImpactPoint.Z < -40.f || Material.StartsWith(TEXT("MI_Jalan")) || Material.StartsWith(TEXT("MI_Lantai")))
+		// The landscape rolls up and down; anything else above 20 cm is a roof or a table. Not in the kali or the river.
+		const bool bLand = Hit.GetActor() && Hit.GetActor()->IsA<ALandscapeProxy>();
+		if ((!bLand && (Hit.ImpactPoint.Z > 20.f || Hit.ImpactPoint.Z < -40.f)) || GRTerrain::IsWater(FVector2D(Top), 150.f)
+			|| Material.StartsWith(TEXT("MI_Jalan")) || Material.StartsWith(TEXT("MI_Lantai")))
 		{
 			continue;
 		}

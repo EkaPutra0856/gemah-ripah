@@ -200,6 +200,11 @@ namespace
 		{ TEXT("Ind_Con_Stairs_Concrete_Worn_01"), 0, TEXT("MI_Rumah5_Plus") },
 	};
 
+	bool IsLand(const FHitResult& Hit)
+	{
+		return Hit.GetActor() && Hit.GetActor()->IsA<ALandscapeProxy>();
+	}
+
 	template <typename T, int32 N>
 	const T& Any(const T (&List)[N], FRandomStream& Rng)
 	{
@@ -834,6 +839,41 @@ void AGRPlusDressing::Greenery(FRandomStream& Rng)
 			++Trees;
 		}
 	}
+	// Rock outcrops on the steep outer hillsides.
+	int32 Outcrops = 0;
+	for (int32 Try = 0; Try < 3000 && Outcrops < 160; ++Try)
+	{
+		const FVector2D P(Rng.FRandRange(-60000.f, 60000.f), Rng.FRandRange(-60000.f, 60000.f));
+		if (FMath::Max(FMath::Abs(P.X), FMath::Abs(P.Y)) < 30000.f || !Open(P, At))
+		{
+			continue;
+		}
+		FVector A;
+		FVector B;
+		if (!Land(P + FVector2D(250.f, 0.f), A) || !Land(P + FVector2D(0.f, 250.f), B))
+		{
+			continue;
+		}
+		const float Slope = FMath::RadiansToDegrees(FMath::Atan(FMath::Sqrt(FMath::Square(A.Z - At.Z) + FMath::Square(B.Z - At.Z)) / 250.f));
+		if (Slope < 20.f)
+		{
+			continue;
+		}
+		const float Size = Rng.FRandRange(250.f, 750.f);
+		Put(TEXT("Rock_Boulder_1"), At - FVector(0.f, 0.f, Size * 0.3f), Rng.FRandRange(0.f, 360.f), FVector(ScaleTo(TEXT("Rock_Boulder_1"), Size)), false, true);
+		for (int32 k = Rng.RandRange(1, 3); k > 0; --k)
+		{
+			const FVector2D Q = P + FVector2D(Rng.FRandRange(-Size, Size), Rng.FRandRange(-Size, Size));
+			FVector Near;
+			if (Land(Q, Near))
+			{
+				Put(TEXT("Rock_Boulder_1"), Near - FVector(0.f, 0.f, 20.f), Rng.FRandRange(0.f, 360.f), FVector(ScaleTo(TEXT("Rock_Boulder_1"), Rng.FRandRange(60.f, 200.f))), false, true);
+			}
+		}
+		++Outcrops;
+	}
+	UE_LOG(LogTemp, Display, TEXT("GRPLUS %d singkapan batu di bukit"), Outcrops);
+
 	// Stones on the river and kali banks, water lilies in the slow river.
 	const TCHAR* const Stones[] = { TEXT("Rock001"), TEXT("Rock004"), TEXT("RocksScatter01"), TEXT("Rock_Boulder_1") };
 	for (int32 Way = 0; Way < 2; ++Way)
@@ -1189,7 +1229,7 @@ void AGRPlusDressing::Market(FRandomStream& Rng)
 	{
 		for (const float Y : { 8450.f, 17550.f })
 		{
-			if (!Ground(FVector2D(X, Y), Hit) || Hit.ImpactPoint.Z > 40.f || IsBlocked(Hit.ImpactPoint, FVector(125.f, 60.f, 100.f), 0.f))
+			if (!Ground(FVector2D(X, Y), Hit) || (!IsLand(Hit) && Hit.ImpactPoint.Z > 40.f) || IsBlocked(Hit.ImpactPoint, FVector(125.f, 60.f, 100.f), 0.f))
 			{
 				continue;
 			}
@@ -1223,7 +1263,7 @@ void AGRPlusDressing::Market(FRandomStream& Rng)
 		{
 			const FVector2D P(Rng.FRandRange(-14600.f, -9400.f), Rng.FRandRange(9100.f, 16900.f));
 			const float Yaw = Rng.FRandRange(0.f, 360.f);
-			if (Ground(P, Hit) && Hit.ImpactPoint.Z < 40.f && !IsBlocked(Hit.ImpactPoint, Item.Half + FVector(20.f, 20.f, 0.f), Yaw))
+			if (Ground(P, Hit) && (IsLand(Hit) || Hit.ImpactPoint.Z < 40.f) && !IsBlocked(Hit.ImpactPoint, Item.Half + FVector(20.f, 20.f, 0.f), Yaw))
 			{
 				Put(Item.Name, Hit.ImpactPoint, Yaw, FVector(1.f), true);
 				++n;
@@ -1265,7 +1305,7 @@ void AGRPlusDressing::Rubbish(FRandomStream& Rng)
 	FHitResult Hit;
 	auto Try = [&](const FVector2D& P)
 	{
-		if (!Ground(P, Hit) || Hit.ImpactPoint.Z > 40.f || Hit.ImpactPoint.Z < -40.f || GRTerrain::IsWater(P, 100.f)
+		if (!Ground(P, Hit) || (!IsLand(Hit) && FMath::Abs(Hit.ImpactPoint.Z) > 40.f) || GRTerrain::IsWater(P, 100.f)
 			|| MaterialName(Cast<UStaticMeshComponent>(Hit.GetComponent())).StartsWith(TEXT("MI_Jalan"))
 			|| IsBlocked(Hit.ImpactPoint, FVector(90.f, 90.f, 40.f), 0.f))
 		{
@@ -1295,7 +1335,7 @@ void AGRPlusDressing::Rubbish(FRandomStream& Rng)
 	for (int32 n = 0; n < 12; ++n)
 	{
 		const FVector2D P(Rng.FRandRange(-20000.f, -2200.f), Rng.FRandRange(-20000.f, 18000.f));
-		if (Ground(P, Hit) && FMath::Abs(Hit.ImpactPoint.Z) < 40.f && !IsBlocked(Hit.ImpactPoint, FVector(90.f, 60.f, 20.f), 0.f))
+		if (Ground(P, Hit) && (IsLand(Hit) || FMath::Abs(Hit.ImpactPoint.Z) < 40.f) && !GRTerrain::IsWater(P, 100.f) && !IsBlocked(Hit.ImpactPoint, FVector(90.f, 60.f, 20.f), 0.f))
 		{
 			Put(TEXT("Ind_Aba_Tarp_Wrinkled_01"), Hit.ImpactPoint, Rng.FRandRange(0.f, 360.f));
 		}

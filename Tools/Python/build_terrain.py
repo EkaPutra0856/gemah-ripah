@@ -24,7 +24,8 @@ import unreal
 SRC = r"E:/NewSSDFile/Game Pemerintahan/Aset Gemini Stylized/14 Tekstur Tanah"
 DST = "/Game/GemahRipah/Landscape"
 TEX = DST + "/Textures"
-MAP = "/Game/GemahRipah/Maps/L_KotaSentosa"
+# Both cities share the shape; the Plus copy is dressed with the Epic/Fab packs at runtime (AGRPlusDressing).
+MAPS = ["/Game/GemahRipah/Maps/L_KotaSentosa", "/Game/GemahRipah/Maps/L_KotaSentosa_Plus"]
 LOG = []
 
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -283,11 +284,16 @@ def main():
     water_material()
     water_material("M_GR_Kali", (0.16, 0.15, 0.085), 0.3)
     instanced_usage()
+    for path in MAPS:
+        build_map(path, ground)
 
-    world = unreal.EditorLoadingAndSavingUtils.load_map(MAP)
+
+def build_map(path, ground):
+    world = unreal.EditorLoadingAndSavingUtils.load_map(path)
     if not world:
-        log("GAGAL memuat", MAP)
+        log("GAGAL memuat", path)
         return
+    log("map", path)
     load_all_actors()
     spots = story_spots()
     log("titik cerita datar", len(spots))

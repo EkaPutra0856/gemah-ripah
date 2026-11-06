@@ -30,7 +30,7 @@ namespace
 		bool bShadow;
 	};
 	// Concrete and stone use the Poly Haven materials made by Tools/Python/build_terrain.py; the rest are flat colors.
-	const FTerrainPaintDef Paints[] = {
+	const FTerrainPaintDef TerrainPaints[] = {
 		{ TEXT("/Game/GemahRipah/Landscape/M_GR_Beton.M_GR_Beton"), FLinearColor(0.42f, 0.41f, 0.38f), true, true },
 		{ TEXT("/Game/GemahRipah/Landscape/M_GR_Pondasi.M_GR_Pondasi"), FLinearColor(0.35f, 0.33f, 0.30f), true, true },
 		{ nullptr, FLinearColor(0.10f, 0.36f, 0.20f), true, true },   // Steel: green truss
@@ -114,7 +114,7 @@ void AGRTerrainDetails::Build()
 	int32 Instances = 0;
 	for (int32 Paint = 0; Paint < PaintCount; ++Paint)
 	{
-		const FTerrainPaintDef& Def = Paints[Paint];
+		const FTerrainPaintDef& Def = TerrainPaints[Paint];
 		UMaterialInterface* Material = Def.Asset ? LoadObject<UMaterialInterface>(nullptr, Def.Asset, nullptr, LOAD_NoWarn | LOAD_Quiet) : nullptr;
 		for (int32 Shape = 0; Shape < 2; ++Shape)
 		{

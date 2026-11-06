@@ -197,35 +197,58 @@ namespace
 		return IsWalledCreek(P) ? 330.f : Ways().Creek.BankOut;
 	}
 
-	/** Land before the field pad and the water: hills, the gentle core, flat roads and story plots, project heaps. */
-	float NaturalHeight(const FVector2D& P, float RiverDistance)
+	/** How much of Jl. Lingkar's ring P is outside of: 0 in town, 1 in the outer hills. */
+	float RingAmount(const FVector2D& P)
+	{
+		return Smooth(28000.f, 40000.f, float(FMath::Max(FMath::Abs(P.X), FMath::Abs(P.Y))));
+	}
+
+	/** The rolling ground of the town, about -1..1: rises and hollows a few hundred metres across. */
+	float Swell(const FVector2D& P)
+	{
+		return ((0.6f * Noise(P, 7000.f, 14) + 0.4f * Noise(P, 2800.f, 16)) - 0.5f) * 2.6f;
+	}
+
+	/** 1 on the main roads, Jl. Lingkar and the story plots, fading to 0 away from them. */
+	float FlatAmount(const FVector2D& P)
 	{
 		const float AX = float(FMath::Abs(P.X));
 		const float AY = float(FMath::Abs(P.Y));
-		const float Out = FMath::Max(AX, AY);
-
-		// Hills rise outside Jl. Lingkar to 15-25 m, a little more at the very edge so the map ends in high ground.
-		const float Ring = Smooth(28000.f, 40000.f, Out);
-		const float Edge = Smooth(47000.f, 58000.f, Out);
-		const float Hill = 0.55f * Noise(P, 15000.f, 11) + 0.30f * Noise(P, 6000.f, 12) + 0.15f * Noise(P, 2500.f, 13);
-		const float HillZ = Ring * (500.f + 2000.f * Hill) + Edge * 700.f;
-		// Low swells on the open ground in town.
-		const float CoreZ = (1.f - Ring) * 70.f * FMath::Clamp((Noise(P, 3600.f, 14) - 0.5f) * 3.f, 0.f, 1.f);
-		// The hills fall away into a flat valley along the river.
-		float Z = HillZ * Smooth(2400.f, 9000.f, RiverDistance) + CoreZ * Smooth(2600.f, 4000.f, RiverDistance);
-
 		auto Flat = [](float D, float Keep, float Blend) { return 1.f - Smooth(Keep, Keep + Blend, D); };
-		float Flatten = FMath::Max(Flat(AX, 3000.f, 5000.f), Flat(AY, 3000.f, 5000.f));
+		float Flatten = FMath::Max(Flat(AX, 1000.f, 1800.f), Flat(AY, 1000.f, 1800.f));
 		for (const float Ring2 : { -27000.f, 27000.f })
 		{
-			Flatten = FMath::Max(Flatten, Flat(float(FMath::Abs(P.X - Ring2)), 1200.f, 4500.f));
-			Flatten = FMath::Max(Flatten, Flat(float(FMath::Abs(P.Y - Ring2)), 1200.f, 4500.f));
+			Flatten = FMath::Max(Flatten, Flat(float(FMath::Abs(P.X - Ring2)), 600.f, 1500.f));
+			Flatten = FMath::Max(Flatten, Flat(float(FMath::Abs(P.Y - Ring2)), 600.f, 1500.f));
 		}
 		for (const FBox2D& Plot : StoryPlots())
 		{
-			Flatten = FMath::Max(Flatten, Flat(BoxDistance(P, Plot.GetCenter(), Plot.GetExtent()), 600.f, 3000.f));
+			Flatten = FMath::Max(Flatten, Flat(BoxDistance(P, Plot.GetCenter(), Plot.GetExtent()), 400.f, 1200.f));
 		}
-		Z *= 1.f - Flatten;
+		return Flatten;
+	}
+
+	/** Land before the field pad and the water: hills, the rolling core, flat roads and story plots, project heaps. */
+	float NaturalHeight(const FVector2D& P, float RiverDistance)
+	{
+		const float Out = float(FMath::Max(FMath::Abs(P.X), FMath::Abs(P.Y)));
+
+		// Hills rise outside Jl. Lingkar to 7-30 m, with crests and gullies (ridged noise), and a little more at the
+		// very edge so the map ends in high ground.
+		const float Ring = RingAmount(P);
+		const float Edge = Smooth(47000.f, 58000.f, Out);
+		const float Ridge = 1.f - FMath::Abs(Noise(P, 7000.f, 15) * 2.f - 1.f);
+		const float Hill = 0.45f * Noise(P, 15000.f, 11) + 0.25f * Noise(P, 6000.f, 12) + 0.15f * Noise(P, 2500.f, 13) + 0.15f * Ridge * Ridge;
+		const float HillZ = Ring * (400.f + 3600.f * FMath::Pow(Hill, 1.5f)) + Edge * 900.f;
+		// The town rolls up and down by up to 4 m between its roads.
+		const float CoreZ = (1.f - Ring) * 400.f * FMath::Clamp(Swell(P), -1.f, 1.f);
+		// The hills fall away into a flat valley along the river.
+		float Z = HillZ * Smooth(2400.f, 9000.f, RiverDistance) + CoreZ * Smooth(2600.f, 4000.f, RiverDistance);
+
+		const float Flatten = FlatAmount(P);
+		// Small bumps everywhere off the flat ground.
+		const float Bumps = 45.f * (Noise(P, 1100.f, 17) - 0.5f) * 2.f + 18.f * (Noise(P, 380.f, 18) - 0.5f) * 2.f;
+		Z = (Z + Bumps) * (1.f - Flatten);
 
 		const FArea& Site = Project();
 		if (Site.Contains(P, 1000.f))
@@ -412,6 +435,12 @@ void GRTerrain::LayerWeights(const FVector2D& P, float SlopeDeg, float Out[Layer
 	{
 		Over(ELayer::RumputJarang, 0.45f + 0.3f * Noise(P, 900.f, 22));
 	}
+
+	// Bare red earth in patches, mud in the hollows of the town, stones on the steep hillsides.
+	const float Open = 1.f - FlatAmount(P);
+	Over(ELayer::TanahMerah, (Noise(P, 2300.f, 31) - 0.70f) * 3.2f * Open);
+	Over(ELayer::Lumpur, 0.55f * Smooth(-0.35f, -0.65f, Swell(P)) * (1.f - RingAmount(P)) * Open);
+	Over(ELayer::BatuSungai, 0.85f * Smooth(28.f, 40.f, SlopeDeg));
 
 	const FArea& Pitch = Field();
 	Over(ELayer::TanahMerah, 1.f - Smooth(0.f, 250.f, BoxDistance(P, Pitch.Center, Pitch.Half)));

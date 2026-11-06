@@ -32,6 +32,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "LandscapeProxy.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -210,10 +211,24 @@ namespace
 		return Response;
 	}
 
+	/** Height of the landscape at P (0 where there is none): the town rolls up and down a few metres. */
+	float LandAt(const UWorld* World, const FVector2D& P)
+	{
+		static TWeakObjectPtr<ALandscapeProxy> Land;
+		if (!Land.IsValid() || Land->GetWorld() != World)
+		{
+			TActorIterator<ALandscapeProxy> It(const_cast<UWorld*>(World));
+			Land = It ? *It : nullptr;
+		}
+		const TOptional<float> Z = Land.IsValid() ? Land->GetHeightAtLocation(FVector(P, 0.f)) : TOptional<float>();
+		return Z.IsSet() ? Z.GetValue() : 0.f;
+	}
+
 	bool GroundAt(const UWorld* World, const FVector2D& P, float& OutZ)
 	{
 		FHitResult Hit;
-		if (!World->LineTraceSingleByChannel(Hit, FVector(P, 400.f), FVector(P, -200.f), ECC_Visibility, FCollisionQueryParams(SCENE_QUERY_STAT(GRCrowdGround), false)))
+		const float Land = LandAt(World, P);
+		if (!World->LineTraceSingleByChannel(Hit, FVector(P, FMath::Max(Land, 0.f) + 400.f), FVector(P, FMath::Min(Land, 0.f) - 200.f), ECC_Visibility, FCollisionQueryParams(SCENE_QUERY_STAT(GRCrowdGround), false)))
 		{
 			return false;
 		}

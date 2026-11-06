@@ -121,6 +121,66 @@ namespace
 		AStaticMeshActor* Actor;
 		FBox Bounds;
 	};
+
+	/** Roads, pavements and plazas. Narrow roads (Jl. Lingkar, the lanes) get a shoulder and a ditch each side. */
+	struct FSurface
+	{
+		FBox2D Print;
+		bool bLane = false;
+	};
+
+	/** Calls Visit(index, point) for every vertex within Grow of the box. */
+	template <typename F>
+	void ForVerts(const FBox2D& Box, float Grow, F&& Visit)
+	{
+		const int32 X0 = FMath::Clamp(FMath::FloorToInt32((Box.Min.X - Grow - Origin) / Spacing), 0, Verts - 1);
+		const int32 X1 = FMath::Clamp(FMath::CeilToInt32((Box.Max.X + Grow - Origin) / Spacing), 0, Verts - 1);
+		const int32 Y0 = FMath::Clamp(FMath::FloorToInt32((Box.Min.Y - Grow - Origin) / Spacing), 0, Verts - 1);
+		const int32 Y1 = FMath::Clamp(FMath::CeilToInt32((Box.Max.Y + Grow - Origin) / Spacing), 0, Verts - 1);
+		for (int32 Y = Y0; Y <= Y1; ++Y)
+		{
+			for (int32 X = X0; X <= X1; ++X)
+			{
+				Visit(Y * Verts + X, VertexAt(X, Y));
+			}
+		}
+	}
+
+	/** Two-pass chamfer distance (cm) to the nearest vertex that starts at 0. */
+	void ChamferDistance(TArray<float>& Dist)
+	{
+		const float Side = Spacing;
+		const float Diagonal = Spacing * UE_SQRT_2;
+		auto Relax = [&](int32 I, int32 X, int32 Y, float Step)
+		{
+			if (X >= 0 && X < Verts && Y >= 0 && Y < Verts)
+			{
+				Dist[I] = FMath::Min(Dist[I], Dist[Y * Verts + X] + Step);
+			}
+		};
+		for (int32 Y = 0; Y < Verts; ++Y)
+		{
+			for (int32 X = 0; X < Verts; ++X)
+			{
+				const int32 I = Y * Verts + X;
+				Relax(I, X - 1, Y, Side);
+				Relax(I, X - 1, Y - 1, Diagonal);
+				Relax(I, X, Y - 1, Side);
+				Relax(I, X + 1, Y - 1, Diagonal);
+			}
+		}
+		for (int32 Y = Verts - 1; Y >= 0; --Y)
+		{
+			for (int32 X = Verts - 1; X >= 0; --X)
+			{
+				const int32 I = Y * Verts + X;
+				Relax(I, X + 1, Y, Side);
+				Relax(I, X + 1, Y + 1, Diagonal);
+				Relax(I, X, Y + 1, Side);
+				Relax(I, X - 1, Y + 1, Diagonal);
+			}
+		}
+	}
 }
 #endif
 
@@ -145,6 +205,7 @@ FString UGRScriptLibrary::BuildTerrain(UObject* WorldContext, const TArray<FVect
 	}
 	TArray<FBuilding> Buildings;
 	TArray<FBox2D> Grounded;
+	TArray<FSurface> Surfaces;
 	TArray<FString> Removed;
 	for (TActorIterator<AStaticMeshActor> It(World); It; ++It)
 	{
@@ -178,8 +239,15 @@ FString UGRScriptLibrary::BuildTerrain(UObject* WorldContext, const TArray<FVect
 		}
 		// Roads, pavements and plazas are long; everything else on the ground keeps its level ground, except
 		// lamps and trees that the river now runs through.
-		if (Print.GetSize().GetMax() > 6000.0 || Bounds.Min.Z < -60.f || Bounds.Min.Z > 60.f)
+		if (Bounds.Min.Z < -60.f || Bounds.Min.Z > 60.f)
 		{
+			continue;
+		}
+		if (Print.GetSize().GetMax() > 6000.0)
+		{
+			const UMaterialInterface* Material = Comp->GetMaterial(0);
+			const bool bRoad = Material && Material->GetName().StartsWith(TEXT("MI_Jalan"));
+			Surfaces.Add({ Print, bRoad && Print.GetSize().GetMin() < 1000.0 });
 			continue;
 		}
 		if (GRTerrain::DistanceTo(GRTerrain::River(), Center) < GRTerrain::River().BankOut + 100.f
@@ -222,6 +290,95 @@ FString UGRScriptLibrary::BuildTerrain(UObject* WorldContext, const TArray<FVect
 	for (int32 I = 0; I < WetRows.Num(); ++I)
 	{
 		Grid.Wet[I] = WetRows[I] != 0;
+	}
+
+	// Next to roads, pavements and everything standing on the ground the land comes down to their level (0), and
+	// rises into the rolling ground over about 25 m (a distance field over all of them).
+	TArray<float> Dist;
+	Dist.Init(1.e7f, Verts * Verts);
+	TBitArray<> Taken(false, Verts * Verts);
+	auto Mark = [&](const FBox2D& Box, float Grow)
+	{
+		ForVerts(Box, Grow, [&](int32 I, const FVector2D& P)
+		{
+			const float D = BoxDistance(P, Box);
+			if (D <= Grow)
+			{
+				Dist[I] = 0.f;
+				if (D <= 30.f)
+				{
+					Taken[I] = true;
+				}
+			}
+		});
+	};
+	for (const FBox2D& Print : Grounded)
+	{
+		Mark(Print, 60.f);
+	}
+	for (const FSurface& Surface : Surfaces)
+	{
+		Mark(Surface.Print, 60.f);
+	}
+	for (const FVector2D& Spot : KeepFlat)
+	{
+		Mark(FBox2D(Spot, Spot), 400.f);
+	}
+	ChamferDistance(Dist);
+	ParallelFor(Verts, [&](int32 Y)
+	{
+		for (int32 X = 0; X < Verts; ++X)
+		{
+			const int32 I = Y * Verts + X;
+			if (!Grid.Wet[I])
+			{
+				Grid.Z[I] *= BuilderSmooth(100.f, 1500.f, Dist[I]);
+			}
+		}
+	});
+	// How much of the town (inside Jl. Lingkar) rolls by more than a metre.
+	int32 CoreVerts = 0;
+	int32 CoreRolling = 0;
+	for (int32 Y = 0; Y < Verts; ++Y)
+	{
+		for (int32 X = 0; X < Verts; ++X)
+		{
+			const FVector2D P = VertexAt(X, Y);
+			if (FMath::Max(FMath::Abs(P.X), FMath::Abs(P.Y)) < 25000.0)
+			{
+				++CoreVerts;
+				CoreRolling += FMath::Abs(Grid.Z[Y * Verts + X]) > 100.f ? 1 : 0;
+			}
+		}
+	}
+
+	// Narrow roads sit a little proud of the land: a low shoulder, then an earth ditch each side.
+	TBitArray<> Ditch(false, Verts * Verts);
+	int32 DitchVerts = 0;
+	for (const FSurface& Surface : Surfaces)
+	{
+		if (!Surface.bLane)
+		{
+			continue;
+		}
+		ForVerts(Surface.Print, 480.f, [&](int32 I, const FVector2D& P)
+		{
+			const float D = BoxDistance(P, Surface.Print);
+			if (D <= 0.f || D > 470.f || Grid.Wet[I] || Taken[I])
+			{
+				return;
+			}
+			const float Profile = -25.f - 50.f * FMath::Max(0.f, 1.f - FMath::Abs(D - 290.f) / 170.f);
+			if (Profile < Grid.Z[I])
+			{
+				Grid.Z[I] = Profile;
+				if (Profile < -45.f && !Ditch[I])
+				{
+					Ditch[I] = true;
+					++DitchVerts;
+				}
+			}
+		});
 	}
 
 	// Story spots and everything standing on the ground keep level ground at 0.
@@ -315,6 +472,15 @@ FString UGRScriptLibrary::BuildTerrain(UObject* WorldContext, const TArray<FVect
 			const float Slope = FMath::RadiansToDegrees(FMath::Atan(FMath::Sqrt(DX * DX + DY * DY) / (2.f * Spacing)));
 			float W[GRTerrain::LayerCount];
 			GRTerrain::LayerWeights(VertexAt(X, Y), Slope, W);
+			if (Ditch[I])
+			{
+				// Ditches hold muddy water most of the year.
+				for (float& Weight : W)
+				{
+					Weight *= 0.25f;
+				}
+				W[int32(GRTerrain::ELayer::Lumpur)] += 0.75f;
+			}
 			int32 Total = 0;
 			int32 Biggest = 0;
 			for (int32 L = 0; L < GRTerrain::LayerCount; ++L)
@@ -369,8 +535,9 @@ FString UGRScriptLibrary::BuildTerrain(UObject* WorldContext, const TArray<FVect
 		Info->UpdateLayerInfoMap(Landscape);
 	}
 
-	return FString::Printf(TEXT("OK: landscape %d komponen (skala %s), tinggi %.0f..%.0f cm; %d bangunan di lereng diberi pondasi (tertinggi %.0f cm); %d dihapus: %s"),
-		Landscape->LandscapeComponents.Num(), *Landscape->GetActorScale3D().ToString(), MinZ, MaxZ, Lifted, Highest, Removed.Num(), *FString::Join(Removed, TEXT(", "))) + TEXT("|FILES|") + FString::Join(DeadFiles, TEXT(";"));
+	return FString::Printf(TEXT("OK: landscape %d komponen (skala %s), tinggi %.0f..%.0f cm; %d jalan/trotoar, %d titik selokan; kota bergelombang >1 m %.0f%%; %d bangunan di lereng diberi pondasi (tertinggi %.0f cm); %d dihapus: %s"),
+		Landscape->LandscapeComponents.Num(), *Landscape->GetActorScale3D().ToString(), MinZ, MaxZ, Surfaces.Num(), DitchVerts,
+		100.f * CoreRolling / FMath::Max(CoreVerts, 1), Lifted, Highest, Removed.Num(), *FString::Join(Removed, TEXT(", "))) + TEXT("|FILES|") + FString::Join(DeadFiles, TEXT(";"));
 #else
 	return TEXT("GAGAL: hanya di editor");
 #endif
