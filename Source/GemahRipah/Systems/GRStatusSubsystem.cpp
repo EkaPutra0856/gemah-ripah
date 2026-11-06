@@ -1,4 +1,5 @@
 #include "Systems/GRStatusSubsystem.h"
+#include "World/GRSfx.h"
 #include "Systems/GRNotificationSubsystem.h"
 #include "Systems/GRSaveGame.h"
 
@@ -33,6 +34,7 @@ void UGRStatusSubsystem::AddUang(int32 Delta)
 	if (Uang != Old)
 	{
 		const int32 Change = Uang - Old;
+		GRSfx::Play(this, EGRSfx::Koin);
 		NotifyChange(FString::Printf(TEXT("Uang %s%s"), Change > 0 ? TEXT("+") : TEXT(""), *FormatRupiah(Change)), Change > 0);
 	}
 	OnStatusChanged.Broadcast();

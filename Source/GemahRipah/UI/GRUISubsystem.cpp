@@ -1,4 +1,5 @@
 #include "UI/GRUISubsystem.h"
+#include "World/GRSfx.h"
 #include "UI/GRScreenWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/LocalPlayer.h"
@@ -42,6 +43,7 @@ UGRScreenWidget* UGRUISubsystem::PushScreen(TSubclassOf<UGRScreenWidget> ScreenC
 		return nullptr;
 	}
 
+	GRSfx::Play(GetLocalPlayer(), EGRSfx::UIBuka);
 	Screen->AddToViewport(100 + Stack.Num());
 	Stack.Add(Screen);
 	Refresh();
@@ -56,6 +58,7 @@ void UGRUISubsystem::PopScreen(UGRScreenWidget* Screen)
 		return;
 	}
 
+	GRSfx::Play(GetLocalPlayer(), EGRSfx::UITutup);
 	Screen->RemoveFromParent();
 	Stack.Remove(Screen);
 	Refresh();

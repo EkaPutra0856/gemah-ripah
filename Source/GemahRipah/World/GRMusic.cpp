@@ -1,4 +1,6 @@
 #include "World/GRMusic.h"
+#include "World/GRSfx.h"
+#include "World/GRVfx.h"
 #include "Player/GRCharacter.h"
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRNotificationSubsystem.h"
@@ -118,7 +120,6 @@ void AGRSpeaker::Setup(const FString& InId, USoundBase* Song, bool bToa, float V
 	{
 		// Pole with two horn loudspeakers facing both ways along the road, and an amplifier box at its foot.
 		Box->SetBoxExtent(FVector(40.f, 40.f, 60.f));
-		Box->SetRelativeLocation(FVector::ZeroVector);
 		AddPart(Cylinder, FVector(0.f, 0.f, 160.f), FRotator::ZeroRotator, FVector(0.08f, 0.08f, 3.2f), FLinearColor(FColor(90, 90, 92)));
 		AddPart(Cone, FVector(28.f, 0.f, 300.f), FRotator(-90.f, 0.f, 0.f), FVector(0.45f, 0.45f, 0.55f), FLinearColor(FColor(225, 225, 215)));
 		AddPart(Cone, FVector(-28.f, 0.f, 300.f), FRotator(90.f, 0.f, 0.f), FVector(0.45f, 0.45f, 0.55f), FLinearColor(FColor(225, 225, 215)));
@@ -168,6 +169,27 @@ void AGRSpeaker::SetSpeakerOn(bool bInOn)
 	else if (!bOn)
 	{
 		Audio->FadeOut(0.4f, 0.f);
+	}
+}
+
+void AGRSpeaker::SetCrowdOn(bool bCrowd)
+{
+	if (bCrowd && !Crowd)
+	{
+		Crowd = GRSfx::MakeLoop(Box, EGRSfx::AmbMassa, 4500.f);
+	}
+	if (!Crowd || Crowd->IsPlaying() == bCrowd)
+	{
+		return;
+	}
+	if (bCrowd)
+	{
+		Crowd->SetVolumeMultiplier(0.45f * GRSfx::Setting());
+		Crowd->Play(FMath::FRandRange(0.f, 15.f));
+	}
+	else
+	{
+		Crowd->FadeOut(0.6f, 0.f);
 	}
 }
 
@@ -405,7 +427,7 @@ void UGRMusicSubsystem::UpdateSpeakers()
 			if (!Speaker)
 			{
 				const FVector At = Stage->GetActorTransform().TransformPosition(FVector(0.f, Side == 0 ? 540.f : -540.f, 0.f));
-				Speaker = SpawnSpeaker(Id, KampanyeSong, FindGround(World, At, 300.f, Stage), Stage->GetActorRotation().Yaw, true, 1.f, 4500.f);
+				Speaker = SpawnSpeaker(Id, KampanyeSong, FindGround(World, At, 300.f, Stage), Stage->GetActorRotation().Yaw, true, 0.55f, 4500.f);
 			}
 			if (Speaker)
 			{
@@ -415,6 +437,16 @@ void UGRMusicSubsystem::UpdateSpeakers()
 					Speaker->SetActorHiddenInGame(!bShown);
 					Speaker->SetActorEnableCollision(bShown);
 					Speaker->SetSpeakerOn(bShown && !IsSpeakerOff(Id));
+				}
+				if (Side == 0)
+				{
+					Speaker->SetCrowdOn(bShown);
+				}
+				UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this);
+				const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+				if (bShown && Vfx && Player && FVector::DistSquared(Player->GetActorLocation(), Speaker->GetActorLocation()) < FMath::Square(3000.f))
+				{
+					Vfx->Confetti(Speaker->GetActorLocation() + FVector(0.f, 0.f, 310.f), 12);
 				}
 			}
 		}

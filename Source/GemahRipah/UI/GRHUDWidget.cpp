@@ -1,4 +1,5 @@
 #include "UI/GRHUDWidget.h"
+#include "World/GRSfx.h"
 #include "UI/GRBubbles.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Fonts/FontMeasure.h"
@@ -421,6 +422,13 @@ void UGRHUDWidget::HandleRegulationViolated(UGRRegulationData* Regulation, FGame
 
 void UGRHUDWidget::HandleNotify(const FText& Message, EGRNotifyType Type)
 {
+	// Several toasts at once (money and energy from one event) ring once.
+	const double Now = FPlatformTime::Seconds();
+	if (Now - LastNotifySound > 0.3)
+	{
+		LastNotifySound = Now;
+		GRSfx::Play(this, Type == EGRNotifyType::Good ? EGRSfx::NotifBaik : Type == EGRNotifyType::Info ? EGRSfx::NotifInfo : EGRSfx::NotifBuruk);
+	}
 	// Colored stripe on the left says good / bad / warning at a glance.
 	UBorder* Panel = GRStyle::MakePanel(WidgetTree, GRStyle::ColorPanelSoft, FMargin(0.f), 6.f);
 	UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();

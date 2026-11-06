@@ -1,4 +1,7 @@
 #include "World/GRTraffic.h"
+#include "World/GRSfx.h"
+#include "World/GRVfx.h"
+#include "Components/AudioComponent.h"
 #include "Player/GRCharacter.h"
 #include "Story/GRStoryUtil.h"
 #include "World/GRCrowd.h"
@@ -312,6 +315,11 @@ void AGRTrafficCar::OnBodyHit(UPrimitiveComponent* HitComponent, AActor* Other, 
 			Knock(-Toward * Closing * Mass * 0.3f, Hit.ImpactPoint);
 		}
 		Shout(TEXT("BRAK!"), FColor(255, 90, 60), 1.f);
+		GRSfx::PlayAt(this, EGRSfx::TabrakLogam, Hit.ImpactPoint, FMath::Clamp(Closing / 750.f, 0.45f, 1.f), FMath::FRandRange(0.8f, 0.95f), 4000.f);
+		if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+		{
+			Vfx->Sparks(Hit.ImpactPoint, -Toward, 10);
+		}
 	}
 }
 
@@ -341,6 +349,59 @@ void AGRTrafficCar::Tick(float DeltaSeconds)
 		const float Forward = FVector::DotProduct(GetMoveVelocity(), GetActorForwardVector());
 		Model->SetPlayRate(Forward / (2.f * PI * WheelRadius));
 	}
+	TickEngine(DeltaSeconds);
+}
+
+void AGRTrafficCar::TickEngine(float DeltaSeconds)
+{
+	NearCheck -= DeltaSeconds;
+	if (NearCheck <= 0.f)
+	{
+		NearCheck = 0.25f;
+		const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+		bNearPlayer = Player && FVector::DistSquared(Player->GetActorLocation(), GetActorLocation()) < FMath::Square(EngineReach);
+		if (bNearPlayer && !Engine)
+		{
+			Engine = GRSfx::MakeLoop(Body, bAngkot ? EGRSfx::MesinAngkot : EGRSfx::MesinMobil, EngineReach + 300.f);
+		}
+		if (Engine && bNearPlayer != Engine->IsPlaying())
+		{
+			if (bNearPlayer)
+			{
+				Engine->Play(FMath::FRandRange(0.f, 0.5f));
+			}
+			else
+			{
+				Engine->Stop();
+			}
+		}
+	}
+	if (!bNearPlayer)
+	{
+		return;
+	}
+	const float Ratio = FMath::Clamp(FMath::Abs(FVector::DotProduct(GetMoveVelocity(), GetActorForwardVector())) / 1000.f, 0.f, 1.2f);
+	if (Engine)
+	{
+		Engine->SetPitchMultiplier((bAngkot ? 0.8f : 0.7f) + 0.55f * Ratio);
+		Engine->SetVolumeMultiplier((0.3f + 0.4f * Ratio) * GRSfx::Setting());
+	}
+	ExhaustWait -= DeltaSeconds;
+	if (ExhaustWait <= 0.f)
+	{
+		ExhaustWait = FMath::FRandRange(0.25f, 0.45f);
+		if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+		{
+			const FVector Back = -GetActorForwardVector();
+			Vfx->Exhaust(GetActorLocation() + Back * HalfLength + FVector(0.f, 0.f, 25.f - HalfHeight), Back, bAngkot ? 1.f : 0.6f);
+		}
+	}
+}
+
+void AGRTrafficCar::Honk()
+{
+	Shout(TEXT("TIIN! TIIN!"), FColor(255, 220, 90), 1.2f);
+	GRSfx::PlayAt(this, EGRSfx::Klakson, GetActorLocation(), 0.8f, bAngkot ? 0.92f : FMath::FRandRange(0.98f, 1.1f), 4500.f);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -848,8 +909,19 @@ void AGRTraffic::Drive(AGRTrafficCar& Car, float DeltaSeconds)
 	Car.BlockedByPlayer = bForPlayer && Gap < 700.f && Car.Speed < 30.f ? Car.BlockedByPlayer + DeltaSeconds : 0.f;
 	if (Car.BlockedByPlayer > 1.5f && Car.HonkCooldown <= 0.f)
 	{
-		Car.Shout(TEXT("TIIN! TIIN!"), FColor(255, 220, 90), 1.2f);
+		Car.Honk();
 		Car.HonkCooldown = 4.f;
+	}
+	// Someone else slow on the road: some drivers lean on the horn, the rest wait.
+	const bool bForPerson = !bForPlayer && Blocker && !Blocker->Car && !Blocker->bPlayer;
+	Car.BlockedByPerson = bForPerson && Gap < 700.f && Car.Speed < 30.f ? Car.BlockedByPerson + DeltaSeconds : 0.f;
+	if (Car.BlockedByPerson > 1.2f && Car.HonkCooldown <= 0.f)
+	{
+		Car.HonkCooldown = 6.f;
+		if (Rng.FRand() < 0.4f)
+		{
+			Car.Honk();
+		}
 	}
 
 	const float OldS = Car.S;

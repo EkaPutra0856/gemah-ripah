@@ -245,6 +245,8 @@ private:
 	TWeakObjectPtr<AGRCrowd> Crowd;
 	FRandomStream Rng;
 	ERole Role = ERole::Stroller;
+	/** Vendor: seconds to the next wisp off the cart. */
+	float SteamWait = 0.f;
 	EMode Mode = EMode::Pause;
 	FVector Target = FVector::ZeroVector;
 	/** Where a chatting person looks. */

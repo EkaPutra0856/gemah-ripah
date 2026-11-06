@@ -5,6 +5,9 @@
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRMapSubsystem.h"
 #include "World/GRPropModels.h"
+#include "World/GRSfx.h"
+#include "World/GRVfx.h"
+#include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -152,6 +155,46 @@ void AGRMotor::Crash(const FVector& Velocity, float Lean)
 	CrashFallRate = 0.f;
 	SetActorEnableCollision(false);
 	SetActorTickInterval(0.f);
+	StopEngine();
+	if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+	{
+		Vfx->Sparks(GetActorLocation() + FVector(0.f, 0.f, 20.f), GetActorForwardVector(), 14);
+	}
+}
+
+void AGRMotor::TickEngine(float Speed, float TopSpeed, float DeltaSeconds)
+{
+	const float Ratio = FMath::Clamp(FMath::Abs(Speed) / TopSpeed, 0.f, 1.2f);
+	if (!Engine)
+	{
+		Engine = GRSfx::MakeLoop(Root, EGRSfx::MesinMotor, 3000.f);
+	}
+	if (Engine)
+	{
+		if (!Engine->IsPlaying())
+		{
+			Engine->Play();
+		}
+		Engine->SetPitchMultiplier(0.72f + 0.95f * Ratio);
+		Engine->SetVolumeMultiplier((0.5f + 0.4f * Ratio) * GRSfx::Setting());
+	}
+	ExhaustWait -= DeltaSeconds;
+	if (ExhaustWait <= 0.f)
+	{
+		ExhaustWait = FMath::Lerp(0.2f, 0.1f, FMath::Min(Ratio, 1.f));
+		if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+		{
+			Vfx->Exhaust(GetActorTransform().TransformPosition(FVector(-88.f, 12.f, 32.f)), -GetActorForwardVector(), 0.9f);
+		}
+	}
+}
+
+void AGRMotor::StopEngine()
+{
+	if (Engine)
+	{
+		Engine->FadeOut(0.25f, 0.f);
+	}
 }
 
 void AGRMotor::FinishCrash()
@@ -256,6 +299,7 @@ void AGRMotor::AttachToRider(ACharacter* Rider)
 
 void AGRMotor::Park(const FVector& Ground, float Yaw)
 {
+	StopEngine();
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	bRidden = false;
 	SetActorLocationAndRotation(Ground, FRotator(0.f, Yaw, 0.f));

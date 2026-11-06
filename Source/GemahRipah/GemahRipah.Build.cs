@@ -25,7 +25,8 @@ public class GemahRipah : ModuleRules
 			"MoviePlayer",
 			"IKRig",
 			"AnimationCore",
-			"Landscape"
+			"Landscape",
+			"AudioMixer"
 		});
 
 		// Editor-only builders (Core/GRScriptLibrary: BuildTerrain).

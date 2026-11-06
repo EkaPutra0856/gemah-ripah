@@ -1,4 +1,5 @@
 #include "World/GROjol.h"
+#include "World/GRSfx.h"
 
 #include "Player/GRCharacter.h"
 #include "Story/GRStorySubsystem.h"
@@ -379,6 +380,7 @@ bool UGROjolSubsystem::MakeOffer()
 	PaxSeedNow = PaxSeed;
 	OfferLeft = OfferSeconds;
 	SetStage(EGROjolStage::Offer);
+	GRSfx::Play(this, EGRSfx::OrderMasuk);
 	return true;
 }
 

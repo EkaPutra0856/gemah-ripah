@@ -1,4 +1,5 @@
 #include "UI/GRMenuButton.h"
+#include "World/GRSfx.h"
 #include "UI/GRUIStyle.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
@@ -143,6 +144,7 @@ void UGRMenuButton::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 void UGRMenuButton::HandleClicked()
 {
+	GRSfx::Play(this, EGRSfx::UIKlik);
 	OnClicked.ExecuteIfBound();
 }
 
@@ -152,6 +154,7 @@ void UGRMenuButton::HandleHovered()
 	{
 		return;
 	}
+	GRSfx::Play(this, EGRSfx::UIHover);
 	// Keep mouse and keyboard/gamepad focus in sync.
 	FocusButton();
 }

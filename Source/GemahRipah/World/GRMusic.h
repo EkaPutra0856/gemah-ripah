@@ -29,6 +29,8 @@ public:
 	/** bToa = campaign loudspeaker on a pole; otherwise a small radio on a desk. */
 	void Setup(const FString& InId, USoundBase* Song, bool bToa, float Volume, float Reach);
 	void SetSpeakerOn(bool bOn);
+	/** The crowd in front of the stage, heard from this speaker. */
+	void SetCrowdOn(bool bOn);
 	bool IsSpeakerOn() const { return bOn; }
 	const FString& GetSpeakerId() const { return SpeakerId; }
 
@@ -44,6 +46,9 @@ public:
 
 private:
 	UStaticMeshComponent* AddPart(const TCHAR* Shape, const FVector& Location, const FRotator& Rotation, const FVector& Scale, const FLinearColor& Color);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> Crowd;
 
 	FString SpeakerId;
 	bool bOn = true;

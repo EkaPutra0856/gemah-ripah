@@ -45,6 +45,7 @@ private:
 	void HandleRegulationViolated(UGRRegulationData* Regulation, FGameplayTag Action);
 
 	void HandleNotify(const FText& Message, EGRNotifyType Type);
+	double LastNotifySound = 0.0;
 	void HandleDistrictChanged(AGRDistrictVolume* District, bool bEntered);
 	void RefreshClock();
 	void RefreshLocation();

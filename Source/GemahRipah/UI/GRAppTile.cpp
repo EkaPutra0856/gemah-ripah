@@ -1,4 +1,5 @@
 #include "UI/GRAppTile.h"
+#include "World/GRSfx.h"
 #include "UI/GRUIStyle.h"
 #include "UI/GRMenuButton.h"
 #include "Blueprint/WidgetTree.h"
@@ -124,6 +125,7 @@ void UGRAppTile::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 void UGRAppTile::HandleClicked()
 {
+	GRSfx::Play(this, EGRSfx::UIKlik);
 	if (OnClicked)
 	{
 		OnClicked();

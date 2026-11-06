@@ -16,6 +16,9 @@
 #include "Story/GRStorySubsystem.h"
 #include "World/GRCrowd.h"
 #include "World/GRKnockAway.h"
+#include "World/GRSfx.h"
+#include "World/GRVfx.h"
+#include "Landscape.h"
 #include "World/GRStoryProp.h"
 #include "World/GRMotor.h"
 #include "World/GRTraffic.h"
@@ -308,7 +311,12 @@ void AGRCharacter::Tick(float DeltaSeconds)
 	else if (bRiding)
 	{
 		TickRide(DeltaSeconds);
+		if (bRiding)
+		{
+			Motor->TickEngine(RideSpeedNow, RideSpeed, DeltaSeconds);
+		}
 	}
+	TickFootsteps(DeltaSeconds);
 	if (ShakeTime > 0.f)
 	{
 		ShakeTime = FMath::Max(ShakeTime - DeltaSeconds, 0.f);
@@ -320,6 +328,37 @@ void AGRCharacter::Tick(float DeltaSeconds)
 	FollowCamera->SetFieldOfView(FMath::FInterpTo(FollowCamera->FieldOfView, 90.f + 10.f * SpeedRatio, DeltaSeconds, 2.f));
 }
 
+void AGRCharacter::TickFootsteps(float DeltaSeconds)
+{
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	const float Speed = GetVelocity().Size2D();
+	if (bRiding || bKnockedDown || !Move->IsMovingOnGround() || Speed < 60.f)
+	{
+		StepDistance = 0.f;
+		return;
+	}
+	StepDistance += Speed * DeltaSeconds;
+	const float Stride = bSprinting ? 210.f : 170.f;
+	if (StepDistance < Stride)
+	{
+		return;
+	}
+	StepDistance -= Stride;
+	const bool bGrass = Cast<ALandscapeProxy>(Move->CurrentFloor.HitResult.GetActor()) != nullptr;
+	// Bayu's own feet: not placed in the world, or the camera boom thins them out under the town sound.
+	GRSfx::Play(this, bGrass ? EGRSfx::LangkahRumput : EGRSfx::LangkahBeton, bSprinting ? 0.7f : 0.5f, FMath::FRandRange(0.94f, 1.06f));
+}
+
+void AGRCharacter::PlayCrunch(float Closing, const FVector& Direction)
+{
+	const FVector At = GetActorLocation() + Direction.GetSafeNormal2D() * 70.f;
+	GRSfx::PlayAt(this, EGRSfx::TabrakLogam, At, FMath::Clamp(Closing / 750.f, 0.45f, 1.f), FMath::FRandRange(0.88f, 1.05f));
+	if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+	{
+		Vfx->Sparks(At, -Direction, Closing >= 450.f ? 16 : 7);
+	}
+}
+
 void AGRCharacter::HandleCarImpact(float Closing, const FVector& Fling, bool bRammed)
 {
 	if (bKnockedDown || bPendingKnock || ImpactCooldown > 0.f || Closing < 150.f)
@@ -329,6 +368,7 @@ void AGRCharacter::HandleCarImpact(float Closing, const FVector& Fling, bool bRa
 	ImpactCooldown = 0.6f;
 	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
 	const FVector Dir = Fling.GetSafeNormal2D();
+	PlayCrunch(Closing, Dir);
 	if (Closing >= 750.f)
 	{
 		// About 27 km/h and up: Bayu comes off and tumbles, with a beat of slow motion on the hit.
@@ -373,6 +413,7 @@ bool AGRCharacter::HandleWallImpact(float Closing, const FVector& Heading)
 	ImpactCooldown = 0.6f;
 	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
 	UE_LOG(LogTemp, Display, TEXT("Ride: hit a wall head-on at %.0f (%s)"), Closing, Closing >= WallCrashSpeed ? TEXT("crash") : TEXT("bounce"));
+	PlayCrunch(Closing, Heading);
 	if (Closing >= WallCrashSpeed)
 	{
 		// Over the bars: the scooter stops dead and Bayu is thrown up and forward against it, with slow motion.
@@ -431,6 +472,7 @@ bool AGRCharacter::RideIntoThing(const FHitResult& Hit, const FVector& Ahead, fl
 	}
 	if (Piece && Knock)
 	{
+		GRSfx::PlayAt(this, EGRSfx::TabrakBarang, Piece->GetComponentLocation(), FMath::Clamp(SpeedAbs / 800.f, 0.4f, 1.f), FMath::FRandRange(0.9f, 1.1f));
 		if (Box.GetSize().Z <= 45.f && SpeedAbs > 200.f)
 		{
 			// Low enough to go under the front wheel: flattened, with a jolt through the bars.
@@ -464,6 +506,12 @@ void AGRCharacter::ShakeCamera(float Amplitude, float Duration)
 void AGRCharacter::StartKnockdown(const FVector& Velocity)
 {
 	UCharacterMovementComponent* Move = GetCharacterMovement();
+	const FVector Feet = GetActorLocation() - FVector(0.f, 0.f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+	GRSfx::PlayAt(this, EGRSfx::TabrakBadan, GetActorLocation(), 1.f, FMath::FRandRange(0.9f, 1.05f));
+	if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+	{
+		Vfx->Dust(Feet, 60.f);
+	}
 	if (bRiding)
 	{
 		// The scooter drops where it hit and skids a little way back; Bayu flies on over the bars.

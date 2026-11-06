@@ -6,6 +6,7 @@
 #include "GRMotor.generated.h"
 
 class ACharacter;
+class UAudioComponent;
 class UBoxComponent;
 class UGRMapMarkerComponent;
 class UStaticMeshComponent;
@@ -37,6 +38,10 @@ public:
 
 	/** Thrown down in a crash: comes off the rider, falls on its side (the way it leaned) and slides to a stop. */
 	void Crash(const FVector& Velocity, float Lean);
+
+	/** Every frame while ridden: engine note follows Speed (cm/s) against TopSpeed, smoke out of the exhaust. */
+	void TickEngine(float Speed, float TopSpeed, float DeltaSeconds);
+	void StopEngine();
 
 	/** Picked up after a crash: stands on its side stand where it came to rest. */
 	void FinishCrash();
@@ -96,6 +101,11 @@ private:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> StandParts;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> Engine;
+
+	float ExhaustWait = 0.f;
 
 	float WheelAngle = 0.f;
 	bool bRidden = false;

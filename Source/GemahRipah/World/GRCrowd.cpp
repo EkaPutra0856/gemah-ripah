@@ -1,4 +1,6 @@
 #include "World/GRCrowd.h"
+#include "World/GRSfx.h"
+#include "World/GRVfx.h"
 #include "World/GROjol.h"
 #include "World/GRCrossings.h"
 #include "UI/GRBubbles.h"
@@ -642,6 +644,11 @@ bool AGRWarga::KnockedBy(AActor* Culprit, float Closing, const FVector& Directio
 		}
 	}
 	HitCooldown = 1.f;
+	GRSfx::PlayAt(this, EGRSfx::TabrakBadan, GetActorLocation(), FMath::Clamp(Closing / 500.f, 0.5f, 1.f), FMath::FRandRange(0.95f, 1.15f));
+	if (UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this))
+	{
+		Vfx->Dust(GetActorLocation() - FVector(0.f, 0.f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()), Closing >= 450.f ? 45.f : 28.f);
+	}
 	if (Mode == EMode::Sit)
 	{
 		StandUp();
@@ -1547,6 +1554,19 @@ void AGRWarga::Tick(float DeltaSeconds)
 		return;
 	}
 	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Role == ERole::Vendor)
+	{
+		SteamWait -= DeltaSeconds;
+		if (SteamWait <= 0.f)
+		{
+			SteamWait = FMath::FRandRange(0.3f, 0.5f);
+			UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this);
+			if (Vfx && Player && Mode != EMode::Down && FVector::DistSquared(Player->GetActorLocation(), GetActorLocation()) < FMath::Square(3000.f))
+			{
+				Vfx->Steam(GetActorTransform().TransformPosition(FVector(115.f, 0.f, 45.f)));
+			}
+		}
+	}
 	BarkHide -= DeltaSeconds;
 	DodgeCooldown -= DeltaSeconds;
 	HitCooldown -= DeltaSeconds;

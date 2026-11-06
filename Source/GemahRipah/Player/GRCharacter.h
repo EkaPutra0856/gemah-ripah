@@ -160,7 +160,12 @@ private:
 	void StartKnockdown(const FVector& Velocity);
 	void TickKnockdown(float DeltaSeconds);
 	void ShakeCamera(float Amplitude, float Duration);
+	/** A step sound every stride walked: on grass off the landscape, on hard ground elsewhere. */
+	void TickFootsteps(float DeltaSeconds);
+	/** Metal on metal at Bayu: the louder the harder Closing (cm/s). */
+	void PlayCrunch(float Closing, const FVector& Direction);
 
+	float StepDistance = 0.f;
 	bool bTopDownMode = false;
 	bool bRiding = false;
 	bool bSprinting = false;

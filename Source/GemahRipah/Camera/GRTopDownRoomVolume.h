@@ -43,6 +43,8 @@ public:
 	void SetView(const FVector& Offset, const FRotator& Rotation, bool bFollow);
 	void GetView(FVector& OutOffset, FRotator& OutRotation, bool& bOutFollow) const;
 
+	bool HasPlayerInside() const { return ActivePlayer.IsValid(); }
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -168,6 +168,22 @@ public:
 	UFUNCTION(Exec)
 	void GRGaleriFokus(int32 Index);
 
+	/** Logs the town sound levels and how many effect sprites are alive. */
+	UFUNCTION(Exec)
+	void GRAudio();
+
+	/** Plays an effect 3 m in front of Bayu: asap, debu, percikan, uap, kertas. */
+	UFUNCTION(Exec)
+	void GRVfx(const FString& Kind);
+
+	/** Sound test: GRRekam mulai starts recording the game's audio, GRRekam <name> writes Saved/BouncedWavFiles/<name>.wav. */
+	UFUNCTION(Exec)
+	void GRRekam(const FString& What);
+
+	/** Plays a sound effect by EGRSfx number, unplaced. 100 + number: placed in the world at Bayu. */
+	UFUNCTION(Exec)
+	void GRBunyi(int32 Id);
+
 	/** Puts Bayu 2.5 m beside the nearest cart vendor, facing them (check the hands on the handlebar). */
 	UFUNCTION(Exec)
 	void GRGerobak();

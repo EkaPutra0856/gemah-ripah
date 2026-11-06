@@ -1,4 +1,5 @@
 #include "World/GRStealthLevel.h"
+#include "World/GRSfx.h"
 #include "Camera/GRTopDownRoomVolume.h"
 #include "Components/BoxComponent.h"
 #include "Components/PointLightComponent.h"
@@ -392,6 +393,7 @@ void AGRStealthLevel::Tick(float DeltaSeconds)
 void AGRStealthLevel::Caught()
 {
 	bOver = true;
+	GRSfx::Play(this, EGRSfx::Sirene, 0.7f);
 	for (AGRNpc* Guard : Guards)
 	{
 		if (Guard)

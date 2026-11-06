@@ -1,4 +1,8 @@
 #include "Core/GRCheatManager.h"
+#include "World/GRMusic.h"
+#include "World/GRSfx.h"
+#include "World/GRVfx.h"
+#include "AudioMixerBlueprintLibrary.h"
 #include "Core/GRPlayerController.h"
 #include "Player/GRCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -631,6 +635,79 @@ void UGRCheatManager::GRBarang(const FString& Models)
 			const FVector Size = Prop->GetComponentsBoundingBox(false).GetSize();
 			UE_LOG(LogTemp, Display, TEXT("GRBarang %s at %.0f %.0f size %.0f %.0f %.0f"), *Def.Model, Where.X, Where.Y, Size.X, Size.Y, Size.Z);
 		}
+	}
+}
+
+void UGRCheatManager::GRAudio()
+{
+	const UGRAmbienceSubsystem* Ambience = GetWorld()->GetSubsystem<UGRAmbienceSubsystem>();
+	const UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this);
+	UE_LOG(LogGemahRipah, Display, TEXT("GRAudio: %s, sprite %d, efek %.2f"), Ambience ? *Ambience->Describe() : TEXT("-"), Vfx ? Vfx->CountAlive() : -1, GRSfx::Setting());
+	for (TActorIterator<AGRSpeaker> It(GetWorld()); It; ++It)
+	{
+		UE_LOG(LogGemahRipah, Display, TEXT("GRAudio: speaker %s %s %s"), *It->GetSpeakerId(), *It->GetActorLocation().ToCompactString(), It->IsHidden() ? TEXT("tersembunyi") : TEXT("tampil"));
+	}
+}
+
+void UGRCheatManager::GRVfx(const FString& Kind)
+{
+	const APawn* Pawn = GetPlayerController() ? GetPlayerController()->GetPawn() : nullptr;
+	UGRVfxSubsystem* Vfx = UGRVfxSubsystem::Get(this);
+	if (!Pawn || !Vfx)
+	{
+		return;
+	}
+	const FVector At = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * 300.f + Pawn->GetActorRightVector() * 200.f;
+	if (Kind == TEXT("asap"))
+	{
+		for (int32 i = 0; i < 12; ++i)
+		{
+			Vfx->Exhaust(At + FVector(FMath::FRandRange(-20.f, 20.f), FMath::FRandRange(-20.f, 20.f), 0.f), Pawn->GetActorForwardVector(), 1.f);
+		}
+	}
+	else if (Kind == TEXT("debu"))
+	{
+		Vfx->Dust(At - FVector(0.f, 0.f, 85.f), 60.f);
+	}
+	else if (Kind == TEXT("percikan"))
+	{
+		Vfx->Sparks(At, Pawn->GetActorForwardVector(), 24);
+	}
+	else if (Kind == TEXT("uap"))
+	{
+		for (int32 i = 0; i < 10; ++i)
+		{
+			Vfx->Steam(At + FVector(FMath::FRandRange(-25.f, 25.f), FMath::FRandRange(-25.f, 25.f), 0.f));
+		}
+	}
+	else if (Kind == TEXT("kertas"))
+	{
+		Vfx->Confetti(At + FVector(0.f, 0.f, 100.f), 30);
+	}
+}
+
+void UGRCheatManager::GRRekam(const FString& What)
+{
+	if (What == TEXT("mulai"))
+	{
+		UAudioMixerBlueprintLibrary::StartRecordingOutput(GetWorld(), 0.f);
+	}
+	else
+	{
+		UAudioMixerBlueprintLibrary::StopRecordingOutput(GetWorld(), EAudioRecordingExportType::WavFile, What, FString());
+	}
+}
+
+void UGRCheatManager::GRBunyi(int32 Id)
+{
+	if (Id >= 100 && GetPlayerController() && GetPlayerController()->GetPawn())
+	{
+		GRSfx::PlayAt(GetWorld(), static_cast<EGRSfx>(Id - 100), GetPlayerController()->GetPawn()->GetActorLocation());
+		return;
+	}
+	if (Id >= 0 && Id < static_cast<int32>(EGRSfx::Count))
+	{
+		GRSfx::Play(GetWorld(), static_cast<EGRSfx>(Id));
 	}
 }
 

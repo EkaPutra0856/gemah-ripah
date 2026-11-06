@@ -5,6 +5,7 @@
 #include "Math/RandomStream.h"
 #include "GRTraffic.generated.h"
 
+class UAudioComponent;
 class UBoxComponent;
 class USkeletalMeshComponent;
 class UStaticMeshComponent;
@@ -69,6 +70,20 @@ private:
 	/** Physics back off: AGRTraffic finds the lane again and blends the car into it. */
 	void EndKnock();
 
+	/** Engine note and exhaust, only while Bayu is close enough to notice. */
+	void TickEngine(float DeltaSeconds);
+	void Honk();
+
+	/** Engines run within this distance of Bayu (cm). */
+	static constexpr float EngineReach = 3000.f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAudioComponent> Engine;
+
+	float NearCheck = 0.f;
+	float ExhaustWait = 0.f;
+	bool bNearPlayer = false;
+
 	bool bAngkot = false;
 	/** Tire radius of the Tripo model (cm): its wheel animation (one turn per second) plays at speed / (2 pi r). */
 	float WheelRadius = 0.f;
@@ -100,6 +115,8 @@ private:
 	bool bRejoin = false;
 	/** Stopped for Bayu (or his scooter) this long: honk. */
 	float BlockedByPlayer = 0.f;
+	/** Stopped for someone else on foot this long: a honk now and then. */
+	float BlockedByPerson = 0.f;
 	float HonkCooldown = 0.f;
 	/** Easing past something standing on the lane (a parked scooter, a person): sideways to the right, cm. */
 	float Shift = 0.f;
