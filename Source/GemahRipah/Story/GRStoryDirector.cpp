@@ -13,7 +13,9 @@
 #include "World/GRNpc.h"
 #include "World/GRStoryProp.h"
 #include "World/GRCrowd.h"
+#include "World/GRDewan.h"
 #include "World/GRFacades.h"
+#include "World/GRRoomShells.h"
 #include "World/GRTerrainDetails.h"
 #include "World/GRDressing.h"
 #include "World/GRPlusDressing.h"
@@ -80,6 +82,8 @@ void AGRStoryDirector::BeginPlay()
 	}
 	GetWorld()->SpawnActor<AGRTraffic>(AGRTraffic::StaticClass(), FTransform::Identity);
 	GetWorld()->SpawnActor<AGRFacades>(AGRFacades::StaticClass(), FTransform::Identity);
+	GetWorld()->SpawnActor<AGRRoomShells>(AGRRoomShells::StaticClass(), FTransform::Identity);
+	GetWorld()->SpawnActor<AGRDewan>(AGRDewan::StaticClass(), FTransform::Identity);
 	GetWorld()->SpawnActor<AGRTerrainDetails>(AGRTerrainDetails::StaticClass(), FTransform::Identity);
 	GetWorld()->SpawnActor<AGRDressing>(AGRDressing::StaticClass(), FTransform::Identity);
 	GetWorld()->SpawnActor<AGRCrowd>(AGRCrowd::StaticClass(), FTransform::Identity);

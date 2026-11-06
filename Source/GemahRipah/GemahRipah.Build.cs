@@ -26,7 +26,8 @@ public class GemahRipah : ModuleRules
 			"IKRig",
 			"AnimationCore",
 			"Landscape",
-			"AudioMixer"
+			"AudioMixer",
+			"ProceduralMeshComponent"
 		});
 
 		// Editor-only builders (Core/GRScriptLibrary: BuildTerrain).
