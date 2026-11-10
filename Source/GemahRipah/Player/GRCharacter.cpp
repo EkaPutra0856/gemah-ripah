@@ -603,6 +603,20 @@ void AGRCharacter::EndKnockdown()
 	}
 }
 
+float AGRCharacter::OpenSide() const
+{
+	const FVector Start = GetActorLocation();
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(GRRideOpenSide), false, this);
+	Params.AddIgnoredActor(Motor);
+	auto Room = [&](float Degrees)
+	{
+		FHitResult Hit;
+		const FVector Dir = GetActorForwardVector().RotateAngleAxis(Degrees, FVector::UpVector);
+		return GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + Dir * 700.f, ECC_Visibility, Params) ? Hit.Distance : 700.f;
+	};
+	return Room(50.f) >= Room(-50.f) ? 1.f : -1.f;
+}
+
 void AGRCharacter::TickRide(float DeltaSeconds)
 {
 	UCharacterMovementComponent* Move = GetCharacterMovement();
@@ -627,9 +641,37 @@ void AGRCharacter::TickRide(float DeltaSeconds)
 		}
 	}
 
-	const float Throttle = FMath::Clamp(RideInput.Y, -1.f, 1.f);
-	const float SteerInput = FMath::Clamp(RideInput.X, -1.f, 1.f);
+	float Throttle = FMath::Clamp(RideInput.Y, -1.f, 1.f);
+	float SteerInput = FMath::Clamp(RideInput.X, -1.f, 1.f);
 	RideInput = FVector2D::ZeroVector;
+
+	// Throttle held against a wall: the scooter cannot turn at a standstill, so it backs off by itself while the
+	// nose swings the way the rider steers (or toward the open side), and W rides on from there. Letting go stops it.
+	if (RideBackTime > 0.f)
+	{
+		RideBackTime = Throttle > 0.1f ? RideBackTime - DeltaSeconds : 0.f;
+		if (RideBackTime > 0.f)
+		{
+			Throttle = -1.f;
+			StoppedBrakeTime = 1.f;
+			// Going backwards the steering works the other way round.
+			SteerInput = -(FMath::Abs(SteerInput) > 0.1f ? SteerInput : RideBackSteer);
+		}
+		RideBlockedTime = 0.f;
+	}
+	else if (Throttle > 0.1f && FMath::Abs(RideSpeedNow) < 40.f && Move->IsMovingOnGround())
+	{
+		if ((RideBlockedTime += DeltaSeconds) > 0.45f)
+		{
+			RideBlockedTime = 0.f;
+			RideBackTime = 1.2f;
+			RideBackSteer = OpenSide();
+		}
+	}
+	else
+	{
+		RideBlockedTime = 0.f;
+	}
 	const float TopSpeed = RideSpeed * (bSprinting ? 1.3f : 1.f);
 	if (bWantDismount)
 	{
@@ -667,10 +709,10 @@ void AGRCharacter::TickRide(float DeltaSeconds)
 			RideSpeedNow = FMath::Max(RideSpeedNow - 1300.f * -Throttle * DeltaSeconds, 0.f);
 			StoppedBrakeTime = 0.f;
 		}
-		else if ((StoppedBrakeTime += DeltaSeconds) > 0.35f)
+		else if ((StoppedBrakeTime += DeltaSeconds) > 0.12f)
 		{
-			// Stopped and still holding S: walk the scooter backwards.
-			RideSpeedNow = FMath::Max(RideSpeedNow - 220.f * DeltaSeconds, -RideReverseSpeed);
+			// Stopped and still holding S: push the scooter backwards.
+			RideSpeedNow = FMath::Max(RideSpeedNow - 620.f * DeltaSeconds, -RideReverseSpeed);
 		}
 		else
 		{

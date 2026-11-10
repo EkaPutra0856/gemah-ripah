@@ -669,6 +669,7 @@
        "do": "set aksi_damai 1; suara 5",
        "next": "rencana"
       },
+      {"if": "suara>=35", "text": "[Suara 35] Warga sudah siap. Kita ajak semua kampung, bukan cuma RT 03.", "do": "set aksi_damai 1; set warga_kompak 1; suara 6", "next": "rencana"},
       {
        "text": "Blokir Jalan Raya biar mereka dengar.",
        "do": "set aksi_keras 1; suara 8; diawasi 10",
@@ -782,6 +783,7 @@
        "do": "add ketegangan 15; suara 10; set petisi_dibaca 1",
        "next": "baca"
       },
+      {"if": "suara>=45", "text": "[Suara 45] (Beri isyarat. Warga dari gang lain memenuhi jalan.)", "do": "add ketegangan -15; set warga_kompak 1; suara 5", "next": "piring"},
       {
        "text": "Kami titipkan, tapi kami minta tanda terima resmi.",
        "do": "add ketegangan -5; set tanda_terima 1",
@@ -2220,6 +2222,7 @@
    "if": "rudi_ditangkap",
    "text": "Rudi ditahan karena memperbanyak pamflet. Sari dan LBH mendampinginya.",
    "else": "Rudi lolos hari ini. Tapi nama-nama sudah dicatat."
-  }
+  },
+  {"if": "suara>=60", "text": "Di pasar orang menyapamu dengan nama. Di Kelurahan, namamu ditulis dengan stabilo.", "else": "Sebagian warga masih menunggu siapa yang berani duluan."}
  ]
 }

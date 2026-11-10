@@ -29,6 +29,22 @@ public:
 	UFUNCTION(Exec)
 	void GRSuara(float Delta);
 
+	/** Starts a smear against Bayu. */
+	UFUNCTION(Exec)
+	void GRBuzzer();
+
+	/** Spends Suara: 0 Rumah Aman, 1 Panggil Saksi, 2 Galang Dana. */
+	UFUNCTION(Exec)
+	void GRBeliSuara(int32 Kind);
+
+	/** Answers the smear. */
+	UFUNCTION(Exec)
+	void GRBantah();
+
+	/** Picks today's complaint by its place in the list (1 = first). */
+	UFUNCTION(Exec)
+	void GRAduan(int32 Number);
+
 	UFUNCTION(Exec)
 	void GRDiawasi(float Delta);
 
@@ -108,6 +124,14 @@ public:
 	/** Jumps Bayu to a few metres before the OjekKu pickup or drop-off (scripted tests). */
 	UFUNCTION(Exec)
 	void GROjolLompat();
+
+	/** Lets the dev bot play: "susup" (stealth minigame), "ojol" with a trip count, "duduk" (passenger on the parked scooter: 1 woman, 0 man), or "stop". */
+	/** Plays the trailer from Content/Data/trailer.json, from shot Start. */
+	UFUNCTION(Exec)
+	void GRTrailer(int32 Start = 0);
+
+	UFUNCTION(Exec)
+	void GRBot(const FString& What, int32 Count = 3);
 
 	/** Holds a key for a while, as if pressed by the player (for scripted tests). Example: GRTekan W 1.5 */
 	UFUNCTION(Exec)
@@ -195,8 +219,24 @@ public:
 	UFUNCTION(Exec)
 	void GRJajan(const FString& Order);
 
+	/**
+	 * Drives Bayu's phone for recordings: GRHp opens it on the home screen, GRHp <app> opens an app (ojekku, warga,
+	 * pesan, kicau, berita, dompet, galeri, peta), GRHp gulir [pixels a second] scrolls the page down, GRHp tutup closes it.
+	 */
+	UFUNCTION(Exec)
+	void GRHp(const FString& What, float Speed = 120.f);
+
+	/** Bayu walks the pavements (or rides the roads, on the scooter) to X Y by himself; Speed is the stick, 0..1. */
+	UFUNCTION(Exec)
+	void GRJalan(float X, float Y, float Speed = 1.f, float CameraYaw = 150.f);
+
+	/** GRPos behind a short fade from black, for scene changes in recordings. */
+	UFUNCTION(Exec)
+	void GRPindah(float X, float Y, float Yaw = 0.f);
+
 private:
 	UGameInstance* GetGI() const;
 	void Print(const FString& Message) const;
 	static FString SlotOrDefault(const FString& SlotName);
 };
+

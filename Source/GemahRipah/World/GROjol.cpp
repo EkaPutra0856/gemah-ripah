@@ -6,6 +6,7 @@
 #include "Systems/GRClockSubsystem.h"
 #include "Systems/GRNotificationSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "UI/GRUISubsystem.h"
 #include "World/GRCrowd.h"
 #include "World/GRMapMarkerComponent.h"
@@ -335,9 +336,10 @@ bool UGROjolSubsystem::MakeOffer()
 	}
 	const FDest& Pick = Options[Rng.RandRange(0, Options.Num() - 1)];
 	FVector Dest = Pick.Where;
-	if (Pick.bMarker && !Crowd->FindGroundSpot(Pick.Where, 300.f, 1500.f, Dest))
+	// A place on the map is often a building or a fenced yard: drop off on the pavement in front of it, where a scooter can reach.
+	if (Pick.bMarker && !Crowd->FindPickupSpot(Pick.Where, 0.f, 6000.f, Dest))
 	{
-		Dest = Pick.Where;
+		return false;
 	}
 
 	TArray<FVector2D> Path;
@@ -379,9 +381,13 @@ bool UGROjolSubsystem::MakeOffer()
 	}
 	PaxSeedNow = PaxSeed;
 	OfferLeft = OfferSeconds;
+	return true;
+}
+
+void UGROjolSubsystem::ShowOffer()
+{
 	SetStage(EGROjolStage::Offer);
 	GRSfx::Play(this, EGRSfx::OrderMasuk);
-	return true;
 }
 
 void UGROjolSubsystem::ForceOffer()
@@ -390,9 +396,44 @@ void UGROjolSubsystem::ForceOffer()
 	{
 		SetStage(EGROjolStage::Waiting);
 	}
-	if (Stage == EGROjolStage::Waiting || Stage == EGROjolStage::Summary)
+	if ((Stage == EGROjolStage::Waiting || Stage == EGROjolStage::Summary) && MakeOffer())
 	{
-		MakeOffer();
+		ShowOffer();
+	}
+}
+
+void UGROjolSubsystem::ForceRoadOffer(float MinMeters, float MaxMeters)
+{
+	auto OffRoad = [](const FVector& P)
+	{
+		float Best = TNumericLimits<float>::Max();
+		for (const float Line : RoadLines)
+		{
+			Best = FMath::Min(Best, FMath::Min(FMath::Abs(P.X - Line), FMath::Abs(P.Y - Line)));
+		}
+		return Best;
+	};
+	// Both ends on one stretch of main road, between two crossings: the route has no corners to cut.
+	auto SameStretch = [](const FVector& A, const FVector& B)
+	{
+		for (const float Line : RoadLines)
+		{
+			if ((FMath::Abs(A.X - Line) < 1800.f && FMath::Abs(B.X - Line) < 1800.f && A.Y * B.Y > 0.f && FMath::Abs(A.Y) < 24000.f && FMath::Abs(B.Y) < 24000.f)
+				|| (FMath::Abs(A.Y - Line) < 1800.f && FMath::Abs(B.Y - Line) < 1800.f && A.X * B.X > 0.f && FMath::Abs(A.X) < 24000.f && FMath::Abs(B.X) < 24000.f))
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+	for (int32 Try = 0; Try < 2000; ++Try)
+	{
+		if (MakeOffer() && SameStretch(Trip.Pickup, Trip.Dest) && Trip.Meters >= MinMeters && Trip.Meters <= MaxMeters && OffRoad(Trip.Pickup) < 1800.f && OffRoad(Trip.Dest) < 1800.f
+			&& Trip.Dest.Size2D() > 3500.f && Trip.Pickup.Size2D() > 3500.f && FMath::Abs(Trip.Dest.X) < 40000.f && FMath::Abs(Trip.Dest.Y) < 40000.f)
+		{
+			ShowOffer();
+			return;
+		}
 	}
 }
 
@@ -611,7 +652,7 @@ void UGROjolSubsystem::Board()
 	// Behind Bayu on the long seat: astride like him, or side-saddle facing right as many women ride.
 	const float Half = Pax->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	const FTransform Wanted = Trip.bFemale
-		? FTransform(FRotator(0.f, 90.f, 0.f), FVector(-46.f, -14.f, Half + 26.f)) * Motor->GetActorTransform()
+		? FTransform(FRotator(0.f, 90.f, 0.f), FVector(-60.f, 12.f, Half + 56.f)) * Motor->GetActorTransform()
 		: FTransform(FRotator::ZeroRotator, FVector(-44.f, 0.f, Half + 4.f)) * Motor->GetActorTransform();
 	Pax->OjolBoard(Seat, Wanted.GetRelativeTransform(Seat->GetComponentTransform()), Trip.bFemale, Bayu->GetRideAnim());
 	PrevSpeed = FMath::Abs(Bayu->GetRideSpeed());
@@ -672,9 +713,16 @@ void UGROjolSubsystem::Tick(float DeltaTime)
 		{
 			break;
 		}
-		if ((OfferTimer -= DeltaTime) <= 0.f && !MakeOffer())
+		if ((OfferTimer -= DeltaTime) <= 0.f)
 		{
-			OfferTimer = 4.f;
+			if (MakeOffer())
+			{
+				ShowOffer();
+			}
+			else
+			{
+				OfferTimer = 4.f;
+			}
 		}
 		break;
 	case EGROjolStage::Offer:
@@ -872,7 +920,16 @@ void UGROjolSubsystem::Finish(bool bCompleted)
 		}
 		Trip.Stars = FMath::Clamp(FMath::RoundToInt(Trip.Comfort), 1, 5);
 		Trip.Paid = FMath::RoundToInt(Trip.Fare * 0.8f);
-		Trip.Tip = Trip.Stars == 5 && FMath::FRand() < 0.6f ? FMath::RandRange(4, 12) * 500 : 0;
+		UGRSuaraSubsystem* Suara = UGRSuaraSubsystem::Get(this);
+		Trip.Tip = Suara && FMath::FRand() < Suara->TipChance(Trip.Stars) ? FMath::RandRange(4, 12) * 500 : 0;
+		if (Suara && Trip.Stars == 5)
+		{
+			Suara->Earn(1.f, TEXT("ojol"), 3);
+		}
+		else if (Suara && Trip.Stars <= 1)
+		{
+			Suara->Lose(2.f);
+		}
 		static const TCHAR* const Thanks[] = { TEXT("Nggak lagi-lagi deh."), TEXT("Lain kali hati-hati, Mas."), TEXT("Ya. Makasih."), TEXT("Makasih, Mas."), TEXT("Makasih, Mas! Bintang lima ya.") };
 		static const TCHAR* const Reviews[] = { TEXT("\"Bikin jantungan. Jangan pesan driver ini.\""), TEXT("\"Ugal-ugalan, saya hampir jatuh.\""), TEXT("\"Lumayan, tapi kurang hati-hati.\""),
 			TEXT("\"Aman, sampai tujuan.\""), TEXT("\"Driver ramah, nyetirnya halus. Mantap!\"") };
@@ -911,6 +968,10 @@ void UGROjolSubsystem::Finish(bool bCompleted)
 		Trip.Paid = 0;
 		Trip.Tip = 0;
 		Trip.Review = Trip.bCrashed ? TEXT("\"Saya jatuh dari motor! Lapor ke aplikasi.\"") : TEXT("\"Diturunkan di tengah jalan.\"");
+		if (UGRSuaraSubsystem* Suara = UGRSuaraSubsystem::Get(this))
+		{
+			Suara->Lose(2.f);
+		}
 		if (Pax)
 		{
 			Pax->OjolRelease();
@@ -962,6 +1023,25 @@ void UGROjolSubsystem::CancelTrip()
 	if (Stage == EGROjolStage::ToPickup || Stage == EGROjolStage::Boarding || Stage == EGROjolStage::Riding)
 	{
 		Abandon(TEXT("OjekKu: kamu membatalkan perjalanan. Rating akunmu turun."), true);
+	}
+}
+
+void UGROjolSubsystem::CheatSeatPassenger(bool bFemale)
+{
+	SetOnline(true);
+	if (Stage != EGROjolStage::Waiting)
+	{
+		return;
+	}
+	for (int32 Try = 0; Try < 200; ++Try)
+	{
+		if (MakeOffer() && Trip.bFemale == bFemale)
+		{
+			SetStage(EGROjolStage::Offer);
+			Accept();
+			Board();
+			return;
+		}
 	}
 }
 

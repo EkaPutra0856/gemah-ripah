@@ -1,5 +1,6 @@
 #include "World/GRRoomShells.h"
 #include "Camera/GRTopDownRoomVolume.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
@@ -9,6 +10,7 @@
 #include "Engine/TextRenderActor.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "ProceduralMeshComponent.h"
 #include "Story/GRStoryUtil.h"
@@ -28,6 +30,10 @@ namespace
 	constexpr float DoorTop = 230.f;
 	constexpr float DoorWidth = 260.f;
 	constexpr float PartCull = 16000.f;
+	/** What is left of the roof seen from above, and how long it takes to get there. */
+	constexpr float SeeThroughOpacity = 0.22f;
+	constexpr float SeeThroughTime = 0.35f;
+	const FLinearColor RoofColor(0.50f, 0.17f, 0.08f);
 
 	const FVector Sides[] = { FVector(1.f, 0.f, 0.f), FVector(-1.f, 0.f, 0.f), FVector(0.f, 1.f, 0.f), FVector(0.f, -1.f, 0.f) };
 
@@ -72,7 +78,7 @@ namespace
 AGRRoomShells::AGRRoomShells()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickInterval = 0.1f;
+	PrimaryActorTick.TickInterval = 0.03f;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 }
 
@@ -106,7 +112,8 @@ UProceduralMeshComponent* AGRRoomShells::MakePrism(AActor* Owner, USceneComponen
 void AGRRoomShells::BeginPlay()
 {
 	Super::BeginPlay();
-	RoofPaint = GRStoryUtil::MakeColorMaterial(this, FLinearColor(0.50f, 0.17f, 0.08f), 0.9f);
+	RoofPaint = GRStoryUtil::MakeColorMaterial(this, RoofColor, 0.9f);
+	SeeThroughParent = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/GemahRipah/Materials/M_GR_Tembus.M_GR_Tembus"));
 	TrimPaint = GRStoryUtil::MakeColorMaterial(this, FLinearColor(0.86f, 0.84f, 0.78f), 1.f);
 	GlassPaint = GRStoryUtil::MakeColorMaterial(this, FLinearColor(0.05f, 0.08f, 0.11f), 1.f);
 	BoardPaint = GRStoryUtil::MakeColorMaterial(this, FLinearColor(0.10f, 0.11f, 0.13f), 1.f);
@@ -176,9 +183,6 @@ void AGRRoomShells::Build(AGRTopDownRoomVolume& Room)
 	USceneComponent* Group = NewObject<USceneComponent>(this);
 	Group->SetupAttachment(RootComponent);
 	Group->RegisterComponent();
-	Rooms.Add(&Room);
-	Roofs.Add(Group);
-
 	Roof(Group, Center, Half, Shell);
 	for (const FVector& Out : Sides)
 	{
@@ -190,6 +194,25 @@ void AGRRoomShells::Build(AGRTopDownRoomVolume& Room)
 	const FVector Wall = Center + Shell.Door * (Reach(Half, Shell.Door) - WallHalf);
 	const float Lintel = Shell.Height - DoorTop;
 	Part(Group, Shell.Material, OnWall(Wall + FVector::UpVector * (DoorTop + Lintel * 0.5f), Shell.Door, FVector(WallHalf * 2.f, DoorWidth, Lintel)), true);
+
+	Rooms.Add(&Room);
+	FGRRoofParts& Parts = Roofs.AddDefaulted_GetRef();
+	Parts.SeeThrough = UMaterialInstanceDynamic::Create(SeeThroughParent, this);
+	Parts.SeeThrough->SetVectorParameterValue(TEXT("Color"), RoofColor);
+	TArray<USceneComponent*> Pieces;
+	Group->GetChildrenComponents(false, Pieces);
+	for (USceneComponent* Child : Pieces)
+	{
+		UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Child);
+		if (Mesh && Mesh->GetMaterial(0) == RoofPaint)
+		{
+			Parts.Slopes.Add(Mesh);
+		}
+		else
+		{
+			Parts.Rest.Add(Child);
+		}
+	}
 }
 
 void AGRRoomShells::Roof(USceneComponent* Group, const FVector& Center, const FVector& Half, const FShell& Shell)
@@ -310,12 +333,32 @@ void AGRRoomShells::Tick(float DeltaSeconds)
 	const ULocalPlayer* LP = PC ? PC->GetLocalPlayer() : nullptr;
 	const UGRUISubsystem* UI = LP ? LP->GetSubsystem<UGRUISubsystem>() : nullptr;
 	const bool bCutscene = UI && Cast<UGRCutsceneScreen>(UI->GetTopScreen());
+	const APlayerCameraManager* Camera = PC ? PC->PlayerCameraManager.Get() : nullptr;
 	for (int32 i = 0; i < Rooms.Num(); ++i)
 	{
-		const bool bShow = bCutscene || !Rooms[i]->HasPlayerInside();
-		if (Roofs[i]->IsVisible() != bShow)
+		const AActor* Room = Rooms[i];
+		// The pending target counts: the camera must not fly down into a solid roof.
+		const bool bFromAbove = !bCutscene && Camera && Rooms[i]->HasPlayerInside() && (Camera->GetViewTarget() == Room || Camera->PendingViewTarget.Target == Room);
+		FGRRoofParts& Parts = Roofs[i];
+		// A cutscene cuts to its camera, where a roof still fading in would show.
+		const float Fade = bCutscene ? 0.f : FMath::FInterpConstantTo(Parts.Fade, bFromAbove ? 1.f : 0.f, DeltaSeconds, 1.f / SeeThroughTime);
+		if (Fade == Parts.Fade)
 		{
-			Roofs[i]->SetVisibility(bShow, true);
+			continue;
 		}
+		if ((Fade == 0.f) != (Parts.Fade == 0.f))
+		{
+			const bool bSolid = Fade == 0.f;
+			for (UMeshComponent* Slope : Parts.Slopes)
+			{
+				Slope->SetMaterial(0, bSolid ? RoofPaint.Get() : static_cast<UMaterialInterface*>(Parts.SeeThrough));
+			}
+			for (USceneComponent* Other : Parts.Rest)
+			{
+				Other->SetVisibility(bSolid, true);
+			}
+		}
+		Parts.SeeThrough->SetScalarParameterValue(TEXT("Opacity"), FMath::Lerp(1.f, SeeThroughOpacity, Fade));
+		Parts.Fade = Fade;
 	}
 }

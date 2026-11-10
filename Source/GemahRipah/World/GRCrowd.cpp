@@ -12,6 +12,7 @@
 #include "Story/GRStoryUtil.h"
 #include "Systems/GRClockSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "UI/GRUISubsystem.h"
 #include "UI/GRWargaChat.h"
 #include "World/GRBody.h"
@@ -179,6 +180,16 @@ namespace
 	const TCHAR* const PoliceChatLines[] = {
 		TEXT("Sepi hari ini, Ndan."), TEXT("Katanya bulan ini target razia naik lagi."), TEXT("Kopi di pos habis, siapa yang beli?"),
 		TEXT("Awasi yang bergerombol, ya."), TEXT("Siap, laksanakan."), TEXT("Nanti malam kita jaga Tugu."), TEXT("Daftar pantauan baru turun tadi pagi."),
+	};
+	const TCHAR* const FanLines[] = {
+		TEXT("Eh, itu Mas Bayu yang kemarin!"), TEXT("Mas Bayu! Sehat, Mas?"), TEXT("Semangat, Mas!"), TEXT("Kami dukung, Mas."),
+		TEXT("Terima kasih ya, Mas."), TEXT("Hati-hati di jalan, Mas Bayu."),
+	};
+	const TCHAR* const MarchLines[] = {
+		TEXT("Kami di belakangmu, Mas."), TEXT("Biar mereka lihat kita banyak."), TEXT("Jalan terus, Mas!"), TEXT("Kali ini kami tidak diam."),
+	};
+	const TCHAR* const DefenderLines[] = {
+		TEXT("Pak, dia warga sini!"), TEXT("Salahnya apa, Pak?"), TEXT("Surat tugasnya mana, Pak?"), TEXT("Kami rekam ya, Pak!"), TEXT("Jangan main tangkap, Pak!"),
 	};
 	const TCHAR* const RadioLines[] = {
 		TEXT("Pos, ini patroli. Target terlihat, ganti."), TEXT("Orang di daftar pantauan lewat sini, ganti."), TEXT("Kami ikuti dari jauh, ganti."),
@@ -525,6 +536,7 @@ void AGRWarga::Dress(int32 Seed, ERole InRole, bool bNight)
 
 void AGRWarga::Activate(const FVector& Feet, float Yaw)
 {
+	bSupporter = false;
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
@@ -736,6 +748,7 @@ void AGRWarga::TickAngry(float DeltaSeconds)
 		ShoutTimer = Rng.FRandRange(2.f, 2.8f);
 		const TCHAR* Line = Anger == EAnger::Driver ? PickOne(Rng, DriverLines)
 			: Anger == EAnger::Shoved ? PickOne(Rng, ShoveLines)
+			: Anger == EAnger::Defender ? PickOne(Rng, DefenderLines)
 			: Anger == EAnger::Bystander ? PickOne(Rng, BystanderLines) : PickOne(Rng, VictimLines);
 		Say(Line, 1.9f, AngryColor);
 	}
@@ -754,21 +767,72 @@ void AGRWarga::TickAngry(float DeltaSeconds)
 		Say(TEXT("Huh! Awas kalau ketemu lagi!"), 2.f, AngryColor);
 		return;
 	}
-	if (Anger != EAnger::Bystander)
+	if (Anger != EAnger::Bystander && Anger != EAnger::Defender)
 	{
 		Say(PickOne(Rng, CalmLines), 2.2f);
 	}
 	NextTarget(false);
 }
 
-void AGRWarga::StartGlance()
+void AGRWarga::StartGreet()
+{
+	StartGlance(false);
+	WaveTime = 2.2f;
+	UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s menyapa Bayu"), *GetName());
+	Say(PickOne(Rng, FanLines), 2.4f);
+}
+
+void AGRWarga::StartSupport()
+{
+	bSupporter = true;
+	Mode = EMode::Follow;
+	FollowLost = 0.f;
+	GlanceCooldown = 30.f;
+	Group = -1;
+	bCrossing = false;
+	SupportShout = Rng.FRandRange(2.f, 6.f);
+	UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s berjalan bersama Bayu"), *GetName());
+	Say(PickOne(Rng, MarchLines), 2.4f);
+}
+
+void AGRWarga::TickSupport(float DeltaSeconds, const APawn* Player)
+{
+	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	const FVector To = Bayu ? Bayu->GetActorLocation() - GetActorLocation() : FVector::ZeroVector;
+	const float Dist = To.Size2D();
+	const UGRSuaraSubsystem* Suara = UGRSuaraSubsystem::Get(this);
+	const bool bGone = !Bayu || Bayu->IsRiding() || Bayu->IsInTopDownMode() || Dist > 1700.f || !Suara || !Suara->HasTier(EGRSuaraTier::Gerakan);
+	FollowLost = bGone ? FollowLost + DeltaSeconds : 0.f;
+	if (FollowLost > 1.5f)
+	{
+		bSupporter = false;
+		Move->MaxWalkSpeed = Speed;
+		NextTarget(false);
+		return;
+	}
+	if (Dist > 300.f)
+	{
+		// Keeps up with him walking and falls behind when he runs.
+		Move->MaxWalkSpeed = FMath::FInterpTo(Move->MaxWalkSpeed, Dist > 700.f ? 460.f : 340.f, DeltaSeconds, 3.f);
+		AddMovementInput(To.GetSafeNormal2D(), 1.f);
+	}
+	SupportShout -= DeltaSeconds;
+	if (SupportShout <= 0.f)
+	{
+		SupportShout = Rng.FRandRange(9.f, 16.f);
+		Say(PickOne(Rng, MarchLines), 2.2f);
+	}
+}
+
+void AGRWarga::StartGlance(bool bMutter)
 {
 	GlanceResume = Mode == EMode::Pause || Mode == EMode::Chat ? Mode : EMode::Walk;
 	Mode = EMode::Glance;
 	UE_LOG(LogGRCrowd, Display, TEXT("GRWARGA %s melirik Bayu"), *GetName());
 	GlanceTime = Rng.FRandRange(1.8f, 2.8f);
 	GlanceCooldown = 30.f;
-	if (Rng.FRand() < 0.5f)
+	if (bMutter && Rng.FRand() < 0.5f)
 	{
 		// Muttered, not shouted: no shake, and the glance stays the pose.
 		UGRBubbleSubsystem::Show(this, PickOne(Rng, WatchLines), 2.2f, FLinearColor(WatchColor), BubbleZ, false);
@@ -817,6 +881,11 @@ void AGRWarga::StartFollow()
 
 void AGRWarga::TickFollow(float DeltaSeconds, const APawn* Player)
 {
+	if (bSupporter)
+	{
+		TickSupport(DeltaSeconds, Player);
+		return;
+	}
 	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	const FVector Loc = GetActorLocation();
@@ -2630,6 +2699,7 @@ void AGRCrowd::Tick(float DeltaSeconds)
 		return;
 	}
 	UpdateWatchers(Player, 0.5f);
+	UpdateFriends(Player, 0.5f);
 	UpdatePolice(Player, 0.5f);
 	const FVector Center = Player->GetActorLocation();
 	// A teleport (story jump, waking up at home): fill the new place at once, even in view.
@@ -2720,7 +2790,7 @@ void AGRCrowd::UpdateWatchers(const APawn* Player, float Step)
 	for (const AGRWarga* Person : People)
 	{
 		Looking += Person->bActive && Person->Mode == AGRWarga::EMode::Glance ? 1 : 0;
-		Following += Person->bActive && Person->Mode == AGRWarga::EMode::Follow && !Person->IsPolice() ? 1 : 0;
+		Following += Person->bActive && Person->Mode == AGRWarga::EMode::Follow && !Person->IsPolice() && !Person->bSupporter ? 1 : 0;
 	}
 	const FVector Eye = Bayu->GetActorLocation() + FVector(0.f, 0.f, 60.f);
 	// The nearest passer-by in sight of him (and of the camera, so the look is not wasted).
@@ -2766,6 +2836,82 @@ void AGRCrowd::UpdateWatchers(const APawn* Player, float Step)
 			Person->StartGlance();
 			// The higher Diawasi, the quicker the next one looks: every 5 s at 50, every half second from 80.
 			GlanceGap = FMath::GetMappedRangeValueClamped(FVector2f(50.f, 80.f), FVector2f(5.f, 0.f), Diawasi);
+		}
+	}
+}
+
+AGRWarga* AGRCrowd::FindCitizenNear(const FVector& Center, float MinR, float MaxR) const
+{
+	using EMode = AGRWarga::EMode;
+	AGRWarga* Best = nullptr;
+	float BestDist = FMath::Square(MaxR);
+	for (AGRWarga* Person : People)
+	{
+		const FVector L = Person->GetActorLocation();
+		const float D = FVector::DistSquared2D(L, Center);
+		if (!Person->bActive || D >= BestDist || D < FMath::Square(MinR) || Person->IsPolice() || Person->bOjol || Person->bSupporter || Person->DriverCar.IsValid()
+			|| Person->Role == AGRWarga::ERole::Vendor || (Person->Mode != EMode::Walk && Person->Mode != EMode::Pause && Person->Mode != EMode::Chat)
+			|| Person->Dodge > 0.f || Person->TalkPause > 0.f || Person->StartleTime > 0.f || Person->GlanceCooldown > 0.f || !InView(L - FVector(0.f, 0.f, CapsuleHalf)))
+		{
+			continue;
+		}
+		Best = Person;
+		BestDist = D;
+	}
+	return Best;
+}
+
+void AGRCrowd::UpdateFriends(const APawn* Player, float Step)
+{
+	GreetGap -= Step;
+	SupportGap -= Step;
+	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
+	const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
+	const UGRSuaraSubsystem* Suara = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>();
+	if (!Bayu || !Status || !Suara || !Suara->HasTier(EGRSuaraTier::Dikenal) || Bayu->IsRiding() || Bayu->IsInTopDownMode() || Bayu->IsKnockedDown() || IsArresting())
+	{
+		return;
+	}
+	const FVector Center = Bayu->GetActorLocation();
+	if (GreetGap <= 0.f)
+	{
+		if (AGRWarga* Person = FindCitizenNear(Center, 150.f, 800.f))
+		{
+			Person->StartGreet();
+			// Every 24 s or so for someone just known, every 7 s for a whole movement.
+			GreetGap = FMath::GetMappedRangeValueClamped(FVector2f(20.f, 90.f), FVector2f(24.f, 7.f), Status->GetSuara());
+		}
+	}
+	if (SupportGap <= 0.f && Suara->HasTier(EGRSuaraTier::Gerakan))
+	{
+		int32 Walking = 0;
+		for (const AGRWarga* Person : People)
+		{
+			Walking += Person->bActive && Person->bSupporter ? 1 : 0;
+		}
+		SupportGap = 6.f;
+		if (Walking < 3)
+		{
+			if (AGRWarga* Person = FindCitizenNear(Center, 150.f, 1000.f))
+			{
+				Person->StartSupport();
+			}
+		}
+	}
+}
+
+void AGRCrowd::RallyAgainst(AGRWarga* Officer, int32 Count)
+{
+	using EMode = AGRWarga::EMode;
+	for (AGRWarga* Person : People)
+	{
+		if (Count > 0 && Person->bActive && !Person->IsPolice() && !Person->bOjol && !Person->DriverCar.IsValid() && Person->Role != AGRWarga::ERole::Vendor
+			&& (Person->Mode == EMode::Walk || Person->Mode == EMode::Pause || Person->Mode == EMode::Chat || Person->Mode == EMode::Glance || Person->bSupporter)
+			&& FVector::DistSquared2D(Person->GetActorLocation(), Officer->GetActorLocation()) < FMath::Square(1400.f))
+		{
+			Person->bSupporter = false;
+			Person->GetAngry(Officer, Rng.FRandRange(4.f, 6.f), AGRWarga::EAnger::Defender);
+			--Count;
 		}
 	}
 }
@@ -2827,6 +2973,8 @@ void AGRCrowd::UpdatePolice(const APawn* Player, float Step)
 	using EMode = AGRWarga::EMode;
 	PoliceCalm -= Step;
 	PoliceSpawnGap -= Step;
+	WarnGap -= Step;
+	ShieldGap -= Step;
 	const AGRCharacter* Bayu = Cast<AGRCharacter>(Player);
 	int32 Units = 0;
 	int32 Pairs = 0;
@@ -2866,6 +3014,29 @@ void AGRCrowd::UpdatePolice(const APawn* Player, float Step)
 	}
 	bWasChased = Chasers > 0;
 
+	const UGRSuaraSubsystem* Suara = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>();
+	if (Story && Suara && Chasers > 0 && ShieldGap <= 0.f && !IsArresting() && Suara->HasTier(EGRSuaraTier::Dilindungi))
+	{
+		// The town gets in the way: every officer on the run is held up by the people around them.
+		ShieldGap = 25.f;
+		bool bHeldUp = false;
+		for (AGRWarga* Person : People)
+		{
+			if (Person->bActive && Person->IsPolice() && Person->Mode == EMode::Chase)
+			{
+				Person->Wait = 4.f;
+				Person->Say(TEXT("Minggir! Jangan halangi petugas!"), 2.2f, AngryColor);
+				RallyAgainst(Person, 3);
+				bHeldUp = true;
+			}
+		}
+		if (bHeldUp)
+		{
+			UE_LOG(LogGRCrowd, Display, TEXT("GRSPN dihadang warga"));
+			Story->Run(TEXT("notifbaik Warga menghadang SPN! Lari sekarang."));
+		}
+	}
+
 	const UGRStatusSubsystem* Status = GetGameInstance()->GetSubsystem<UGRStatusSubsystem>();
 	const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	const UGRUISubsystem* UI = PC && PC->GetLocalPlayer() ? PC->GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
@@ -2875,6 +3046,23 @@ void AGRCrowd::UpdatePolice(const APawn* Player, float Step)
 	}
 	// Diawasi 65: an officer who sees him tails him from a distance. 85: they run him down.
 	const float Diawasi = Status->GetDiawasi();
+	if (Story && Suara && WarnGap <= 0.f && Diawasi >= 40.f && Suara->HasTier(EGRSuaraTier::Dibela))
+	{
+		// Someone who trusts him tips him off before the patrol gets close.
+		const FVector Here = Bayu->GetActorLocation();
+		const bool bNear = People.ContainsByPredicate([&Here](const AGRWarga* Person)
+		{
+			return Person->bActive && Person->IsPolice() && FVector::DistSquared2D(Person->GetActorLocation(), Here) < FMath::Square(1800.f);
+		});
+		AGRWarga* Friend = bNear ? FindCitizenNear(Here, 150.f, 1000.f) : nullptr;
+		if (Friend)
+		{
+			WarnGap = 45.f;
+			Friend->StartGlance(false);
+			Friend->Say(TEXT("Mas Bayu, ada SPN dekat sini. Hati-hati."), 2.8f);
+			Story->Run(TEXT("notif Warga berbisik: ada SPN dekat sini."));
+		}
+	}
 	if (Diawasi < 65.f)
 	{
 		return;
@@ -2928,6 +3116,24 @@ void AGRCrowd::StartArrest(AGRWarga* Officer)
 	AGRCharacter* Bayu = PC ? Cast<AGRCharacter>(PC->GetPawn()) : nullptr;
 	if (!Bayu || !Officer || ArrestTime >= 0.f)
 	{
+		return;
+	}
+	if (UGRSuaraSubsystem* Suara = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>(); Suara && Suara->UseWitness())
+	{
+		// The witness Bayu called in: phones up, the officers think better of it.
+		UE_LOG(LogGRCrowd, Display, TEXT("GRSPN %s batal menangkap, ada saksi"), *Officer->GetName());
+		for (AGRWarga* Person : People)
+		{
+			if (Person->bActive && Person->IsPolice() && Person->Mode == AGRWarga::EMode::Chase)
+			{
+				Person->EndChase(false);
+				Person->ChaseCooldown = 60.f;
+			}
+		}
+		Officer->Say(TEXT("...Kali ini kamu beruntung."), 2.4f, AngryColor);
+		RallyAgainst(Officer, 5);
+		PoliceCalm = 60.f;
+		bWasChased = false;
 		return;
 	}
 	UE_LOG(LogGRCrowd, Display, TEXT("GRSPN %s menangkap Bayu"), *Officer->GetName());
@@ -3024,6 +3230,7 @@ void AGRCrowd::TickArrest(float DeltaSeconds)
 	UGRStorySubsystem* Story = GetGameInstance()->GetSubsystem<UGRStorySubsystem>();
 	if (bHeld && Story)
 	{
+		GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>()->NoteCaught();
 		Story->CancelOrder();
 		Story->Run(Story->GetData().OnCaught);
 	}
@@ -3036,18 +3243,23 @@ void AGRCrowd::ReportIncident(float Diawasi, const FVector& Where, const FString
 	Incidents.Add(Now);
 	// Once is an accident. Again and again within a minute and a half, and people start to remember the face.
 	const int32 Count = Incidents.Num();
-	const bool bRiot = Count >= 3 && Now - LastRiot > 60.0;
+	UGRSuaraSubsystem* Suara = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>();
+	const bool bRiot = Count >= 3 && Now - LastRiot > 60.0 && !Suara->HasTier(EGRSuaraTier::Gerakan);
 	if (bRiot)
 	{
 		LastRiot = Now;
 	}
-	const float Delta = FMath::RoundToFloat(Diawasi * FMath::Min(1.f + 0.5f * (Count - 1), 3.f)) + (bRiot ? 5.f : 0.f);
+	const float Delta = FMath::RoundToFloat(Diawasi * FMath::Min(1.f + 0.5f * (Count - 1), 3.f) * Suara->IncidentScale()) + (bRiot ? 5.f : 0.f);
+	// People remember who hurt them: the town's trust goes with it.
+	const float Trust = bRiot ? 5.f : FMath::Clamp(FMath::RoundToFloat(Diawasi * 0.5f), 1.f, 3.f);
+	Suara->Lose(Trust);
 	UE_LOG(LogGRCrowd, Display, TEXT("GRINSIDEN %s ke-%d dalam 90 dtk, Diawasi +%.0f%s"), *What, Count, Delta, bRiot ? TEXT(", KERUSUHAN") : TEXT(""));
 	UGameInstance* GI = GetGameInstance();
 	if (UGRStorySubsystem* Story = GI->GetSubsystem<UGRStorySubsystem>())
 	{
-		Story->Run(FString::Printf(TEXT("notifburuk %s Diawasi +%.0f."),
-			bRiot ? TEXT("Kerusuhan! Warga ramai mengerubungi Bayu, ada yang merekam.") : *What, Delta));
+		Story->SetVar(TEXT("suara.tabrak"), Story->GetVar(TEXT("suara.tabrak")) + 1);
+		Story->Run(FString::Printf(TEXT("notifburuk %s Diawasi +%.0f, Suara -%.0f."),
+			bRiot ? TEXT("Kerusuhan! Warga ramai mengerubungi Bayu, ada yang merekam.") : *What, Delta, Trust));
 	}
 	if (UGRStatusSubsystem* Status = GI->GetSubsystem<UGRStatusSubsystem>())
 	{

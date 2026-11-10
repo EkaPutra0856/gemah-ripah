@@ -599,6 +599,7 @@
        "do": "set ev.tawar_wiryo 1",
        "next": "rekam"
       },
+      {"if": "suara>=50", "text": "[Suara 50] Komandan, kalau besok saya hilang, satu gang tahu ke mana saya pergi.", "do": "set ev.tawar_wiryo 1; suara 3; diawasi -10", "next": "tolak"},
       {
        "text": "Teman saya tidak bersalah. Tidak ada yang perlu dibayar.",
        "do": "set ev.tawar_wiryo 1; suara 3",
@@ -1000,6 +1001,7 @@
        "do": "add pendengar 20; set siar_bukti 1",
        "next": "lanjut"
       },
+      {"if": "suara>=40", "text": "[Suara 40] Malam ini bukan saya yang bicara. Silakan, warga yang pernah kami bantu.", "do": "add pendengar 25; set siar_warga 1", "next": "lanjut"},
       {
        "text": "Kelurahan punya target 50 laporan sebulan. Laporan itu bukan suara warga, tapi kuota.",
        "do": "add pendengar 15; set siar_target 1",
@@ -1459,7 +1461,7 @@
    ],
    "radius": 700,
    "if": "q.Radio==3",
-   "do": "done Radio; jika pendengar>=50 && bukti_lapor ? set rudi_bebas 1; jika pendengar>=70 && bukti_target ? set rudi_bebas 1; cutscene penutup"
+   "do": "done Radio; set radio_gang 1; jika pendengar>=50 && bukti_lapor ? set rudi_bebas 1; jika pendengar>=70 && bukti_target ? set rudi_bebas 1; cutscene penutup"
   },
   {
    "id": "sari",
@@ -2305,6 +2307,7 @@
    "text": "Rekaman 'biaya penangguhan' Komandan Wiryo tersimpan aman di ponselmu.",
    "else": "Tawaran 'biaya administrasi' Wiryo menguap tanpa bukti."
   },
+  {"if": "suara>=60", "text": "Kalau SPN bertanya soal Bayu, satu gang mendadak lupa ingatan.", "else": "Sebagian warga mendengarkan radio, tapi volumenya masih dikecilkan."},
   {
    "text": "Di Pasar Sentosa, patok-patok oranye mulai bermunculan. Proyek Mercusuar sudah menunggu.",
    "color": "#9B6BD6"

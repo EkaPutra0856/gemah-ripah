@@ -89,6 +89,10 @@ public:
 	void CancelTrip();
 	/** Cheat GROjol: online, and an offer at once. */
 	void ForceOffer();
+	/** Dev bot: an offer at once whose pickup and drop-off lie on the main roads, between MinMeters and MaxMeters long, away from the roundabout. */
+	void ForceRoadOffer(float MinMeters, float MaxMeters);
+	/** Dev bot: seats a passenger on the parked scooter at once, to check how they sit. */
+	void CheatSeatPassenger(bool bFemale);
 	/** Cheat GROjolLompat: Bayu (and whoever rides with him) jumps to a few metres before the pickup or drop-off. */
 	void CheatJumpToTarget();
 	/** The customer was knocked over at the kerb before boarding. */
@@ -131,6 +135,7 @@ private:
 	AGRCharacter* GetBayu() const;
 	bool CanTakeOffers(FString* OutWhy) const;
 	bool MakeOffer();
+	void ShowOffer();
 	void SetStage(EGROjolStage NewStage);
 	void StartChat(const FString& Prompt, const TArray<FGROjolChoice>& Choices, float Seconds);
 	void PassengerSay(const FString& Text, float Seconds = 3.5f) const;

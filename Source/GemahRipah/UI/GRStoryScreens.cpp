@@ -1,4 +1,5 @@
 #include "UI/GRStoryScreens.h"
+#include "Core/GRPlayerController.h"
 #include "UI/GRChapterScreens.h"
 #include "World/GRStealthLevel.h"
 #include "UI/GRMenuButton.h"
@@ -56,6 +57,7 @@ namespace
 
 FString UGRDialogScreen::PendingId;
 FString UGRDialogScreen::ActiveSpeaker;
+float UGRDialogScreen::AutoPlayPause = 0.f;
 
 UGRDialogScreen::UGRDialogScreen(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -395,6 +397,23 @@ void UGRDialogScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		return;
 	}
 	TickMeter(InDeltaTime);
+	if (AutoPlayPause > 0.f && Reveal >= FullText.Len())
+	{
+		AutoPlayWait += InDeltaTime;
+		if (AutoPlayWait >= AutoPlayPause + FullText.Len() / 30.f)
+		{
+			AutoPlayWait = 0.f;
+			if (bHasChoices)
+			{
+				PickChoice(0);
+			}
+			else
+			{
+				Advance();
+			}
+			return;
+		}
+	}
 	const bool bWasRevealing = Reveal < FullText.Len() + 0.5f;
 	if (Reveal < FullText.Len())
 	{
@@ -604,6 +623,7 @@ bool UGRCutsceneScreen::Open(UGRUISubsystem* UI, const FString& CutsceneId)
 		UE_LOG(LogTemp, Warning, TEXT("Cutscene tidak ditemukan: %s"), *CutsceneId);
 		return false;
 	}
+	UE_LOG(LogTemp, Display, TEXT("GRCUTSCENE mulai %s"), *CutsceneId);
 	PendingId = CutsceneId;
 	return UI->PushScreen<UGRCutsceneScreen>() != nullptr;
 }
@@ -763,12 +783,13 @@ void UGRCutsceneScreen::Finish()
 		return;
 	}
 	bDone = true;
+	UE_LOG(LogTemp, Display, TEXT("GRCUTSCENE selesai %s"), *CutsceneId);
 	UGRDialogScreen::ActiveSpeaker.Reset();
 	if (APlayerController* PC = GetOwningPlayer())
 	{
-		if (PC->GetPawn())
+		if (AGRPlayerController* GRPC = Cast<AGRPlayerController>(PC))
 		{
-			PC->SetViewTargetWithBlend(PC->GetPawn(), 0.f);
+			GRPC->ReturnToPlayView();
 		}
 		PC->PlayerCameraManager->StartCameraFade(FadeNow, 0.f, FadeNow > 0.f ? 0.8f : 0.01f, FLinearColor::Black, false, false);
 	}

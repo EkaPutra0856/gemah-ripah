@@ -40,6 +40,7 @@ public:
 	/** Guard inside a stealth level: shorter, narrower sight; no Diawasi, no chase, stops and stares instead. */
 	void SetStealthGuard(float Range, float HalfAngle);
 	bool SeesPlayer() const { return bSeesPlayer; }
+	const TArray<FVector>& GetPatrol() const { return Patrol; }
 	/** Back to the spawn point and the start of the patrol. */
 	void ReturnHome();
 	bool IsSeated() const { return bSeated; }

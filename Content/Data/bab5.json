@@ -585,6 +585,7 @@
        "do": "suara 3",
        "next": "bantu"
       },
+      {"if": "suara>=45", "text": "[Suara 45] Warga tahu siapa Bapak sebenarnya. Mereka mau Bapak pulang dengan kepala tegak.", "do": "suara 3; set darmo_berani 1", "next": "bantu"},
       {
        "text": "Kalau Bapak diam, Bapak ikut mencoblos untuk 212 orang mati.",
        "next": "bantu"
@@ -744,15 +745,27 @@
     },
     {
      "speaker": "",
+     "text": "Barisan di TPS tidak terlalu ramai. Sebagian warga masih menimbang: berani atau aman.",
+     "if": "suara<50",
+     "do": "bonussuara suara_ratna"
+    },
+    {
+     "speaker": "",
      "text": "Ibu-ibu PKK yang dulu kamu ajak bicara soal asap mengangguk pelan. Mereka ingat.",
-     "if": "suara>=50",
-     "do": "add suara_ratna 5"
+     "if": "suara>=50 && suara<70",
+     "do": "bonussuara suara_ratna"
     },
     {
      "speaker": "",
      "text": "Namamu dibicarakan di setiap gang. Warga datang ke TPS membawa catatan sendiri.",
      "if": "suara>=70",
-     "do": "add suara_ratna 5"
+     "do": "bonussuara suara_ratna"
+    },
+    {
+     "speaker": "",
+     "text": "Dari kawasan lain, saksi-saksi warga mulai mengirim angka. Mereka tidak dibayar. Mereka cuma tidak mau ditipu lagi.",
+     "if": "kawasan_kuat>=1",
+     "do": "bonuskawasan suara_ratna"
     },
     {
      "speaker": "ibu",
@@ -806,6 +819,7 @@
        "do": "add suara_ratna 8; suara 5",
        "next": "lanjut"
       },
+      {"if": "suara>=60", "text": "[Suara 60] (Angkat tangan. Seisi TPS berdiri: 'Hitung ulang!')", "do": "add suara_ratna 11; suara 5", "next": "lanjut"},
       {
        "text": "(Diam saja. Terlalu banyak SPN.)",
        "do": "add suara_ratna -8",
@@ -2364,6 +2378,7 @@
    "text": "Uang 'koordinator' dari Bang Jefri masih ada di dompetmu. Kamu tidak pernah memakainya.",
    "else": ""
   },
+  {"if": "suara>=80", "text": "Suara warga: kamu tidak lagi sendirian. Kota ini sudah hafal jalan pulangnya.", "else": "Suara warga: sebagian ikut, sebagian menunggu. Tapi tidak ada lagi yang bilang tidak tahu."},
   {
    "text": "TAMAT. Terima kasih sudah bermain Gemah Ripah. Kota ini fiktif. Semoga selamanya begitu.",
    "color": "#6EC878",

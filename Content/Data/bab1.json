@@ -303,6 +303,7 @@
         { "speaker": "warga", "text": "Anak saya juga muntah, Bay. Dua hari. Saya kira masuk angin." },
         { "speaker": "rt", "text": "Kami juga punya cerita. Pak Udin dipalak di kelurahan. Bu Yati warungnya digusur buat parkir mobil dinas.",
           "choices": [
+            {"if": "suara>=15", "text": "[Suara 15] Kemarin ada yang berterima kasih, Pak. Warga mulai berani cerita.", "do": "suara 2", "next": "banyak"},
             { "text": "Kita bisa apa, Pak? Mereka punya SPN.", "next": "banyak" },
             { "text": "Saya takut, Pak.", "next": "takut" }
           ] },
@@ -327,6 +328,7 @@
         { "id": "pilihan", "speaker": "intel", "text": "Pilihanmu sederhana. Hapus unggahan, bikin video minta maaf, selesai.",
           "choices": [
             { "text": "Baik, saya hapus dan minta maaf.", "do": "suara -15; set minta_maaf 1", "next": "maaf" },
+            {"if": "suara>=25", "text": "[Suara 25] Warga tahu saya di sini, Pak. Ada yang menunggu di luar pos.", "do": "add tekanan 10; suara 3; set warga_kompak 1", "next": "fakta"},
             { "text": "Itu fakta. Adik saya keracunan.", "do": "add tekanan 25; suara 10", "next": "fakta" },
             { "text": "Saya minta didampingi pengacara LBH.", "do": "add tekanan 15; suara 5; set lbh 1", "next": "fakta" }
           ] },

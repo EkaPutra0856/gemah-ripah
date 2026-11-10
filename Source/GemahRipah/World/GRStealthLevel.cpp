@@ -113,6 +113,19 @@ FVector AGRStealthLevel::CellCenter(int32 Row, int32 Col) const
 	return FVector(Top.X - Cell * (Row + 0.5f), Top.Y + Cell * (Col + 0.5f), Top.Z);
 }
 
+const TArray<FString>& AGRStealthLevel::GetGrid() const
+{
+	static const TArray<FString> None;
+	const UGRStorySubsystem* Story = GetStory();
+	const FGRMinigameDef* Def = Story ? Story->FindMinigame(MinigameId) : nullptr;
+	return Def ? Def->Grid : None;
+}
+
+FIntPoint AGRStealthLevel::CellOf(const FVector& Location) const
+{
+	return FIntPoint(FMath::FloorToInt((Top.X - Location.X) / Cell), FMath::FloorToInt((Location.Y - Top.Y) / Cell));
+}
+
 bool AGRStealthLevel::Build(AGRTopDownRoomVolume* Room)
 {
 	UGRStorySubsystem* Story = GetStory();

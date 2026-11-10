@@ -5,14 +5,35 @@
 #include "GRRoomShells.generated.h"
 
 class AGRTopDownRoomVolume;
+class UMaterialInstanceDynamic;
 class UMaterialInterface;
+class UMeshComponent;
 class UProceduralMeshComponent;
 class UStaticMeshComponent;
 
+/** One room's roof: the slopes go see-through when seen from above, the rest of it goes away. */
+USTRUCT()
+struct FGRRoofParts
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<TObjectPtr<UMeshComponent>> Slopes;
+
+	UPROPERTY()
+	TArray<TObjectPtr<USceneComponent>> Rest;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> SeeThrough;
+
+	/** 0 solid, 1 fully see-through. */
+	float Fade = 0.f;
+};
+
 /**
  * Makes the walled rooms (rumah Bayu, warnet, kelurahan, dapur PPR) look like buildings from outside: a pitched roof,
- * windows, a lintel over the door and a name board. The rooms are roofless for their top-down camera, so the roof goes
- * away while the player is inside and comes back for cutscenes. Built at runtime from the level's walls.
+ * windows, a lintel over the door and a name board. The roof turns see-through only while the room's top-down camera is
+ * the view; from every other camera it stays solid. Built at runtime from the level's walls.
  */
 UCLASS()
 class GEMAHRIPAH_API AGRRoomShells : public AActor
@@ -51,9 +72,12 @@ private:
 	UPROPERTY()
 	TArray<TObjectPtr<AGRTopDownRoomVolume>> Rooms;
 
-	/** Per room: everything that goes away for the top-down camera. */
+	/** Per room, in the order of Rooms. */
 	UPROPERTY()
-	TArray<TObjectPtr<USceneComponent>> Roofs;
+	TArray<FGRRoofParts> Roofs;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> SeeThroughParent;
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> RoofPaint;

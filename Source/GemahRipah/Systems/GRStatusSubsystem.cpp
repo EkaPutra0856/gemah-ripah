@@ -50,13 +50,18 @@ bool UGRStatusSubsystem::SpendUang(int32 Amount)
 	return true;
 }
 
-void UGRStatusSubsystem::AddSuara(float Delta)
+void UGRStatusSubsystem::AddSuara(float Delta, bool bQuiet)
 {
 	const float Old = Suara;
-	Suara = FMath::Clamp(Suara + Delta, 0.f, MeterMax);
+	const float Gain = Delta > 0.f ? Delta * (1.f - Suara / SuaraGainEnd) : Delta;
+	Suara = FMath::Clamp(Suara + Gain, 0.f, MeterMax);
 	if (!FMath::IsNearlyEqual(Old, Suara))
 	{
-		NotifyChange(FString::Printf(TEXT("Suara %+.0f"), Suara - Old), Suara > Old);
+		if (!bQuiet && FMath::Abs(Suara - Old) >= 0.5f)
+		{
+			NotifyChange(FString::Printf(TEXT("Suara %+.0f"), Suara - Old), Suara > Old);
+		}
+		OnSuaraChanged.Broadcast(Old, Suara);
 	}
 	OnStatusChanged.Broadcast();
 }

@@ -24,6 +24,8 @@ public:
 
 	void EnterTopDownRoom(AGRTopDownRoomVolume* Room);
 	void ExitTopDownRoom(AGRTopDownRoomVolume* Room);
+	/** Back to the room's camera, or the player's when not in a room. For the end of a cutscene. */
+	void ReturnToPlayView();
 
 	UFUNCTION(BlueprintPure, Category = "Kamera")
 	AGRTopDownRoomVolume* GetCurrentRoom() const { return CurrentRoom.Get(); }

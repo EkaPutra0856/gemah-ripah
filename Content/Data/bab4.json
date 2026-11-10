@@ -614,6 +614,7 @@
        "do": "add marah 10",
        "next": "alamat"
       },
+      {"if": "suara>=35", "text": "[Suara 35] Pak, warga di sini sudah baca dokumennya. Mau jawab di depan semua?", "do": "add marah 20; suara 3", "next": "patok"},
       {
        "text": "Pedagang dapat ganti rugi berapa?",
        "do": "add marah 10",
@@ -876,6 +877,7 @@
        "do": "add ketegangan 5; add tekanan 1; set live 1; suara 5",
        "next": "dokumen"
       },
+      {"if": "suara>=55", "text": "[Suara 55] (Angkat tangan. Seluruh pasar berdiri di depan ekskavator.)", "do": "add ketegangan -15; add tekanan 1; set warga_kompak 1; suara 5", "next": "dokumen"},
       {
        "text": "(Duduk di depan ekskavator bersama pedagang.)",
        "do": "add ketegangan 15; suara 5; set duduk 1",
@@ -2235,6 +2237,7 @@
    "text": "Siaran langsungmu ditonton jutaan orang. Nama Rendy Gemilang jadi bahan meme.",
    "else": "Tidak ada siaran langsung. Kejadian pagi itu hanya diingat yang hadir."
   },
+  {"if": "suara>=60", "text": "Pasar, gang, dan perumahan kini satu grup WhatsApp. Pemerintah menyebutnya ancaman. Warga menyebutnya tetangga.", "else": "Warga bersimpati, dari jauh, sambil menjaga jarak aman."},
   {
    "text": "Ketua Dewan maju jadi Wali Kota. Pemilu tinggal sebulan, dan kertas suaranya dicetak oleh PT yang sama.",
    "color": "#6EC878"

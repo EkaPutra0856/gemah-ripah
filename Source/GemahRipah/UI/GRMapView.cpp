@@ -1,5 +1,6 @@
 #include "UI/GRMapView.h"
 #include "UI/GRUIStyle.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "World/GRDistrictVolume.h"
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRMapSubsystem.h"
@@ -126,7 +127,10 @@ int32 UGRMapView::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedG
 		const FVector2D TopLeft = ToLocal(FVector2D(Box.Max.X, Box.Min.Y));
 		const FVector2D BoxSize = ToLocal(FVector2D(Box.Min.X, Box.Max.Y)) - TopLeft;
 		FLinearColor Tint = District->MapColor;
-		Tint.A = 0.16f;
+		// The more a district stands behind Bayu, the more strongly it shows on the map.
+		const UGameInstance* GI = GetGameInstance();
+		const UGRSuaraSubsystem* Town = GI ? GI->GetSubsystem<UGRSuaraSubsystem>() : nullptr;
+		Tint.A = 0.1f + 0.3f * FMath::Clamp((Town ? Town->GetAreaSuara(District->DistrictId) : 0.f) / 50.f, 0.f, 1.f);
 		FSlateBrush Fill;
 		Fill.TintColor = FSlateColor(Tint);
 		FSlateDrawElement::MakeBox(OutDrawElements, Layer, AllottedGeometry.ToPaintGeometry(FVector2f(BoxSize), FSlateLayoutTransform(FVector2f(TopLeft))), &Fill, ESlateDrawEffect::None, Tint);
@@ -180,7 +184,7 @@ int32 UGRMapView::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedG
 	for (const TWeakObjectPtr<UGRMapMarkerComponent>& Weak : Map->GetMarkers())
 	{
 		const UGRMapMarkerComponent* Marker = Weak.Get();
-		if (!Marker || (bFollowPlayer && !Marker->bShowOnMinimap))
+		if (!Marker || Marker->bOffMap || (bFollowPlayer && !Marker->bShowOnMinimap))
 		{
 			continue;
 		}

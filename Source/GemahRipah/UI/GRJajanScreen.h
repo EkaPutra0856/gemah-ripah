@@ -58,6 +58,8 @@ private:
 	void Select(int32 Row);
 	void Change(int32 Row, int32 Delta);
 	int32 Total() const;
+	/** A dish's price at Bayu's standing with the vendors. */
+	int32 PriceOf(int32 BasePrice) const;
 	/** Energy the order gives now: everything when eaten here, only what cannot be bagged otherwise. */
 	int32 EnergyGain() const;
 	void Refresh();

@@ -1,0 +1,2198 @@
+{
+ "length": 116.8,
+ "shots": [
+  {
+   "name": "kartu Republik Gemah Ripah",
+   "t": 3.2,
+   "card": true,
+   "title": "",
+   "sub": "Republik Gemah Ripah. Musim asap tahun ketiga.",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.9,
+   "fadeout": 0.35,
+   "hour": 7.2,
+   "ispu": 260
+  },
+  {
+   "name": "kota berasap",
+   "t": 5.0,
+   "hour": 7.2,
+   "ispu": 260,
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "cam": [
+    -20000,
+    -25000,
+    6000,
+    -18,
+    51
+   ],
+   "cam2": [
+    -15500,
+    -19000,
+    4400,
+    -16,
+    51
+   ],
+   "focal": 28,
+   "text": "Kata baliho, udaranya baik.",
+   "fadein": 0.5
+  },
+  {
+   "name": "kartu BAB 1",
+   "t": 2.4,
+   "card": true,
+   "title": "BAB 1",
+   "sub": "Asap dan Piring",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.35,
+   "fadeout": 0.35,
+   "hour": 8.0,
+   "ispu": 210
+  },
+  {
+   "name": "bayu ngojol",
+   "t": 4.6,
+   "hour": 8.0,
+   "ispu": 200,
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "ride": {
+    "pos": [
+     -14000,
+     400
+    ],
+    "yaw": 0,
+    "throttle": 0.85
+   },
+   "follow": "bayu_motor",
+   "offset": [
+    -520,
+    120,
+    190
+   ],
+   "offset2": [
+    -300,
+    -230,
+    140
+   ],
+   "aimz": 150,
+   "focal": 30,
+   "text": "Bayu, 24 tahun. Pengemudi OjekKu."
+  },
+  {
+   "name": "ibu dan dinda",
+   "t": 4.0,
+   "hour": 8.5,
+   "roofs": false,
+   "cast": [
+    {
+     "id": "ibu",
+     "name": "Bu Sri",
+     "pos": [
+      -8950,
+      -9150
+     ],
+     "yaw": -63,
+     "anim": "Talk"
+    },
+    {
+     "id": "dinda",
+     "name": "Dinda",
+     "pos": [
+      -8850,
+      -9350
+     ],
+     "yaw": 120,
+     "pose": "duduk",
+     "anim": "Sit"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    -9400,
+    -9500,
+    230,
+    -10,
+    15
+   ],
+   "cam2": [
+    -9350,
+    -9470,
+    220,
+    -10,
+    15
+   ],
+   "aim": "dinda",
+   "aimz": 130,
+   "focal": 30,
+   "text": "Adiknya muntah setelah makan Piring Rakyat."
+  },
+  {
+   "name": "menyusup dapur",
+   "t": 4.6,
+   "hour": 21.0,
+   "ispu": 150,
+   "cast": [
+    {
+     "id": "satpam",
+     "name": "Satpam Dapur",
+     "pos": [
+      18800,
+      19300
+     ],
+     "yaw": 90,
+     "walk": [
+      18800,
+      19900
+     ],
+     "speed": 120,
+     "light": [
+      900,
+      28
+     ]
+    },
+    {
+     "id": "bayu",
+     "name": "Bayu",
+     "pos": [
+      18450,
+      20250
+     ],
+     "yaw": -90,
+     "walk": [
+      18450,
+      19650
+     ],
+     "speed": 170
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    18100,
+    20500,
+    520,
+    -32,
+    -45
+   ],
+   "cam2": [
+    18150,
+    20350,
+    480,
+    -30,
+    -50
+   ],
+   "aim": "bayu",
+   "aimz": 120,
+   "focal": 28,
+   "text": "Buktinya disimpan di dapur."
+  },
+  {
+   "name": "unggah di warnet",
+   "t": 3.6,
+   "hour": 21.0,
+   "roofs": false,
+   "cast": [
+    {
+     "id": "bayu",
+     "name": "Bayu",
+     "pos": [
+      -2750,
+      6150
+     ],
+     "yaw": 180,
+     "anim": "Ponsel"
+    },
+    {
+     "id": "joko",
+     "name": "Mas Joko",
+     "pos": [
+      -2250,
+      6650
+     ],
+     "yaw": 180,
+     "pose": "duduk",
+     "anim": "Sit"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    -3200,
+    5900,
+    230,
+    -10,
+    30
+   ],
+   "cam2": [
+    -3150,
+    5950,
+    220,
+    -8,
+    28
+   ],
+   "aim": "bayu",
+   "aimz": 160,
+   "focal": 40,
+   "text": "Satu unggahan."
+  },
+  {
+   "name": "spn datang",
+   "t": 4.2,
+   "hour": 22.0,
+   "cast": [
+    {
+     "id": "wiryo",
+     "name": "Komandan Wiryo",
+     "pos": [
+      -7650,
+      -8350
+     ],
+     "yaw": -135,
+     "anim": "Siaga"
+    },
+    {
+     "id": "spn1",
+     "name": "Petugas SPN",
+     "pos": [
+      -7450,
+      -8150
+     ],
+     "yaw": -135,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "spn2",
+     "name": "Petugas SPN",
+     "pos": [
+      -7850,
+      -8150
+     ],
+     "yaw": -135,
+     "kind": "spn",
+     "anim": "Siaga"
+    }
+   ],
+   "veh": [
+    {
+     "id": "mobil",
+     "mesh": "V03_Mobil_taktis_aparat",
+     "anim": "Roda",
+     "pos": [
+      -7000,
+      -7700
+     ],
+     "yaw": -135
+    }
+   ],
+   "props": [],
+   "cam": [
+    -8150,
+    -8900,
+    180,
+    2,
+    45
+   ],
+   "cam2": [
+    -8050,
+    -8850,
+    170,
+    3,
+    45
+   ],
+   "aim": "wiryo",
+   "aimz": 170,
+   "focal": 35,
+   "text": "Malam itu, SPN mengetuk pintu."
+  },
+  {
+   "name": "kartu BAB 2",
+   "t": 2.4,
+   "card": true,
+   "title": "BAB 2",
+   "sub": "Turun ke Jalan",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.35,
+   "fadeout": 0.35,
+   "hour": 10.0,
+   "ispu": 180
+  },
+  {
+   "name": "pamflet",
+   "t": 3.8,
+   "hour": 10.0,
+   "ispu": 170,
+   "cast": [
+    {
+     "id": "sari",
+     "name": "Sari",
+     "pos": [
+      -8650,
+      12350
+     ],
+     "yaw": 0,
+     "anim": "Talk"
+    },
+    {
+     "id": "bayu",
+     "name": "Bayu",
+     "pos": [
+      -8400,
+      12350
+     ],
+     "yaw": 180,
+     "anim": "Lambai"
+    },
+    {
+     "id": "w1",
+     "name": "Warga",
+     "pos": [
+      -8500,
+      12650
+     ],
+     "yaw": -90,
+     "model": "N41_Ibu_PKK",
+     "anim": "Lirik"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      -8600,
+      12500
+     ],
+     "size": [
+      40,
+      40,
+      400
+     ],
+     "color": "#5C5C5C"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    -8150,
+    11800,
+    200,
+    -6,
+    125
+   ],
+   "cam2": [
+    -8180,
+    11830,
+    195,
+    -5,
+    125
+   ],
+   "aim": "sari",
+   "aimz": 160,
+   "focal": 32,
+   "text": "Warga mulai bergerak."
+  },
+  {
+   "name": "long march",
+   "t": 5.4,
+   "hour": 9.5,
+   "ispu": 190,
+   "cast": [
+    {
+     "id": "m0",
+     "name": "Bu Yati",
+     "pos": [
+      7600,
+      1130
+     ],
+     "yaw": 0,
+     "model": "N16_Ibu_warga",
+     "walk": [
+      16000,
+      1130
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m1",
+     "name": "Warga Aksi",
+     "pos": [
+      7600,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N16_Ibu_warga",
+     "walk": [
+      16000,
+      1300
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m2",
+     "name": "Warga Aksi",
+     "pos": [
+      7600,
+      1470
+     ],
+     "yaw": 0,
+     "model": "N19_Pemuda",
+     "walk": [
+      16000,
+      1470
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m3",
+     "name": "Warga Aksi",
+     "pos": [
+      7370,
+      1130
+     ],
+     "yaw": 0,
+     "model": "N21_Ojol_bapak",
+     "walk": [
+      15770,
+      1130
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m4",
+     "name": "Warga Aksi",
+     "pos": [
+      7370,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N24_Buruh",
+     "walk": [
+      15770,
+      1300
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m5",
+     "name": "Warga Aksi",
+     "pos": [
+      7370,
+      1470
+     ],
+     "yaw": 0,
+     "model": "N36_Mahasiswa",
+     "walk": [
+      15770,
+      1470
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m6",
+     "name": "Warga Aksi",
+     "pos": [
+      7140,
+      1130
+     ],
+     "yaw": 0,
+     "model": "N37_Mahasiswi",
+     "walk": [
+      15540,
+      1130
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m7",
+     "name": "Warga Aksi",
+     "pos": [
+      7140,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N41_Ibu_PKK",
+     "walk": [
+      15540,
+      1300
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m8",
+     "name": "Warga Aksi",
+     "pos": [
+      7140,
+      1470
+     ],
+     "yaw": 0,
+     "model": "N47_Ibu_berjilbab",
+     "walk": [
+      15540,
+      1470
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m9",
+     "name": "Warga Aksi",
+     "pos": [
+      6910,
+      1130
+     ],
+     "yaw": 0,
+     "model": "N40_Pemuda_gondrong",
+     "walk": [
+      15310,
+      1130
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m10",
+     "name": "Warga Aksi",
+     "pos": [
+      6910,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N20_Pedagang_pasar",
+     "walk": [
+      15310,
+      1300
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m11",
+     "name": "Warga Aksi",
+     "pos": [
+      6910,
+      1470
+     ],
+     "yaw": 0,
+     "model": "N51_Pemuda_bertopi",
+     "walk": [
+      15310,
+      1470
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m12",
+     "name": "Warga Aksi",
+     "pos": [
+      6680,
+      1130
+     ],
+     "yaw": 0,
+     "model": "N15_Bapak_warga",
+     "walk": [
+      15080,
+      1130
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m13",
+     "name": "Warga Aksi",
+     "pos": [
+      6680,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N16_Ibu_warga",
+     "walk": [
+      15080,
+      1300
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m14",
+     "name": "Warga Aksi",
+     "pos": [
+      6680,
+      1470
+     ],
+     "yaw": 0,
+     "model": "N19_Pemuda",
+     "walk": [
+      15080,
+      1470
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m15",
+     "name": "Warga Aksi",
+     "pos": [
+      6450,
+      1130
+     ],
+     "yaw": 0,
+     "model": "N21_Ojol_bapak",
+     "walk": [
+      14850,
+      1130
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m16",
+     "name": "Warga Aksi",
+     "pos": [
+      6450,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N24_Buruh",
+     "walk": [
+      14850,
+      1300
+     ],
+     "speed": 135
+    },
+    {
+     "id": "m17",
+     "name": "Warga Aksi",
+     "pos": [
+      6450,
+      1470
+     ],
+     "yaw": 0,
+     "model": "N36_Mahasiswa",
+     "walk": [
+      14850,
+      1470
+     ],
+     "speed": 135
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    8900,
+    650,
+    140,
+    6,
+    175
+   ],
+   "cam2": [
+    9000,
+    600,
+    150,
+    4,
+    178
+   ],
+   "aim": "m0",
+   "aimz": 170,
+   "focal": 30,
+   "text": "Piring kosong untuk Dewan."
+  },
+  {
+   "name": "depan dewan",
+   "t": 4.2,
+   "hour": 11.0,
+   "ispu": 180,
+   "cast": [
+    {
+     "id": "s0",
+     "name": "Petugas SPN",
+     "pos": [
+      35500,
+      600
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "s1",
+     "name": "Petugas SPN",
+     "pos": [
+      35500,
+      900
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "s2",
+     "name": "Petugas SPN",
+     "pos": [
+      35500,
+      1200
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "wiryo",
+     "name": "Komandan Wiryo",
+     "pos": [
+      35300,
+      1500
+     ],
+     "yaw": 180,
+     "anim": "Marah"
+    },
+    {
+     "id": "s4",
+     "name": "Petugas SPN",
+     "pos": [
+      35500,
+      1800
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "s5",
+     "name": "Petugas SPN",
+     "pos": [
+      35500,
+      2100
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "s6",
+     "name": "Petugas SPN",
+     "pos": [
+      35500,
+      2400
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "a0",
+     "name": "Warga Aksi",
+     "pos": [
+      34100,
+      700
+     ],
+     "yaw": 0,
+     "model": "N21_Ojol_bapak",
+     "anim": "Siaga"
+    },
+    {
+     "id": "a1",
+     "name": "Warga Aksi",
+     "pos": [
+      33880,
+      900
+     ],
+     "yaw": 0,
+     "model": "N24_Buruh",
+     "anim": "Marah"
+    },
+    {
+     "id": "a2",
+     "name": "Warga Aksi",
+     "pos": [
+      34100,
+      1100
+     ],
+     "yaw": 0,
+     "model": "N36_Mahasiswa",
+     "anim": "Siaga"
+    },
+    {
+     "id": "a3",
+     "name": "Warga Aksi",
+     "pos": [
+      33880,
+      1300
+     ],
+     "yaw": 0,
+     "model": "N37_Mahasiswi",
+     "anim": "Marah"
+    },
+    {
+     "id": "a4",
+     "name": "Warga Aksi",
+     "pos": [
+      34100,
+      1500
+     ],
+     "yaw": 0,
+     "model": "N41_Ibu_PKK",
+     "anim": "Siaga"
+    },
+    {
+     "id": "a5",
+     "name": "Warga Aksi",
+     "pos": [
+      33880,
+      1700
+     ],
+     "yaw": 0,
+     "model": "N47_Ibu_berjilbab",
+     "anim": "Marah"
+    },
+    {
+     "id": "a6",
+     "name": "Warga Aksi",
+     "pos": [
+      34100,
+      1900
+     ],
+     "yaw": 0,
+     "model": "N40_Pemuda_gondrong",
+     "anim": "Siaga"
+    },
+    {
+     "id": "a7",
+     "name": "Warga Aksi",
+     "pos": [
+      33880,
+      2100
+     ],
+     "yaw": 0,
+     "model": "N20_Pedagang_pasar",
+     "anim": "Marah"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      34000,
+      1500
+     ],
+     "size": [
+      40,
+      600,
+      220
+     ],
+     "color": "#F4F1DE",
+     "model": "spanduk"
+    }
+   ],
+   "veh": [
+    {
+     "mesh": "V03_Mobil_taktis_aparat",
+     "pos": [
+      36600,
+      900
+     ],
+     "yaw": 90
+    }
+   ],
+   "cam": [
+    33600,
+    2100,
+    230,
+    -4,
+    -12
+   ],
+   "cam2": [
+    33900,
+    1900,
+    220,
+    -3,
+    -8
+   ],
+   "aim": "wiryo",
+   "aimz": 170,
+   "focal": 30,
+   "text": "Pagar Dewan sudah dikunci."
+  },
+  {
+   "name": "ditangkap",
+   "t": 3.4,
+   "hour": 12.0,
+   "ispu": 180,
+   "cast": [
+    {
+     "id": "bayu",
+     "name": "Bayu",
+     "pos": [
+      30000,
+      -1200
+     ],
+     "yaw": 180,
+     "anim": "Menyerah",
+     "say": "Saya cuma bawa piring, Pak!"
+    },
+    {
+     "id": "t1",
+     "name": "Petugas SPN",
+     "pos": [
+      30180,
+      -1050
+     ],
+     "yaw": -150,
+     "kind": "spn",
+     "anim": "Tangkap"
+    },
+    {
+     "id": "t2",
+     "name": "Petugas SPN",
+     "pos": [
+      30180,
+      -1380
+     ],
+     "yaw": 150,
+     "kind": "spn",
+     "anim": "Tangkap"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    29550,
+    -1100,
+    170,
+    0,
+    -10
+   ],
+   "cam2": [
+    29620,
+    -1150,
+    165,
+    0,
+    -6
+   ],
+   "aim": "bayu",
+   "aimz": 160,
+   "focal": 45
+  },
+  {
+   "name": "kartu BAB 3",
+   "t": 2.4,
+   "card": true,
+   "title": "BAB 3",
+   "sub": "Pasal Karet",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.35,
+   "fadeout": 0.35,
+   "hour": 15.0,
+   "ispu": 170
+  },
+  {
+   "name": "rudi di sel",
+   "t": 3.8,
+   "hour": 15.0,
+   "roofs": false,
+   "cast": [
+    {
+     "id": "rudi",
+     "name": "Rudi",
+     "pos": [
+      6500,
+      -3850
+     ],
+     "yaw": 90,
+     "pose": "duduk",
+     "anim": "Sit"
+    },
+    {
+     "id": "jaga",
+     "name": "Petugas Piket",
+     "pos": [
+      6050,
+      -3700
+     ],
+     "yaw": 0,
+     "kind": "spn",
+     "anim": "Siaga"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      6500,
+      -3850
+     ],
+     "yaw": 90,
+     "size": [
+      40,
+      140,
+      44
+     ],
+     "model": "bangku"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    6500,
+    -3250,
+    190,
+    -8,
+    -90
+   ],
+   "cam2": [
+    6480,
+    -3290,
+    185,
+    -8,
+    -92
+   ],
+   "aim": "rudi",
+   "aimz": 120,
+   "focal": 32,
+   "text": "Pasal baru: Penghinaan Pejabat. Rudi tersangka pertama."
+  },
+  {
+   "name": "radio gang",
+   "t": 3.8,
+   "hour": 20.5,
+   "roofs": false,
+   "cast": [
+    {
+     "id": "harso",
+     "name": "Pak Harso",
+     "pos": [
+      1450,
+      -9250
+     ],
+     "yaw": 180,
+     "anim": "Radio"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    1000,
+    -9080,
+    190,
+    -6,
+    -20
+   ],
+   "cam2": [
+    1060,
+    -9110,
+    185,
+    -6,
+    -18
+   ],
+   "aim": "harso",
+   "aimz": 160,
+   "focal": 35,
+   "text": "Radio Gang 107,7. Mengudara dari tukang fotokopi."
+  },
+  {
+   "name": "pria berkemeja",
+   "t": 3.2,
+   "hour": 17.0,
+   "ispu": 170,
+   "cast": [
+    {
+     "id": "intel",
+     "name": "Pria Berkemeja",
+     "pos": [
+      -4950,
+      -11400
+     ],
+     "yaw": 160,
+     "model": "N09_Intel",
+     "anim": "Lirik"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    -5300,
+    -11700,
+    175,
+    0,
+    40
+   ],
+   "cam2": [
+    -5260,
+    -11660,
+    175,
+    0,
+    40
+   ],
+   "aim": "intel",
+   "aimz": 165,
+   "focal": 55,
+   "text": "Di setiap sudut, ada yang mencatat."
+  },
+  {
+   "name": "sidang",
+   "t": 3.8,
+   "hour": 10.0,
+   "roofs": false,
+   "cast": [
+    {
+     "id": "hakim",
+     "name": "Hakim",
+     "pos": [
+      5900,
+      -4600
+     ],
+     "yaw": 180,
+     "model": "N04_Pejabat_pria",
+     "anim": "Talk"
+    },
+    {
+     "id": "v0",
+     "name": "Warga",
+     "pos": [
+      5250,
+      -4800
+     ],
+     "yaw": 0,
+     "model": "N36_Mahasiswa",
+     "anim": "Siaga"
+    },
+    {
+     "id": "v1",
+     "name": "Warga",
+     "pos": [
+      5250,
+      -4640
+     ],
+     "yaw": 0,
+     "model": "N37_Mahasiswi",
+     "anim": "Lirik"
+    },
+    {
+     "id": "v2",
+     "name": "Warga",
+     "pos": [
+      5250,
+      -4480
+     ],
+     "yaw": 0,
+     "model": "N41_Ibu_PKK",
+     "anim": "Siaga"
+    },
+    {
+     "id": "v3",
+     "name": "Warga",
+     "pos": [
+      5420,
+      -4800
+     ],
+     "yaw": 0,
+     "model": "N47_Ibu_berjilbab",
+     "anim": "Lirik"
+    },
+    {
+     "id": "v4",
+     "name": "Warga",
+     "pos": [
+      5420,
+      -4640
+     ],
+     "yaw": 0,
+     "model": "N40_Pemuda_gondrong",
+     "anim": "Siaga"
+    },
+    {
+     "id": "v5",
+     "name": "Warga",
+     "pos": [
+      5420,
+      -4480
+     ],
+     "yaw": 0,
+     "model": "N20_Pedagang_pasar",
+     "anim": "Lirik"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    4800,
+    -4600,
+    300,
+    -10,
+    0
+   ],
+   "cam2": [
+    4880,
+    -4600,
+    290,
+    -9,
+    0
+   ],
+   "aim": "hakim",
+   "aimz": 150,
+   "focal": 30,
+   "text": "Laporan warga nomor 47. Pelapornya sudah lama meninggal."
+  },
+  {
+   "name": "kartu BAB 4",
+   "t": 2.4,
+   "card": true,
+   "title": "BAB 4",
+   "sub": "Proyek Mercusuar",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.35,
+   "fadeout": 0.35,
+   "hour": 9.0,
+   "ispu": 190
+  },
+  {
+   "name": "patok oranye",
+   "t": 3.8,
+   "hour": 9.0,
+   "ispu": 190,
+   "cast": [
+    {
+     "id": "petugas",
+     "name": "Petugas Proyek",
+     "pos": [
+      -9200,
+      12900
+     ],
+     "yaw": 200,
+     "model": "N35_Petugas_kebersihan",
+     "anim": "Siaga"
+    },
+    {
+     "id": "ijah",
+     "name": "Mak Ijah",
+     "pos": [
+      -9700,
+      12500
+     ],
+     "yaw": 30,
+     "anim": "Kaget"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      -9300,
+      12700
+     ],
+     "size": [
+      25,
+      25,
+      140
+     ],
+     "color": "#FF7F11",
+     "model": "patok"
+    },
+    {
+     "pos": [
+      -10000,
+      13200
+     ],
+     "size": [
+      25,
+      25,
+      140
+     ],
+     "color": "#FF7F11",
+     "model": "patok"
+    },
+    {
+     "pos": [
+      -10900,
+      13900
+     ],
+     "size": [
+      25,
+      25,
+      140
+     ],
+     "color": "#FF7F11",
+     "model": "patok"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    -8700,
+    12250,
+    200,
+    -8,
+    150
+   ],
+   "cam2": [
+    -8730,
+    12280,
+    195,
+    -7,
+    150
+   ],
+   "aim": "petugas",
+   "aimz": 150,
+   "focal": 22,
+   "text": "Patok oranye tumbuh lebih cepat dari sayur."
+  },
+  {
+   "name": "humas lambai",
+   "t": 3.4,
+   "hour": 11.0,
+   "ispu": 190,
+   "cast": [
+    {
+     "id": "hendro",
+     "name": "Pak Hendro",
+     "pos": [
+      7200,
+      -8100
+     ],
+     "yaw": 180,
+     "anim": "Lambai"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      6900,
+      -7800
+     ],
+     "yaw": 180,
+     "size": [
+      40,
+      500,
+      300
+     ],
+     "color": "#F4D35E",
+     "model": "baliho"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    6300,
+    -8600,
+    150,
+    8,
+    35
+   ],
+   "cam2": [
+    6330,
+    -8570,
+    150,
+    8,
+    35
+   ],
+   "aim": "hendro",
+   "aimz": 260,
+   "focal": 24,
+   "text": "Menara Gemilang. 88 lantai, untuk rakyat."
+  },
+  {
+   "name": "pedagang marah",
+   "t": 3.8,
+   "hour": 13.0,
+   "ispu": 190,
+   "cast": [
+    {
+     "id": "liong",
+     "name": "Koh Liong",
+     "pos": [
+      -9500,
+      13300
+     ],
+     "yaw": 0,
+     "anim": "Marah"
+    },
+    {
+     "id": "ijah",
+     "name": "Mak Ijah",
+     "pos": [
+      -9500,
+      12950
+     ],
+     "yaw": 0,
+     "anim": "Marah"
+    },
+    {
+     "id": "b1",
+     "name": "Barikade SPN",
+     "pos": [
+      -8500,
+      12900
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    },
+    {
+     "id": "b2",
+     "name": "Barikade SPN",
+     "pos": [
+      -8500,
+      13350
+     ],
+     "yaw": 180,
+     "kind": "spn",
+     "anim": "Siaga"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    -8750,
+    13000,
+    180,
+    -3,
+    158
+   ],
+   "cam2": [
+    -8790,
+    13010,
+    178,
+    -3,
+    158
+   ],
+   "aim": "liong",
+   "aimz": 160,
+   "focal": 30,
+   "text": "Tujuh hari untuk pergi. Mereka memilih tinggal."
+  },
+  {
+   "name": "ekskavator",
+   "t": 4.4,
+   "hour": 14.0,
+   "ispu": 200,
+   "cast": [
+    {
+     "id": "p0",
+     "name": "Pedagang",
+     "pos": [
+      -8150,
+      12500
+     ],
+     "yaw": 0,
+     "anim": "Siaga",
+     "model": "N20_Pedagang_pasar"
+    },
+    {
+     "id": "p1",
+     "name": "Pedagang",
+     "pos": [
+      -8150,
+      12730
+     ],
+     "yaw": 0,
+     "anim": "Siaga",
+     "model": "N17_Nenek"
+    },
+    {
+     "id": "p2",
+     "name": "Pedagang",
+     "pos": [
+      -8150,
+      12960
+     ],
+     "yaw": 0,
+     "anim": "Siaga",
+     "model": "N15_Bapak_warga"
+    },
+    {
+     "id": "p3",
+     "name": "Pedagang",
+     "pos": [
+      -8150,
+      13190
+     ],
+     "yaw": 0,
+     "anim": "Siaga",
+     "model": "N16_Ibu_warga"
+    },
+    {
+     "id": "p4",
+     "name": "Pedagang",
+     "pos": [
+      -8150,
+      13420
+     ],
+     "yaw": 0,
+     "anim": "Siaga",
+     "model": "N24_Buruh"
+    },
+    {
+     "id": "p5",
+     "name": "Pedagang",
+     "pos": [
+      -8150,
+      13650
+     ],
+     "yaw": 0,
+     "anim": "Siaga",
+     "model": "N41_Ibu_PKK"
+    }
+   ],
+   "props": [],
+   "veh": [
+    {
+     "id": "eks",
+     "mesh": "V06_Ekskavator",
+     "anim": "Gali",
+     "pos": [
+      -5600,
+      13050
+     ],
+     "to": [
+      -6900,
+      13050
+     ],
+     "yaw": 180
+    }
+   ],
+   "cam": [
+    -8550,
+    12450,
+    180,
+    4,
+    10
+   ],
+   "cam2": [
+    -8600,
+    12450,
+    175,
+    5,
+    10
+   ],
+   "aim": "eks",
+   "aimz": 300,
+   "focal": 28,
+   "f": 0,
+   "text": "Lalu mesinnya datang."
+  },
+  {
+   "name": "kartu BAB 5",
+   "t": 2.4,
+   "card": true,
+   "title": "BAB 5",
+   "sub": "Suara Rakyat",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.35,
+   "fadeout": 0.35,
+   "hour": 16.0,
+   "ispu": 170
+  },
+  {
+   "name": "calon satu",
+   "t": 3.4,
+   "hour": 16.0,
+   "ispu": 170,
+   "cast": [
+    {
+     "id": "wira",
+     "name": "Wiratama Gemilang",
+     "pos": [
+      -2050,
+      -2600
+     ],
+     "yaw": 0,
+     "anim": "Lambai"
+    },
+    {
+     "id": "jefri",
+     "name": "Bang Jefri",
+     "pos": [
+      -2250,
+      -2850
+     ],
+     "yaw": 30,
+     "anim": "Siaga"
+    }
+   ],
+   "props": [],
+   "veh": [
+    {
+     "mesh": "V04_Mobil_dinas_mewah",
+     "pos": [
+      -2700,
+      -2200
+     ],
+     "yaw": 90
+    }
+   ],
+   "cam": [
+    -1450,
+    -2350,
+    200,
+    -3,
+    -160
+   ],
+   "cam2": [
+    -1500,
+    -2380,
+    195,
+    -3,
+    -164
+   ],
+   "aim": "wira",
+   "aimz": 165,
+   "focal": 35,
+   "text": "Calon nomor 1: Ketua Dewan."
+  },
+  {
+   "name": "serangan fajar",
+   "t": 3.8,
+   "hour": 5.1,
+   "ispu": 150,
+   "cast": [
+    {
+     "id": "jefri",
+     "name": "Bang Jefri",
+     "pos": [
+      -5300,
+      -11500
+     ],
+     "yaw": 200,
+     "anim": "Talk"
+    },
+    {
+     "id": "w",
+     "name": "Warga",
+     "pos": [
+      -5520,
+      -11580
+     ],
+     "yaw": 20,
+     "model": "N47_Ibu_berjilbab",
+     "anim": "Kaget"
+    }
+   ],
+   "props": [],
+   "veh": [],
+   "cam": [
+    -5100,
+    -11800,
+    180,
+    -2,
+    150
+   ],
+   "cam2": [
+    -5130,
+    -11770,
+    178,
+    -2,
+    146
+   ],
+   "aim": "w",
+   "aimz": 160,
+   "focal": 30,
+   "text": "Amplop datang sebelum fajar."
+  },
+  {
+   "name": "bu ratna",
+   "t": 3.8,
+   "hour": 9.5,
+   "ispu": 170,
+   "cast": [
+    {
+     "id": "ratna",
+     "name": "Bu Ratna",
+     "pos": [
+      2300,
+      2700
+     ],
+     "yaw": 40,
+     "anim": "Lambai"
+    },
+    {
+     "id": "r0",
+     "name": "Relawan",
+     "pos": [
+      3150,
+      3150
+     ],
+     "yaw": 220,
+     "model": "N16_Ibu_warga",
+     "anim": "Siaga"
+    },
+    {
+     "id": "r1",
+     "name": "Relawan",
+     "pos": [
+      3300,
+      3150
+     ],
+     "yaw": 220,
+     "model": "N19_Pemuda",
+     "anim": "Lambai"
+    },
+    {
+     "id": "r2",
+     "name": "Relawan",
+     "pos": [
+      3450,
+      3150
+     ],
+     "yaw": 220,
+     "model": "N21_Ojol_bapak",
+     "anim": "Siaga"
+    },
+    {
+     "id": "r3",
+     "name": "Relawan",
+     "pos": [
+      3150,
+      3330
+     ],
+     "yaw": 220,
+     "model": "N24_Buruh",
+     "anim": "Lambai"
+    },
+    {
+     "id": "r4",
+     "name": "Relawan",
+     "pos": [
+      3300,
+      3330
+     ],
+     "yaw": 220,
+     "model": "N36_Mahasiswa",
+     "anim": "Siaga"
+    },
+    {
+     "id": "r5",
+     "name": "Relawan",
+     "pos": [
+      3450,
+      3330
+     ],
+     "yaw": 220,
+     "model": "N37_Mahasiswi",
+     "anim": "Lambai"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      2700,
+      3000
+     ],
+     "size": [
+      300,
+      300,
+      230
+     ],
+     "color": "#F4A261",
+     "model": "tenda"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    1750,
+    2350,
+    200,
+    -3,
+    40
+   ],
+   "cam2": [
+    1800,
+    2400,
+    195,
+    -3,
+    42
+   ],
+   "aim": "ratna",
+   "aimz": 160,
+   "focal": 35,
+   "text": "Calon nomor 2: seorang guru honorer."
+  },
+  {
+   "name": "tps",
+   "t": 4.6,
+   "hour": 7.5,
+   "ispu": 140,
+   "cast": [
+    {
+     "id": "kpps",
+     "name": "Pak Hartono",
+     "pos": [
+      9000,
+      12500
+     ],
+     "yaw": 180,
+     "pose": "duduk",
+     "anim": "SitTalk"
+    },
+    {
+     "id": "bayu",
+     "name": "Bayu",
+     "pos": [
+      9000,
+      12340
+     ],
+     "yaw": 180,
+     "pose": "duduk",
+     "anim": "Sit"
+    },
+    {
+     "id": "spn",
+     "name": "SPN",
+     "pos": [
+      9500,
+      11400
+     ],
+     "yaw": 120,
+     "kind": "spn",
+     "anim": "Lirik"
+    },
+    {
+     "id": "q0",
+     "name": "Pemilih",
+     "pos": [
+      9200,
+      11000
+     ],
+     "yaw": 90,
+     "model": "N41_Ibu_PKK",
+     "walk": [
+      9200,
+      11650
+     ],
+     "speed": 40
+    },
+    {
+     "id": "q1",
+     "name": "Pemilih",
+     "pos": [
+      9210,
+      10830
+     ],
+     "yaw": 90,
+     "model": "N47_Ibu_berjilbab",
+     "walk": [
+      9210,
+      11480
+     ],
+     "speed": 40
+    },
+    {
+     "id": "q2",
+     "name": "Pemilih",
+     "pos": [
+      9220,
+      10660
+     ],
+     "yaw": 90,
+     "model": "N40_Pemuda_gondrong",
+     "walk": [
+      9220,
+      11310
+     ],
+     "speed": 40
+    },
+    {
+     "id": "q3",
+     "name": "Pemilih",
+     "pos": [
+      9230,
+      10490
+     ],
+     "yaw": 90,
+     "model": "N20_Pedagang_pasar",
+     "walk": [
+      9230,
+      11140
+     ],
+     "speed": 40
+    },
+    {
+     "id": "q4",
+     "name": "Pemilih",
+     "pos": [
+      9240,
+      10320
+     ],
+     "yaw": 90,
+     "model": "N51_Pemuda_bertopi",
+     "walk": [
+      9240,
+      10970
+     ],
+     "speed": 40
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      8750,
+      12400
+     ],
+     "size": [
+      500,
+      700,
+      250
+     ],
+     "color": "#2F6DB5",
+     "model": "tenda"
+    },
+    {
+     "pos": [
+      8700,
+      12150
+     ],
+     "color": "#BFD7EA",
+     "model": "kotak_suara"
+    },
+    {
+     "pos": [
+      8905,
+      12500
+     ],
+     "yaw": 180,
+     "size": [
+      70,
+      160,
+      75
+     ],
+     "model": "meja"
+    },
+    {
+     "pos": [
+      9000,
+      12500
+     ],
+     "yaw": 180,
+     "model": "kursi_plastik"
+    },
+    {
+     "pos": [
+      9000,
+      12340
+     ],
+     "yaw": 180,
+     "model": "kursi_plastik"
+    },
+    {
+     "pos": [
+      8600,
+      12620
+     ],
+     "yaw": 0,
+     "model": "bilik"
+    },
+    {
+     "pos": [
+      8600,
+      12460
+     ],
+     "yaw": 0,
+     "model": "bilik"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    9600,
+    11900,
+    220,
+    -6,
+    144
+   ],
+   "cam2": [
+    9580,
+    11930,
+    215,
+    -6,
+    144
+   ],
+   "aim": "bayu",
+   "aimz": 120,
+   "focal": 32,
+   "text": "Bayu jadi saksi. Mandat di saku, nasi bungkus di tas."
+  },
+  {
+   "name": "kotak dibuka",
+   "t": 3.6,
+   "hour": 13.0,
+   "ispu": 140,
+   "cast": [
+    {
+     "id": "kpps",
+     "name": "Pak Hartono",
+     "pos": [
+      8700,
+      11950
+     ],
+     "yaw": 180,
+     "anim": "Talk"
+    },
+    {
+     "id": "w1",
+     "name": "Warga",
+     "pos": [
+      8600,
+      11800
+     ],
+     "yaw": 60,
+     "model": "N16_Ibu_warga",
+     "anim": "Kaget"
+    },
+    {
+     "id": "w2",
+     "name": "Warga",
+     "pos": [
+      8600,
+      12100
+     ],
+     "yaw": -60,
+     "model": "N19_Pemuda",
+     "anim": "Kaget"
+    }
+   ],
+   "props": [
+    {
+     "pos": [
+      8750,
+      12400
+     ],
+     "size": [
+      500,
+      700,
+      250
+     ],
+     "color": "#2F6DB5",
+     "model": "tenda"
+    },
+    {
+     "pos": [
+      8700,
+      12150
+     ],
+     "color": "#BFD7EA",
+     "model": "kotak_suara"
+    },
+    {
+     "pos": [
+      8905,
+      12500
+     ],
+     "yaw": 180,
+     "size": [
+      70,
+      160,
+      75
+     ],
+     "model": "meja"
+    },
+    {
+     "pos": [
+      9000,
+      12500
+     ],
+     "yaw": 180,
+     "model": "kursi_plastik"
+    },
+    {
+     "pos": [
+      9000,
+      12340
+     ],
+     "yaw": 180,
+     "model": "kursi_plastik"
+    },
+    {
+     "pos": [
+      8600,
+      12620
+     ],
+     "yaw": 0,
+     "model": "bilik"
+    },
+    {
+     "pos": [
+      8600,
+      12460
+     ],
+     "yaw": 0,
+     "model": "bilik"
+    }
+   ],
+   "veh": [],
+   "cam": [
+    8200,
+    11900,
+    180,
+    -6,
+    6
+   ],
+   "cam2": [
+    8260,
+    11905,
+    175,
+    -6,
+    6
+   ],
+   "aim": "kpps",
+   "aimz": 150,
+   "focal": 28,
+   "text": "Enam jam kemudian, kotak suara dibuka."
+  },
+  {
+   "name": "hidup jalan terus",
+   "t": 4.2,
+   "hour": 17.8,
+   "ispu": 120,
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "ride": {
+    "pos": [
+     20000,
+     -400
+    ],
+    "yaw": 180,
+    "throttle": 0.7
+   },
+   "follow": "bayu_motor",
+   "offset": [
+    650,
+    -160,
+    150
+   ],
+   "offset2": [
+    420,
+    -260,
+    140
+   ],
+   "aimz": 150,
+   "focal": 32,
+   "text": "Hidup jalan terus.",
+   "fadeout": 0.6
+  },
+  {
+   "name": "kartu GEMAH RIPAH",
+   "t": 4.4,
+   "card": true,
+   "title": "GEMAH RIPAH",
+   "sub": "Suara rakyat bukan barang dagangan.",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.6,
+   "fadeout": 0.8,
+   "size": 88
+  },
+  {
+   "name": "kartu ",
+   "t": 1.0,
+   "card": true,
+   "title": "",
+   "sub": "",
+   "cast": [],
+   "props": [],
+   "veh": [],
+   "fadein": 0.0,
+   "fadeout": 0.0
+  }
+ ]
+}

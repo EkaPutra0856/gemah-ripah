@@ -125,7 +125,7 @@ protected:
 
 	/** Pushing the scooter backwards with the feet. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gerak")
-	float RideReverseSpeed = 160.f;
+	float RideReverseSpeed = 340.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gerak")
 	TObjectPtr<AGRMotor> Motor;
@@ -156,6 +156,8 @@ protected:
 private:
 	/** Throttle, brakes, steering, lean and the camera behind the scooter. */
 	void TickRide(float DeltaSeconds);
+	/** +1 when there is more room to the right of the nose, -1 to the left. */
+	float OpenSide() const;
 
 	void StartKnockdown(const FVector& Velocity);
 	void TickKnockdown(float DeltaSeconds);
@@ -172,6 +174,11 @@ private:
 	bool bWantDismount = false;
 	/** Latest move input while riding: Y throttle (S brakes), X steers. Used up every frame. */
 	FVector2D RideInput = FVector2D::ZeroVector;
+	/** How long the throttle has been pushing the scooter against something that does not give. */
+	float RideBlockedTime = 0.f;
+	/** Backing away by itself after that; the steering swings the nose toward RideBackSteer. */
+	float RideBackTime = 0.f;
+	float RideBackSteer = 0.f;
 	float RideSpeedNow = 0.f;
 	float SteerAngle = 0.f;
 	float LeanAngle = 0.f;

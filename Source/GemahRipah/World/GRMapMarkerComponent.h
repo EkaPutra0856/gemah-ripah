@@ -33,6 +33,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Peta")
 	bool bInLegend = true;
 
+	/** The story took this place or person out of the world for now: no marker until they are back. */
+	bool bOffMap = false;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

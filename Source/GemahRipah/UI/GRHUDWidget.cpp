@@ -19,6 +19,7 @@
 #include "Systems/GRRegulationData.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "Systems/GRClockSubsystem.h"
 #include "UI/GRMapView.h"
 #include "World/GRDistrictVolume.h"
@@ -125,6 +126,8 @@ void UGRHUDWidget::NativeOnInitialized()
 	UTextBlock* Value = nullptr;
 	SuaraBar = MakeMeter(StatusBox, LOCTEXT("Suara", "Suara"), TEXT("stat_suara"), GRStyle::ColorInfo, Value);
 	SuaraValue = Value;
+	SuaraTier = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 12, GRStyle::ColorInfo, true);
+	StatusBox->AddChildToVerticalBox(SuaraTier)->SetPadding(FMargin(0.f, 2.f, 0.f, 0.f));
 	DiawasiBar = MakeMeter(StatusBox, LOCTEXT("Diawasi", "Diawasi"), TEXT("stat_diawasi"), GRStyle::ColorDanger, Value);
 	DiawasiValue = Value;
 	EnergiBar = MakeMeter(StatusBox, LOCTEXT("Energi", "Energi"), TEXT("stat_energi"), GRStyle::ColorGood, Value);
@@ -299,7 +302,20 @@ void UGRHUDWidget::RefreshStatus()
 	}
 	TargetUang = Uang;
 	SuaraBar->SetPercent(Status->GetSuara() / UGRStatusSubsystem::MeterMax);
-	SuaraValue->SetText(FText::AsNumber(FMath::RoundToInt(Status->GetSuara())));
+	const int32 Suara = FMath::RoundToInt(Status->GetSuara());
+	SuaraValue->SetText(FText::AsNumber(Suara));
+	if (ShownSuara >= 0 && Suara != ShownSuara)
+	{
+		SuaraValue->SetRenderTransformPivot(FVector2D(1.f, 0.5f));
+		Anim.Add(GRAnim::Pop(SuaraValue, 0.f, Suara > ShownSuara ? 1.35f : 0.75f, FVector2D::ZeroVector, 0.3f));
+	}
+	ShownSuara = Suara;
+	if (const UGRSuaraSubsystem* Town = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>())
+	{
+		const bool bSmear = Town->IsBuzzerOn();
+		SuaraTier->SetText(FText::FromString(FString::Printf(TEXT("%s%s"), UGRSuaraSubsystem::TierName(Town->GetTier()), bSmear ? TEXT("  |  Diserang buzzer") : TEXT(""))));
+		SuaraTier->SetColorAndOpacity(FSlateColor(bSmear ? GRStyle::ColorDanger : GRStyle::ColorInfo));
+	}
 	DiawasiBar->SetPercent(Status->GetDiawasi() / UGRStatusSubsystem::MeterMax);
 	DiawasiValue->SetText(FText::AsNumber(FMath::RoundToInt(Status->GetDiawasi())));
 }

@@ -8,6 +8,7 @@ class UGRSaveGame;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGROnStatusChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGROnDiawasiMaxed);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGROnSuaraChanged, float /*Old*/, float /*New*/);
 
 /**
  * Player status that survives map travel: money and the two meters.
@@ -21,6 +22,8 @@ class GEMAHRIPAH_API UGRStatusSubsystem : public UGameInstanceSubsystem
 public:
 	static constexpr float MeterMax = 100.f;
 	static constexpr int32 StartingUang = 50000;
+	/** Where a gain in Suara would shrink to nothing. Past MeterMax, so the top can still be reached. */
+	static constexpr float SuaraGainEnd = 125.f;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
@@ -40,8 +43,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	bool SpendUang(int32 Amount);
 
+	/** Gains shrink as the meter fills, so the top takes real work; losses count in full. */
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	void AddSuara(float Delta);
+	void AddSuara(float Delta, bool bQuiet = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddDiawasi(float Delta, bool bQuiet = false);
@@ -61,6 +65,9 @@ public:
 	/** Fired once each time Diawasi reaches the maximum (arrest event hook). */
 	UPROPERTY(BlueprintAssignable, Category = "Status")
 	FGROnDiawasiMaxed OnDiawasiMaxed;
+
+	/** Suara moved through play, not through loading a save. */
+	FGROnSuaraChanged OnSuaraChanged;
 
 private:
 	void NotifyChange(const FString& Message, bool bGood) const;

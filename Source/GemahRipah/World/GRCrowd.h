@@ -105,8 +105,8 @@ private:
 
 	enum class EMode : uint8 { Walk, Pause, Chat, Sit, Down, Angry, Glance, Follow, Chase, Arrest };
 	enum class ERole : uint8 { Stroller, Jogger, Vendor, Police };
-	/** Who is shouting: the one who was hit, a driver whose car Bayu rammed, or someone watching. */
-	enum class EAnger : uint8 { Victim, Shoved, Driver, Bystander };
+	/** Who is shouting: the one who was hit, a driver whose car Bayu rammed, someone watching, or someone standing up to an officer for him. */
+	enum class EAnger : uint8 { Victim, Shoved, Driver, Bystander, Defender };
 
 	/** Body, clothes, headwear and (for vendors) the pushcart, all from the seed. */
 	void Dress(int32 Seed, ERole InRole, bool bNight);
@@ -140,8 +140,13 @@ private:
 	/** Moves a head piece laid out around the actor onto the head bone, keeping where it sits. */
 	void PinToHead(UStaticMeshComponent* Piece);
 	void SetSeatedLook(bool bSeated);
-	/** High Diawasi: stops for a wary side-glance at Bayu (MM_GR_Lirik), then carries on. */
-	void StartGlance();
+	/** High Diawasi: stops for a wary side-glance at Bayu (MM_GR_Lirik), then carries on. bMutter: may say something under their breath. */
+	void StartGlance(bool bMutter = true);
+	/** Suara: looks up, waves and says something kind. */
+	void StartGreet();
+	/** Suara at the top: falls in beside Bayu. */
+	void StartSupport();
+	void TickSupport(float DeltaSeconds, const APawn* Player);
 	void TickGlance(float DeltaSeconds, const APawn* Player);
 	/** Very high Diawasi: tails Bayu; outrun them to shake them off, or after a while they report him. */
 	void StartFollow();
@@ -323,6 +328,9 @@ private:
 	/** Walks up to whoever they are angry with (onlookers mostly shout from where they stand). */
 	bool bApproach = false;
 	EAnger Anger = EAnger::Victim;
+	/** Walking with Bayu at the top level of Suara: a Follow that is on his side. */
+	bool bSupporter = false;
+	float SupportShout = 0.f;
 	TWeakObjectPtr<AActor> AngryAt;
 	/** Got out of this car to have a word with Bayu; gets back in afterwards. */
 	TWeakObjectPtr<AGRTrafficCar> DriverCar;
@@ -424,6 +432,12 @@ private:
 	bool InView(const FVector& Feet) const;
 	/** The higher Diawasi, the more people nearby glance at Bayu as he passes; from 80 someone tails him. */
 	void UpdateWatchers(const APawn* Player, float Step);
+	/** What Suara does on the street: people greet Bayu, and at the top level walk with him. */
+	void UpdateFriends(const APawn* Player, float Step);
+	/** The nearest ordinary townsperson going about their day MinR..MaxR from Center, in the camera's view. */
+	AGRWarga* FindCitizenNear(const FVector& Center, float MinR, float MaxR) const;
+	/** Sends up to Count people near Officer to stand in the way. */
+	void RallyAgainst(AGRWarga* Officer, int32 Count);
 	/** SPN units near Bayu: one patrolling alone and one pair (pairs only at night); they tail or chase him by Diawasi. */
 	void UpdatePolice(const APawn* Player, float Step);
 	bool SpawnPolice(const FVector& Around, bool bAnywhere, bool bPair);
@@ -466,6 +480,10 @@ private:
 	/** Until the next person may start glancing, or tailing. */
 	float GlanceGap = 0.f;
 	float FollowGap = 0.f;
+	float GreetGap = 0.f;
+	float SupportGap = 0.f;
+	float WarnGap = 0.f;
+	float ShieldGap = 0.f;
 	/** Arrest under way: the officer holding Bayu and time since; all SPN stay calm for a while after. */
 	TWeakObjectPtr<AGRWarga> Arrester;
 	float ArrestTime = -1.f;

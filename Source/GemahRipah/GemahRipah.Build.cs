@@ -27,7 +27,8 @@ public class GemahRipah : ModuleRules
 			"AnimationCore",
 			"Landscape",
 			"AudioMixer",
-			"ProceduralMeshComponent"
+			"ProceduralMeshComponent",
+			"CinematicCamera"
 		});
 
 		// Editor-only builders (Core/GRScriptLibrary: BuildTerrain).

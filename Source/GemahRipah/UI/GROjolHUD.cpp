@@ -312,6 +312,10 @@ void UGROjolHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		SummaryStars->Value = FMath::Min(static_cast<float>(Trip.Stars), FMath::FloorToFloat(Ojol->GetSummaryTime() / 0.3f));
 	}
 	const bool bPill = Stage == EGROjolStage::Waiting;
+	if (bPill && OnlinePill->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		Anim.Add(GRAnim::Pop(OnlinePill, 0.f, 0.7f, FVector2D(0.f, 18.f), 0.34f));
+	}
 	OnlinePill->SetVisibility(bPill ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	if (bPill)
 	{

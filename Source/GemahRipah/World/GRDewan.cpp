@@ -14,14 +14,14 @@ DEFINE_LOG_CATEGORY_STATIC(LogGRDewan, Log, All);
 
 namespace
 {
-	struct FPaintDef
+	struct FDewanPaint
 	{
 		FLinearColor Color;
 		bool bShadow;
 		bool bCollide;
 	};
 
-	const FPaintDef Paints[] = {
+	const FDewanPaint DewanPaints[] = {
 		{ FLinearColor(0.70f, 0.65f, 0.55f), true, false },   // Wall
 		{ FLinearColor(0.86f, 0.82f, 0.72f), true, true },    // Stone
 		{ FLinearColor(0.55f, 0.51f, 0.44f), true, false },   // Shade
@@ -97,7 +97,7 @@ bool AGRDewan::ClaimBlockout()
 		}
 		if (Comp->GetStaticMesh() == Cube && Comp->Bounds.BoxExtent.Z > 1000.f)
 		{
-			Comp->SetMaterial(0, GRStoryUtil::MakeColorMaterial(this, Paints[Wall].Color, 1.f));
+			Comp->SetMaterial(0, GRStoryUtil::MakeColorMaterial(this, DewanPaints[Wall].Color, 1.f));
 			bFound = true;
 		}
 		else if (Comp->GetStaticMesh() == Ball)
@@ -173,7 +173,7 @@ void AGRDewan::Portico()
 	const float PedimentWide = PorchY * 2.f + 200.f;
 	const FVector Foot(PorchX + Deep * 0.5f, 0.f, BeamTop);
 	AGRRoomShells::MakePrism(this, RootComponent, Foot, FVector(1.f, 0.f, 0.f), FVector(0.f, 1.f, 0.f), Deep, PedimentWide, Rise,
-		GRStoryUtil::MakeColorMaterial(this, Paints[Stone].Color, 1.f));
+		GRStoryUtil::MakeColorMaterial(this, DewanPaints[Stone].Color, 1.f));
 
 	// The raking cornices along its two slopes.
 	const float Pitch = FMath::Atan2(Rise, PedimentWide * 0.5f);
@@ -364,7 +364,7 @@ void AGRDewan::Flush()
 			{
 				continue;
 			}
-			const FPaintDef& Def = Paints[Paint];
+			const FDewanPaint& Def = DewanPaints[Paint];
 			UInstancedStaticMeshComponent* Mesh = NewObject<UInstancedStaticMeshComponent>(this);
 			Mesh->SetMobility(EComponentMobility::Movable);
 			Mesh->SetupAttachment(RootComponent);

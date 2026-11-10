@@ -6,6 +6,7 @@
 #include "Systems/GRClockSubsystem.h"
 #include "Systems/GRProgressSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "World/GRDistrictVolume.h"
 #include "World/GRMapMarkerComponent.h"
 #include "World/GRMapSubsystem.h"
@@ -113,7 +114,7 @@ void UGRMapScreen::BuildScreen(UOverlay* Root)
 		for (const TWeakObjectPtr<UGRMapMarkerComponent>& Weak : Map->GetMarkers())
 		{
 			const UGRMapMarkerComponent* Marker = Weak.Get();
-			if (Marker && Marker->bInLegend)
+			if (Marker && Marker->bInLegend && !Marker->bOffMap)
 			{
 				List->AddChild(GRStyle::MakeText(WidgetTree, FText::Format(LOCTEXT("LegendLine", "[{0}]  {1}"), FText::FromString(Marker->Glyph), Marker->Label), 14, Marker->Color));
 			}
@@ -124,7 +125,9 @@ void UGRMapScreen::BuildScreen(UOverlay* Root)
 		{
 			if (const AGRDistrictVolume* District = Weak.Get())
 			{
-				List->AddChild(GRStyle::MakeText(WidgetTree, District->DisplayName, 14, District->MapColor));
+				const UGRSuaraSubsystem* Town = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>();
+				List->AddChild(GRStyle::MakeText(WidgetTree, FText::Format(LOCTEXT("DistrictLine", "{0}  |  Suara {1}"), District->DisplayName,
+					FText::AsNumber(FMath::RoundToInt(Town->GetAreaSuara(District->DistrictId)))), 14, District->MapColor));
 			}
 		}
 	}

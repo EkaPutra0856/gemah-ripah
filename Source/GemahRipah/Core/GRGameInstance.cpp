@@ -1,4 +1,8 @@
 #include "Core/GRGameInstance.h"
+#include "Core/GRDevBot.h"
+#include "Engine/LocalPlayer.h"
+#include "UI/GRStoryScreens.h"
+#include "UI/GRUISubsystem.h"
 #include "Data/GRDataSubsystem.h"
 #include "UI/SGRLoadingScreen.h"
 #include "Engine/Engine.h"
@@ -82,7 +86,34 @@ void UGRGameInstance::LoadDevScript()
 
 bool UGRGameInstance::TickDevScript(float DeltaTime)
 {
-	const double Elapsed = FPlatformTime::Seconds() - DevScriptStart;
+	const double Now = FPlatformTime::Seconds();
+	if (DevHoldUntil > 0.0)
+	{
+		APlayerController* Player = GetFirstLocalPlayerController();
+		const ULocalPlayer* Local = Player ? Player->GetLocalPlayer() : nullptr;
+		const UGRUISubsystem* UI = Local ? Local->GetSubsystem<UGRUISubsystem>() : nullptr;
+		// Dialogs and cutscenes run by themselves; anything else (morning news, notices) waits for a key.
+		const UGRScreenWidget* Top = UI ? UI->GetTopScreen() : nullptr;
+		if (Top && !Cast<UGRDialogScreen>(Top) && !Cast<UGRCutsceneScreen>(Top) && Now - DevLastPress > 3.0)
+		{
+			DevLastPress = Now;
+			Player->ConsoleCommand(TEXT("GRTekan Enter 0.08"));
+		}
+		DevHoldClear = UI && !UI->GetTopScreen() ? DevHoldClear + (Now - DevLastTick) : 0.0;
+		DevScriptStart += Now - DevLastTick;
+		DevLastTick = Now;
+		// One screen often opens right after another, so wait for a moment with none.
+		const UGRDevBot* Bot = bDevHoldBot ? UGRDevBot::Get(Player) : nullptr;
+		const bool bWaiting = bDevHoldBot ? Bot && Bot->IsBusy() : DevHoldClear < 1.0;
+		if (bWaiting && Now < DevHoldUntil)
+		{
+			return true;
+		}
+		UE_LOG(LogGemahRipah, Display, TEXT("Dev script: tunggu selesai%s"), Now >= DevHoldUntil ? TEXT(" (habis waktu)") : TEXT(""));
+		DevHoldUntil = 0.0;
+	}
+	DevLastTick = Now;
+	const double Elapsed = Now - DevScriptStart;
 	while (DevSteps.Num() > 0 && DevSteps[0].Time <= Elapsed)
 	{
 		const FString Command = DevSteps[0].Command;
@@ -99,6 +130,23 @@ bool UGRGameInstance::TickDevScript(float DeltaTime)
 		{
 			FPlatformMisc::RequestExit(false);
 			return false;
+		}
+		else if (Command.StartsWith(TEXT("tunggubot")))
+		{
+			DevHoldUntil = Now + FMath::Max(1.0, FCString::Atod(*Command.RightChop(9)));
+			bDevHoldBot = true;
+			return true;
+		}
+		else if (Command.StartsWith(TEXT("tunggu")))
+		{
+			DevHoldUntil = Now + FMath::Max(1.0, FCString::Atod(*Command.RightChop(6)));
+			DevHoldClear = 0.0;
+			bDevHoldBot = false;
+			return true;
+		}
+		else if (Command.StartsWith(TEXT("dialogjalan ")))
+		{
+			UGRDialogScreen::AutoPlayPause = FCString::Atof(*Command.RightChop(12));
 		}
 		else if (APlayerController* PC = GetFirstLocalPlayerController())
 		{

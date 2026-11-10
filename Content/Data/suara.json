@@ -1,0 +1,732 @@
+{
+ "speakers": [
+  {
+   "id": "warga",
+   "name": "Warga",
+   "role": "Warga Sentosa",
+   "color": "#A8DADC"
+  }
+ ],
+ "quests": [
+  {
+   "id": "AduanBolong",
+   "title": "Aduan: Lubang Gang Melati",
+   "desc": "Pak Slamet di Gang Melati minta lubang jalannya difoto. Lubang itu sudah dua kali ulang tahun.",
+   "steps": [
+    "Foto lubang jalan.",
+    "Kembali ke Pak Slamet."
+   ],
+   "targets": [
+    "aduan_bolong_lokasi",
+    "aduan_bolong"
+   ]
+  },
+  {
+   "id": "AduanAir",
+   "title": "Aduan: Air yang Cuma Angin",
+   "desc": "Bu Minah di Perumahan Sentosa Indah bayar air tiap bulan, yang keluar cuma angin.",
+   "steps": [
+    "Foto meteran air.",
+    "Kembali ke Bu Minah."
+   ],
+   "targets": [
+    "aduan_air_lokasi",
+    "aduan_air"
+   ]
+  },
+  {
+   "id": "AduanParkir",
+   "title": "Aduan: Juru Parkir Gaib",
+   "desc": "Mas Anto di Ruko Sentosa ditagih karcis parkir dari orang yang tidak pernah kelihatan.",
+   "steps": [
+    "Foto papan tarif parkir.",
+    "Kembali ke Mas Anto."
+   ],
+   "targets": [
+    "aduan_parkir_lokasi",
+    "aduan_parkir"
+   ]
+  },
+  {
+   "id": "AduanBansos",
+   "title": "Aduan: Bansos Menyusut",
+   "desc": "Nek Wati di Pasar Sentosa dapat beras bansos yang makin hari makin ringan. Daftar penerimanya ada di Kelurahan.",
+   "steps": [
+    "Foto daftar penerima bansos.",
+    "Kembali ke Nek Wati."
+   ],
+   "targets": [
+    "aduan_bansos_lokasi",
+    "aduan_bansos"
+   ]
+  },
+  {
+   "id": "AduanLampu",
+   "title": "Aduan: Dua Ratus Titik Lampu",
+   "desc": "Pak Karno di depan SDN Sentosa 1 ingin tahu ke mana perginya dua ratus lampu jalan yang sudah diresmikan.",
+   "steps": [
+    "Foto papan proyek lampu.",
+    "Kembali ke Pak Karno."
+   ],
+   "targets": [
+    "aduan_lampu_lokasi",
+    "aduan_lampu"
+   ]
+  },
+  {
+   "id": "AduanObat",
+   "title": "Aduan: Obat Selalu Habis",
+   "desc": "Bu Narti di Puskesmas Sentosa sudah tiga kali pulang tanpa obat. Papan stoknya bilang lain.",
+   "steps": [
+    "Foto papan stok obat.",
+    "Kembali ke Bu Narti."
+   ],
+   "targets": [
+    "aduan_obat_lokasi",
+    "aduan_obat"
+   ]
+  }
+ ],
+ "dialogs": [
+  {
+   "id": "aduan_bolong",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "q.AduanBolong==0",
+     "speaker": "warga",
+     "text": "Mas, lubang di ujung gang ini sudah makan tiga motor dan satu calon RT. Dilaporkan, dijawab: sudah dianggarkan.",
+     "choices": [
+      {
+       "text": "Saya foto, Pak. Biar orang lihat.",
+       "do": "quest AduanBolong",
+       "next": "end"
+      },
+      {
+       "text": "Maaf, sekarang belum bisa.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "if": "q.AduanBolong==1",
+     "speaker": "warga",
+     "text": "Lubangnya di ujung gang, Mas. Kalau jatuh, berarti sudah ketemu.",
+     "next": "end"
+    },
+    {
+     "if": "q.AduanBolong==2",
+     "speaker": "warga",
+     "text": "Fotonya sudah di grup RT. Besok katanya ada yang datang. Bawa kamera, bukan semen, tapi lumayan.",
+     "do": "done AduanBolong; suara 6; kesaksian; notifbaik Warga menyimpan kesaksianmu. Bisa dipakai membantah isu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "aduan_air",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "q.AduanAir==0",
+     "speaker": "warga",
+     "text": "Tagihan air naik, airnya tidak. Keran saya cuma mendesis. Kata petugas, itu air versi hemat.",
+     "choices": [
+      {
+       "text": "Saya cek meterannya, Bu.",
+       "do": "quest AduanAir",
+       "next": "end"
+      },
+      {
+       "text": "Maaf, sekarang belum bisa.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "if": "q.AduanAir==1",
+     "speaker": "warga",
+     "text": "Meterannya di dekat pagar, Mas. Dengar saja, bunyinya lebih rajin daripada airnya.",
+     "next": "end"
+    },
+    {
+     "if": "q.AduanAir==2",
+     "speaker": "warga",
+     "text": "Nah, ini buktinya. Saya kirim ke grup ibu-ibu. Kami tidak punya air, tapi kami punya waktu.",
+     "do": "done AduanAir; suara 6; kesaksian; notifbaik Warga menyimpan kesaksianmu. Bisa dipakai membantah isu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "aduan_parkir",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "q.AduanParkir==0",
+     "speaker": "warga",
+     "text": "Tiap sore ada karcis di motor saya, orangnya tidak pernah ada. Bayarnya ke QRIS atas nama Yayasan Tertib Sejahtera.",
+     "choices": [
+      {
+       "text": "Saya foto papan tarifnya.",
+       "do": "quest AduanParkir",
+       "next": "end"
+      },
+      {
+       "text": "Maaf, sekarang belum bisa.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "if": "q.AduanParkir==1",
+     "speaker": "warga",
+     "text": "Papannya di ujung ruko, Mas. Jangan lama-lama, yang gaib itu punya teman.",
+     "next": "end"
+    },
+    {
+     "if": "q.AduanParkir==2",
+     "speaker": "warga",
+     "text": "Mantap. Besok karcisnya kami tempel balik ke kantor mereka. Tapi hati-hati, Mas, mereka mulai tanya-tanya.",
+     "do": "diawasi 3; done AduanParkir; suara 6; kesaksian; notifbaik Warga menyimpan kesaksianmu. Bisa dipakai membantah isu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "aduan_bansos",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "q.AduanBansos==0",
+     "speaker": "warga",
+     "text": "Dulu sepuluh kilo, lalu lima, sekarang satu kilo plus stiker wajah pejabat. Stikernya berat, Nak, berasnya tidak.",
+     "choices": [
+      {
+       "text": "Saya lihat daftarnya di Kelurahan, Nek.",
+       "do": "quest AduanBansos",
+       "next": "end"
+      },
+      {
+       "text": "Maaf, sekarang belum bisa.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "if": "q.AduanBansos==1",
+     "speaker": "warga",
+     "text": "Daftarnya di papan Kelurahan, Nak. Baca pelan-pelan, banyak nama yang lucu.",
+     "next": "end"
+    },
+    {
+     "if": "q.AduanBansos==2",
+     "speaker": "warga",
+     "text": "Oalah, satu keluarga dapat tiga puluh jatah. Pantas beras saya kurus. Terima kasih, Nak. Nenek sebarkan di pasar.",
+     "do": "done AduanBansos; suara 6; kesaksian; notifbaik Warga menyimpan kesaksianmu. Bisa dipakai membantah isu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "aduan_lampu",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "q.AduanLampu==0",
+     "speaker": "warga",
+     "text": "Anak-anak les sore pulang gelap-gelapan. Lampunya sudah diresmikan, Mas, pakai gunting pita. Lampunya saja yang belum datang.",
+     "choices": [
+      {
+       "text": "Saya foto papan proyeknya, Pak.",
+       "do": "quest AduanLampu",
+       "next": "end"
+      },
+      {
+       "text": "Maaf, sekarang belum bisa.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "if": "q.AduanLampu==1",
+     "speaker": "warga",
+     "text": "Papannya dekat gerbang sekolah. Itu satu-satunya yang terang.",
+     "next": "end"
+    },
+    {
+     "if": "q.AduanLampu==2",
+     "speaker": "warga",
+     "text": "Dua ratus titik. Titiknya memang ada, Mas, di kertas. Guru-guru akan bawa ini ke rapat wali murid.",
+     "do": "done AduanLampu; suara 6; kesaksian; notifbaik Warga menyimpan kesaksianmu. Bisa dipakai membantah isu.",
+     "next": "end"
+    }
+   ]
+  },
+  {
+   "id": "aduan_obat",
+   "style": "3d",
+   "nodes": [
+    {
+     "if": "q.AduanObat==0",
+     "speaker": "warga",
+     "text": "Tiap datang, obatnya habis. Tiap ada kunjungan Bapak Dewan, raknya penuh. Obatnya ikut rombongan barangkali.",
+     "choices": [
+      {
+       "text": "Saya foto papan stoknya, Bu.",
+       "do": "quest AduanObat",
+       "next": "end"
+      },
+      {
+       "text": "Maaf, sekarang belum bisa.",
+       "next": "end"
+      }
+     ]
+    },
+    {
+     "if": "q.AduanObat==1",
+     "speaker": "warga",
+     "text": "Papannya di samping pintu, Mas. Dibaca sampai bawah ya, hurufnya kecil.",
+     "next": "end"
+    },
+    {
+     "if": "q.AduanObat==2",
+     "speaker": "warga",
+     "text": "Astaga, jadi obatnya ada, kita saja yang salah pangkat. Saya kasih tahu pasien lain, Mas.",
+     "do": "done AduanObat; suara 6; kesaksian; notifbaik Warga menyimpan kesaksianmu. Bisa dipakai membantah isu.",
+     "next": "end"
+    }
+   ]
+  }
+ ],
+ "spawns": [
+  {
+   "id": "aduan_bolong",
+   "kind": "npc",
+   "name": "Pak Slamet",
+   "pos": [
+    -950,
+    -16250
+   ],
+   "dialog": "aduan_bolong",
+   "color": "#A8DADC",
+   "marker": "!",
+   "markerColor": "#4CC9F0",
+   "if": "aduan.hari==1 && q.AduanBolong<100 || q.AduanBolong>=1 && q.AduanBolong<100",
+   "barks": [
+    "Mas, ada waktu sebentar?",
+    "Lapor ke mana lagi ya..."
+   ]
+  },
+  {
+   "id": "aduan_bolong_lokasi",
+   "kind": "prop",
+   "name": "Lubang Jalan",
+   "pos": [
+    -900,
+    -15650
+   ],
+   "prompt": "Foto lubang",
+   "do": "step AduanBolong 2; notif Difoto. Ada spanduk kecil di dalamnya: SUDAH DIANGGARKAN.",
+   "if": "q.AduanBolong==1",
+   "shape": "cylinder",
+   "size": [
+    170,
+    170,
+    14
+   ],
+   "color": "#2B2B2B"
+  },
+  {
+   "id": "aduan_air",
+   "kind": "npc",
+   "name": "Bu Minah",
+   "pos": [
+    950,
+    21000
+   ],
+   "dialog": "aduan_air",
+   "color": "#A8DADC",
+   "marker": "!",
+   "markerColor": "#4CC9F0",
+   "if": "aduan.hari==2 && q.AduanAir<100 || q.AduanAir>=1 && q.AduanAir<100",
+   "barks": [
+    "Mas, ada waktu sebentar?",
+    "Lapor ke mana lagi ya..."
+   ]
+  },
+  {
+   "id": "aduan_air_lokasi",
+   "kind": "prop",
+   "name": "Meteran Air",
+   "pos": [
+    1000,
+    20450
+   ],
+   "prompt": "Foto meteran",
+   "do": "step AduanAir 2; notif Difoto. Meterannya berputar kencang. Keran di sebelahnya kering.",
+   "if": "q.AduanAir==1",
+   "shape": "cube",
+   "size": [
+    50,
+    40,
+    90
+   ],
+   "color": "#4A6FA5"
+  },
+  {
+   "id": "aduan_parkir",
+   "kind": "npc",
+   "name": "Mas Anto",
+   "pos": [
+    950,
+    -9000
+   ],
+   "dialog": "aduan_parkir",
+   "color": "#A8DADC",
+   "marker": "!",
+   "markerColor": "#4CC9F0",
+   "if": "aduan.hari==3 && q.AduanParkir<100 || q.AduanParkir>=1 && q.AduanParkir<100",
+   "barks": [
+    "Mas, ada waktu sebentar?",
+    "Lapor ke mana lagi ya..."
+   ]
+  },
+  {
+   "id": "aduan_parkir_lokasi",
+   "kind": "prop",
+   "name": "Papan Tarif Parkir",
+   "pos": [
+    1000,
+    -8450
+   ],
+   "prompt": "Foto papan tarif",
+   "do": "step AduanParkir 2; notif Difoto. Tarif resmi Rp 2.000 dicoret spidol jadi Rp 5.000. Di bawahnya: ttd. Orang Dalam.",
+   "if": "q.AduanParkir==1",
+   "model": "papan",
+   "size": [
+    30,
+    220,
+    160
+   ],
+   "color": "#F1FAEE"
+  },
+  {
+   "id": "aduan_bansos",
+   "kind": "npc",
+   "name": "Nek Wati",
+   "pos": [
+    -10300,
+    12300
+   ],
+   "dialog": "aduan_bansos",
+   "color": "#A8DADC",
+   "marker": "!",
+   "markerColor": "#4CC9F0",
+   "if": "aduan.hari==4 && q.AduanBansos<100 || q.AduanBansos>=1 && q.AduanBansos<100",
+   "barks": [
+    "Mas, ada waktu sebentar?",
+    "Lapor ke mana lagi ya..."
+   ]
+  },
+  {
+   "id": "aduan_bansos_lokasi",
+   "kind": "prop",
+   "name": "Daftar Penerima Bansos",
+   "pos": [
+    7300,
+    -8700
+   ],
+   "prompt": "Foto daftar",
+   "do": "step AduanBansos 2; notif Difoto. Penerima nomor 12 sampai 40 bernama sama: Pak Darmo dan kerabat.",
+   "if": "q.AduanBansos==1",
+   "model": "papan",
+   "size": [
+    30,
+    220,
+    160
+   ],
+   "color": "#E9C46A"
+  },
+  {
+   "id": "aduan_lampu",
+   "kind": "npc",
+   "name": "Pak Karno",
+   "pos": [
+    8900,
+    11000
+   ],
+   "dialog": "aduan_lampu",
+   "color": "#A8DADC",
+   "marker": "!",
+   "markerColor": "#4CC9F0",
+   "if": "aduan.hari==5 && q.AduanLampu<100 || q.AduanLampu>=1 && q.AduanLampu<100",
+   "barks": [
+    "Mas, ada waktu sebentar?",
+    "Lapor ke mana lagi ya..."
+   ]
+  },
+  {
+   "id": "aduan_lampu_lokasi",
+   "kind": "prop",
+   "name": "Papan Proyek Lampu",
+   "pos": [
+    9300,
+    11000
+   ],
+   "prompt": "Foto papan proyek",
+   "do": "step AduanLampu 2; notif Difoto. Tertulis 200 titik lampu, selesai 100%. Yang menyala: papan ini.",
+   "if": "q.AduanLampu==1",
+   "model": "papan",
+   "size": [
+    30,
+    220,
+    160
+   ],
+   "color": "#F4A261"
+  },
+  {
+   "id": "aduan_obat",
+   "kind": "npc",
+   "name": "Bu Narti",
+   "pos": [
+    7560,
+    21000
+   ],
+   "dialog": "aduan_obat",
+   "color": "#A8DADC",
+   "marker": "!",
+   "markerColor": "#4CC9F0",
+   "if": "aduan.hari==6 && q.AduanObat<100 || q.AduanObat>=1 && q.AduanObat<100",
+   "barks": [
+    "Mas, ada waktu sebentar?",
+    "Lapor ke mana lagi ya..."
+   ]
+  },
+  {
+   "id": "aduan_obat_lokasi",
+   "kind": "prop",
+   "name": "Papan Stok Obat",
+   "pos": [
+    7300,
+    20700
+   ],
+   "prompt": "Foto stok obat",
+   "do": "step AduanObat 2; notif Difoto. Stok: tersedia. Di bawahnya: untuk kunjungan pejabat saja.",
+   "if": "q.AduanObat==1",
+   "model": "papan",
+   "size": [
+    30,
+    220,
+    160
+   ],
+   "color": "#A8DADC"
+  }
+ ],
+ "kataWarga": [
+  {
+   "if": "buzzer.aktif==1",
+   "author": "Suara Netral Indonesia",
+   "handle": "netral_100persen",
+   "text": "BOCOR! Driver ojol B mengaku pejuang rakyat, ternyata dibayar asing. Sumber: teman saya yang tidak mau disebut, tidak bisa dihubungi, dan belum lahir.",
+   "likes": 18240,
+   "official": true,
+   "id": "hoaks1"
+  },
+  {
+   "if": "buzzer.aktif==2",
+   "author": "Warga Biasa Sekali",
+   "handle": "warga_biasa_8841",
+   "text": "Saya warga biasa, bukan buzzer. Saya cuma mau bilang Bayu itu provokator. Saya warga biasa. Sekali lagi, saya warga biasa.",
+   "likes": 22910,
+   "official": true,
+   "id": "hoaks2"
+  },
+  {
+   "if": "buzzer.aktif==3",
+   "author": "Fakta Sentosa",
+   "handle": "fakta_sentosa_real",
+   "text": "Viral! Foto Bayu makan di restoran mahal. (Catatan: fotonya warung Bu Yati, kami beri filter.)",
+   "likes": 15470,
+   "official": true,
+   "id": "hoaks3"
+  },
+  {
+   "if": "buzzer.aktif==4",
+   "author": "Ibu Peduli Negeri",
+   "handle": "ibu_peduli_77",
+   "text": "Hati-hati! Ojek si B menculik anak. Belum ada korban, tapi kami khawatir duluan. Sebarkan sebelum dihapus!",
+   "likes": 31020,
+   "official": true,
+   "id": "hoaks4"
+  },
+  {
+   "if": "buzzer.aktif>=1 && suara>=50",
+   "author": "Bu Yati",
+   "handle": "warung_yati",
+   "text": "Akun-akun itu baru dibuat kemarin, fotonya bunga semua. Bayu makan di warung saya, ngutang pula. Mana ada dibayar asing.",
+   "likes": 912
+  },
+  {
+   "if": "buzzer.aktif>=1",
+   "author": "Mas Joko",
+   "handle": "warnet_jaya",
+   "text": "Lima ratus akun, satu kalimat, satu jam yang sama. Rajin sekali orang-orang biasa ini.",
+   "likes": 640
+  },
+  {
+   "if": "suara<20",
+   "author": "Pak Udin",
+   "handle": "udin_kopi",
+   "text": "Bayu? Bayu yang mana? Yang motornya bunyi itu ya?",
+   "likes": 3
+  },
+  {
+   "if": "suara<20",
+   "author": "Akun Grup RT",
+   "handle": "rt03_sentosa",
+   "text": "Info: kerja bakti Minggu. Yang tidak datang harap maklum, kami juga tidak.",
+   "likes": 11
+  },
+  {
+   "if": "suara<20",
+   "author": "Bu Yati",
+   "handle": "warung_yati",
+   "text": "Kopi naik lima ratus. Protes silakan ke Kementerian Kopi yang belum ada.",
+   "likes": 7
+  },
+  {
+   "if": "suara>=20 && suara<40",
+   "author": "Pak Udin",
+   "handle": "udin_kopi",
+   "text": "Anaknya Bu Sri lumayan juga. Masih mau dengar orang tua ngomong.",
+   "likes": 38
+  },
+  {
+   "if": "suara>=20 && suara<40",
+   "author": "Mak Ijah",
+   "handle": "ijah_gorengan",
+   "text": "Tadi driver itu nyapa. Jarang-jarang ada yang lihat saya, biasanya yang dilihat cuma gorengannya.",
+   "likes": 52
+  },
+  {
+   "if": "suara>=40 && suara<60",
+   "author": "Bu Yati",
+   "handle": "warung_yati",
+   "text": "Kalau Bayu lewat, kopinya saya korting. Jangan bilang-bilang, nanti kena Peraturan Korting.",
+   "likes": 214
+  },
+  {
+   "if": "suara>=40 && suara<60",
+   "author": "Mas Joko",
+   "handle": "warnet_jaya",
+   "text": "Sekarang kalau ada masalah orang bilang: coba tanya Bayu. Dulu bilangnya: coba sabar.",
+   "likes": 187
+  },
+  {
+   "if": "suara>=60 && suara<80",
+   "author": "Pak RT Darto",
+   "handle": "rt03_sentosa",
+   "text": "Yang tanya-tanya soal Bayu, saya jawab: tidak kenal. Yang tanya siapa, jangan tanya saya juga.",
+   "likes": 742
+  },
+  {
+   "if": "suara>=60 && suara<80",
+   "author": "Warga Pasar",
+   "handle": "pasar_sentosa",
+   "text": "SPN tadi tanya alamat Bayu. Tiga puluh orang kasih alamat yang beda-beda. Kompak sekali kami.",
+   "likes": 1320
+  },
+  {
+   "if": "suara>=80",
+   "author": "Forum Warga Sentosa",
+   "handle": "forum_sentosa",
+   "text": "Tidak ada Bayu di sini. Tapi kalau SPN mencari Bayu, kami semua Bayu.",
+   "likes": 8410
+  },
+  {
+   "if": "suara>=80",
+   "author": "Bu Tini",
+   "handle": "beras_tini",
+   "text": "Baru kali ini pasar, gang, dan perumahan satu grup WA. Biasanya cuma bersatu kalau ada diskon.",
+   "likes": 5230
+  },
+  {
+   "if": "suara>=90",
+   "author": "Pak Harso",
+   "handle": "harso_tua",
+   "text": "Empat puluh tahun saya menulis berita. Baru kali ini beritanya jalan kaki sendiri.",
+   "likes": 11200
+  },
+  {
+   "if": "suara.kesaksian>=1",
+   "author": "Grup RT Gang Melati",
+   "handle": "gang_melati",
+   "text": "Yang kemarin bantu kami ternyata bukan dari kelurahan. Pantas masalahnya beneran dilihat.",
+   "likes": 266
+  },
+  {
+   "if": "q.AduanBolong==100",
+   "author": "Pak Slamet",
+   "handle": "slamet_gang",
+   "text": "Fotonya sudah beredar. Lubangnya sekarang dipasangi spanduk lagi. Kemajuan.",
+   "likes": 301
+  },
+  {
+   "if": "q.AduanBansos==100",
+   "author": "Nek Wati",
+   "handle": "nek_wati",
+   "text": "Cucu saya pasang ini di HP nenek. Terima kasih Nak Bayu. Berasnya tetap kurus.",
+   "likes": 1877
+  },
+  {
+   "if": "q.AduanParkir==100",
+   "author": "Mas Anto",
+   "handle": "anto_ruko",
+   "text": "Juru parkir gaib sudah ketahuan rekeningnya. Ternyata gaibnya punya NPWP.",
+   "likes": 934
+  },
+  {
+   "if": "ojol_trips>=5",
+   "author": "Penumpang OjekKu",
+   "handle": "ojek_rating",
+   "text": "Driver B nyetirnya halus, ngobrolnya enak, dan paham harga cabai. Bintang lima.",
+   "likes": 96
+  },
+  {
+   "if": "radio_gang",
+   "author": "Pendengar 107,7",
+   "handle": "radio_gang_fan",
+   "text": "Radio Gang mengudara lagi. Sinyalnya jelek, isinya jelas. Terbalik dari TV.",
+   "likes": 2108
+  },
+  {
+   "if": "warga_kompak",
+   "author": "Sari LBH",
+   "handle": "sari_lbh",
+   "text": "Yang datang kali ini bukan massa. Mereka tetangga. Bedanya: tetangga tahu rumahmu.",
+   "likes": 3004
+  },
+  {
+   "if": "diawasi>=60",
+   "author": "Pak Udin",
+   "handle": "udin_kopi",
+   "text": "Ada mobil hitam parkir di pos ronda dari subuh. Sopirnya pura-pura baca koran. Korannya terbalik.",
+   "likes": 410
+  },
+  {
+   "if": "diawasi>=85",
+   "author": "Bu Yati",
+   "handle": "warung_yati",
+   "text": "Bay, kalau baca ini, jangan lewat Tugu dulu.",
+   "likes": 72
+  },
+  {
+   "if": "suara.tabrak>=1",
+   "author": "Warga Jalan Raya",
+   "handle": "jalan_raya_sentosa",
+   "text": "Driver ugal-ugalan tadi siapa sih? Katanya pejuang rakyat, rakyatnya ditabrak.",
+   "likes": 523
+  }
+ ]
+}

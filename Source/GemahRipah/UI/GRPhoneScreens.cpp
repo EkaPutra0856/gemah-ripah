@@ -3,12 +3,14 @@
 #include "UI/GRMenuButton.h"
 #include "UI/GRUIStyle.h"
 #include "UI/GRAppTile.h"
+#include "UI/GROjolSwitch.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/Button.h"
 #include "UI/GRUISubsystem.h"
 #include "Story/GRStorySubsystem.h"
 #include "Systems/GRClockSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Components/Border.h"
@@ -76,7 +78,8 @@ void UGRPhoneScreen::BuildScreen(UOverlay* Root)
 	Box->AddChildToVerticalBox(StatusBar)->SetHorizontalAlignment(HAlign_Center);
 	AppTitle = GRStyle::MakeText(WidgetTree, FText::GetEmpty(), 24, GRStyle::ColorAccent, true);
 	Box->AddChildToVerticalBox(AppTitle)->SetPadding(FMargin(4.f, 8.f, 0.f, 8.f));
-	UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
+	Scroll = WidgetTree->ConstructWidget<UScrollBox>();
+	Scroll->SetScrollWhenFocusChanges(EScrollWhenFocusChanges::AnimatedScroll);
 	Box->AddChildToVerticalBox(Scroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	Content = WidgetTree->ConstructWidget<UVerticalBox>();
 	Scroll->AddChild(Content);
@@ -142,8 +145,12 @@ void UGRPhoneScreen::FillApp(const FString& App)
 			FText Label;
 			FString Badge;
 		};
+		const UGRSuaraSubsystem* Town = GI->GetSubsystem<UGRSuaraSubsystem>();
+		const FGRQuestDef* Aduan = Town->GetTodayAduan();
+		const bool bTownNews = Town->IsBuzzerOn() || (Aduan && Story->GetQuestStep(Aduan->Id) == 0);
 		const FApp Apps[] = {
 			{ TEXT("ojekku"), LOCTEXT("AppOjekKu", "OjekKu"), Story->GetActiveOrder() ? TEXT("!") : TEXT("") },
+			{ TEXT("warga"), LOCTEXT("AppWarga", "Kata Warga"), bTownNews ? TEXT("!") : TEXT("") },
 			{ TEXT("pesan"), LOCTEXT("AppPesan", "Pesan"), Unread > 0 ? FString::FromInt(Unread) : FString() },
 			{ TEXT("kicau"), LOCTEXT("AppKicau", "Kicau"), FString() },
 			{ TEXT("berita"), LOCTEXT("AppBerita", "Berita"), FString() },
@@ -161,7 +168,7 @@ void UGRPhoneScreen::FillApp(const FString& App)
 			const FApp& Entry = Apps[i];
 			const FString Id = Entry.Id;
 			UGRAppTile* Tile = CreateWidget<UGRAppTile>(this, UGRAppTile::StaticClass());
-			Tile->Setup(GRStyle::Icon(FString(TEXT("app_")) + Entry.Id), Entry.Label, Entry.Badge);
+			Tile->Setup(GRStyle::Icon(Id == TEXT("warga") ? FString(TEXT("stat_suara")) : FString(TEXT("app_")) + Entry.Id), Entry.Label, Entry.Badge);
 			Tile->OnClicked = [this, Id]()
 			{
 				if (Id == TEXT("peta"))
@@ -201,6 +208,20 @@ void UGRPhoneScreen::FillApp(const FString& App)
 			AddButton(Content, LOCTEXT("OrderCancel", "Batalkan order"), [this]() { StoryFor(this)->CancelOrder(); ShowApp(TEXT("ojekku")); Super::OnShown(); });
 			return;
 		}
+		if (const UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this))
+		{
+			if (!OjolSwitch)
+			{
+				OjolSwitch = CreateWidget<UGROjolSwitch>(this, UGROjolSwitch::StaticClass());
+				OjolSwitch->OnClicked = [this]() { ToggleOjol(); };
+				OjolSwitch->SetOn(Ojol->IsOnline());
+			}
+			else if (OjolSwitch->IsOn() != Ojol->IsOnline())
+			{
+				OjolSwitch->SetOn(Ojol->IsOnline());
+			}
+			Content->AddChildToVerticalBox(OjolSwitch)->SetPadding(FMargin(0.f, 4.f, 0.f, 8.f));
+		}
 		AddLine(FString::Printf(TEXT("Order selesai: %d   |   Potongan aplikasi: 20%%"), Story->GetVar(TEXT("orders_done"))), 13, GRStyle::ColorTextDim);
 		bool bAny = false;
 		for (const FGROrderDef& Order : Story->GetData().Orders)
@@ -225,15 +246,9 @@ void UGRPhoneScreen::FillApp(const FString& App)
 		{
 			const bool bOn = Ojol->IsOnline();
 			const float Average = Ojol->GetRatingAverage();
-			AddCard(bOn ? TEXT("STATUS: ONLINE (terima order)") : TEXT("STATUS: OFFLINE"),
+			AddCard(TEXT("AKUN DRIVER"),
 				FString::Printf(TEXT("Rating %s   |   %d perjalanan\nPendapatan OjekKu: %s"), Average > 0.f ? *FString::Printf(TEXT("%.1f / 5"), Average) : TEXT("baru"),
 					Ojol->GetTripsDone(), *UGRStatusSubsystem::FormatRupiah(Ojol->GetEarnings())), bOn ? GRStyle::ColorGood : GRStyle::ColorTextDim);
-			AddButton(Content, bOn ? LOCTEXT("OjolOff", "Jadi OFFLINE (stop order)") : LOCTEXT("OjolOn", "Jadi ONLINE (terima order)"), [this, bOn]()
-			{
-				UGROjolSubsystem::Get(this)->SetOnline(!bOn);
-				ShowApp(TEXT("ojekku"));
-				Super::OnShown();
-			});
 			const EGROjolStage Stage = Ojol->GetStage();
 			const FGROjolTrip& Trip = Ojol->GetTrip();
 			if (Stage == EGROjolStage::Offer)
@@ -255,6 +270,10 @@ void UGRPhoneScreen::FillApp(const FString& App)
 			}
 			AddLine(TEXT("Tarif: Rp 5.000 + Rp 25/meter (min. Rp 8.000). Potongan aplikasi 20%. Bintang lima kadang dapat tip."), 12, GRStyle::ColorTextDim);
 		}
+	}
+	else if (App == TEXT("warga"))
+	{
+		FillWarga();
 	}
 	else if (App == TEXT("pesan"))
 	{
@@ -352,6 +371,94 @@ void UGRPhoneScreen::FillApp(const FString& App)
 	}
 }
 
+void UGRPhoneScreen::FillWarga()
+{
+	AppTitle->SetText(LOCTEXT("AppWargaTitle", "Kata Warga"));
+	const UGameInstance* GI = GetGameInstance();
+	UGRStorySubsystem* Story = StoryFor(this);
+	UGRSuaraSubsystem* Town = GI->GetSubsystem<UGRSuaraSubsystem>();
+	const UGRStatusSubsystem* Status = GI->GetSubsystem<UGRStatusSubsystem>();
+	const EGRSuaraTier Tier = Town->GetTier();
+	FString Standing = UGRSuaraSubsystem::TierPerk(Tier);
+	if (Tier != EGRSuaraTier::Gerakan)
+	{
+		const EGRSuaraTier Next = static_cast<EGRSuaraTier>(static_cast<uint8>(Tier) + 1);
+		Standing += FString::Printf(TEXT("\nBerikutnya %s di Suara %.0f."), UGRSuaraSubsystem::TierName(Next), UGRSuaraSubsystem::TierStart(Next));
+	}
+	AddCard(FString::Printf(TEXT("%s  |  SUARA %d"), UGRSuaraSubsystem::TierName(Tier), FMath::RoundToInt(Status->GetSuara())), Standing, GRStyle::ColorInfo);
+
+	if (Town->IsBuzzerOn())
+	{
+		AddCard(TEXT("ISU BEREDAR"), Town->GetBuzzerText(), GRStyle::ColorDanger);
+		const FString Why = Town->WhyNotRefute();
+		if (Why.IsEmpty())
+		{
+			AddButton(Content, LOCTEXT("WargaRefute", "Bantah isu ini\nSuara +3, Diawasi +5"), [this]()
+			{
+				GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>()->Refute();
+				ShowApp(TEXT("warga"));
+				Super::OnShown();
+			});
+		}
+		else
+		{
+			AddLine(Why + TEXT(". Selesaikan aduan warga, atau tunggu isunya basi."), 13, GRStyle::ColorTextDim);
+		}
+	}
+
+	if (const FGRQuestDef* Aduan = Town->GetTodayAduan())
+	{
+		const int32 Step = Story->GetQuestStep(Aduan->Id);
+		const FString State = Step == UGRStorySubsystem::QuestDone ? TEXT("Selesai. Aduan berikutnya besok.")
+			: Step > 0 ? Story->FormatText(Aduan->Steps.IsValidIndex(Step - 1) ? Aduan->Steps[Step - 1] : FString())
+			: Aduan->Desc;
+		AddCard(FString::Printf(TEXT("ADUAN HARI INI  |  %s"), *Aduan->Title), State, GRStyle::ColorAccent);
+	}
+	else
+	{
+		AddLine(TEXT("Tidak ada aduan baru hari ini."), 13, GRStyle::ColorTextDim);
+	}
+	if (Town->GetKesaksian() > 0)
+	{
+		AddLine(FString::Printf(TEXT("Kesaksian warga tersimpan: %d"), Town->GetKesaksian()), 13, GRStyle::ColorGood, true);
+	}
+
+	FString Areas;
+	static const TCHAR* const AreaNames[][2] = { { TEXT("KampungGang"), TEXT("Kampung Gang") }, { TEXT("Pasar"), TEXT("Pasar Sentosa") }, { TEXT("Sekolah"), TEXT("Kawasan Sekolah") },
+		{ TEXT("Pemerintahan"), TEXT("Pusat Pemerintahan") }, { TEXT("JalanRaya"), TEXT("Jalan Raya") } };
+	for (const auto& Area : AreaNames)
+	{
+		Areas += FString::Printf(TEXT("%s%s  %d"), Areas.IsEmpty() ? TEXT("") : TEXT("\n"), Area[1], FMath::RoundToInt(Town->GetAreaSuara(Area[0])));
+	}
+	AddCard(FString::Printf(TEXT("DUKUNGAN KAWASAN  |  %d kuat"), Town->GetStrongAreas()), Areas, GRStyle::ColorGood);
+
+	AddLine(TEXT("MINTA TOLONG WARGA"), 13, GRStyle::ColorTextDim, true);
+	auto AddSpend = [this, Town](EGRSuaraSpend Spend, const FString& Label)
+	{
+		const FString Why = Town->WhyNot(Spend);
+		AddButton(Content, FText::FromString(Why.IsEmpty() ? Label : Label + TEXT("\n(") + Why + TEXT(")")), [this, Spend]()
+		{
+			UGRSuaraSubsystem* Suara = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>();
+			const FString Reason = Suara->WhyNot(Spend);
+			if (!Suara->Buy(Spend))
+			{
+				StoryFor(this)->Run(TEXT("notif ") + Reason);
+			}
+			ShowApp(TEXT("warga"));
+			Super::OnShown();
+		});
+	};
+	AddSpend(EGRSuaraSpend::RumahAman, TEXT("Rumah Aman  |  Suara -10\nDiawasi -20, sehari sekali"));
+	AddSpend(EGRSuaraSpend::PanggilSaksi, TEXT("Panggil Saksi  |  Suara -15\nBatalkan satu penangkapan"));
+	AddSpend(EGRSuaraSpend::GalangDana, FString::Printf(TEXT("Galang Dana  |  Suara -10\nDapat %s, sekali sehari"), *UGRStatusSubsystem::FormatRupiah(Town->FundAmount())));
+
+	AddLine(TEXT("OBROLAN WARGA"), 13, GRStyle::ColorTextDim, true);
+	for (const FGRPostDef* Post : Town->GetFeed())
+	{
+		AddCard(FString::Printf(TEXT("%s  @%s  |  %d suka"), *Post->Author, *Post->Handle, Post->Likes), Post->Text, Post->Official ? GRStyle::ColorDanger : GRStyle::ColorAccent);
+	}
+}
+
 void UGRPhoneScreen::ShowApp(const FString& App)
 {
 	FillApp(App);
@@ -374,6 +481,59 @@ void UGRPhoneScreen::ShowApp(const FString& App)
 		{
 			DefaultFocus = Button;
 			break;
+		}
+	}
+	if (OjolSwitch && OjolSwitch->GetParent() == Content)
+	{
+		DefaultFocus = OjolSwitch->GetButton();
+	}
+}
+
+void UGRPhoneScreen::ToggleOjol()
+{
+	UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(this);
+	const bool bWanted = !Ojol->IsOnline();
+	Ojol->SetOnline(bWanted);
+	if (Ojol->IsOnline() != bWanted)
+	{
+		OjolSwitch->Refuse();
+		return;
+	}
+	OjolSwitch->Flip(bWanted);
+	OjolRefreshIn = 0.9f;
+}
+
+void UGRPhoneScreen::DevShowApp(const FString& App)
+{
+	DevScrollSpeed = 0.f;
+	if (App == TEXT("peta"))
+	{
+		GetUI()->PushScreen<UGRMapScreen>();
+		return;
+	}
+	ShowApp(App);
+	Super::OnShown();
+	Scroll->SetScrollOffset(0.f);
+}
+
+void UGRPhoneScreen::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	if (DevScrollSpeed > 0.f && Scroll)
+	{
+		Scroll->SetScrollOffset(FMath::Min(Scroll->GetScrollOffset() + DevScrollSpeed * InDeltaTime, Scroll->GetScrollOffsetOfEnd()));
+	}
+	if (OjolRefreshIn > 0.f)
+	{
+		OjolRefreshIn -= InDeltaTime;
+		if (OjolRefreshIn <= 0.f && CurrentApp == TEXT("ojekku"))
+		{
+			FillApp(CurrentApp);
+			if (OjolSwitch->GetParent() == Content)
+			{
+				DefaultFocus = OjolSwitch->GetButton();
+			}
+			Super::OnShown();
 		}
 	}
 }

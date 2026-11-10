@@ -28,6 +28,8 @@ public:
 
 	/** Speaker id of the dialog line or cutscene caption on screen (empty when none): NPCs gesture on their lines. */
 	static FString ActiveSpeaker;
+	/** Recording: above zero, dialogs play by themselves and each line stays this many seconds plus reading time. */
+	static float AutoPlayPause;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -59,6 +61,7 @@ private:
 	/** Short stop after punctuation while typing. */
 	float RevealPause = 0.f;
 	float HintTime = 0.f;
+	float AutoPlayWait = 0.f;
 	bool bHasChoices = false;
 	bool bFinished = false;
 	/** Meter animates towards its value and shows the last change (+5 / -8) for a moment. */
@@ -163,7 +166,7 @@ private:
 	UPROPERTY() TObjectPtr<UVerticalBox> Buttons;
 };
 
-/** Bayu's phone (Tab): OjekKu, Kicau, Pesan, Peta, Galeri, Berita, Dompet. */
+/** Bayu's phone (Tab): OjekKu, Kata Warga, Kicau, Pesan, Peta, Galeri, Berita, Dompet. */
 UCLASS()
 class GEMAHRIPAH_API UGRPhoneScreen : public UGRScreenWidget
 {
@@ -171,17 +174,25 @@ class GEMAHRIPAH_API UGRPhoneScreen : public UGRScreenWidget
 
 public:
 	UGRPhoneScreen(const FObjectInitializer& ObjectInitializer);
+	/** Cheat GRHp, for recordings: opens an app ("" for the home screen) as a tap on its tile would. */
+	void DevShowApp(const FString& App);
+	/** Cheat GRHp gulir: scrolls the page down to its end at this many pixels a second. */
+	void DevScroll(float Speed) { DevScrollSpeed = Speed; }
 
 protected:
 	virtual void BuildScreen(UOverlay* Root) override;
 	virtual void OnShown() override;
 	virtual void PlayIntro() override;
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void HandleBack() override;
 
 private:
 	void ShowApp(const FString& App);
+	void ToggleOjol();
 	void FillApp(const FString& App);
+	/** Kata Warga: Bayu's standing, today's complaint, what Suara can buy, and what the town is saying. */
+	void FillWarga();
 	void AddLine(const FString& Text, int32 Size, const FLinearColor& Color, bool bBold = false);
 	void AddCard(const FString& Header, const FString& Body, const FLinearColor& HeaderColor);
 
@@ -190,6 +201,12 @@ private:
 	UPROPERTY() TObjectPtr<UVerticalBox> Content;
 	UPROPERTY() TObjectPtr<UTextBlock> AppTitle;
 	UPROPERTY() TObjectPtr<UTextBlock> StatusBar;
+	/** Kept across page rebuilds so its animation carries on. */
+	UPROPERTY() TObjectPtr<class UGROjolSwitch> OjolSwitch;
+	/** Seconds until the OjekKu page shows the new state, once the switch has had its moment. */
+	float OjolRefreshIn = 0.f;
+	UPROPERTY() TObjectPtr<class UScrollBox> Scroll;
+	float DevScrollSpeed = 0.f;
 };
 
 /** Warnet minigame: build a post from a headline, evidence and tone. Reach vs. risk. */

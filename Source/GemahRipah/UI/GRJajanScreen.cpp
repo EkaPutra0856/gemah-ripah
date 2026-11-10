@@ -3,6 +3,7 @@
 #include "UI/GRUIStyle.h"
 #include "Story/GRStorySubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "World/GRCrowd.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
@@ -163,7 +164,7 @@ void UGRJajanScreen::BuildScreen(UOverlay* Root)
 		Texts->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, FText::FromString(Dish.Name), 17, GRStyle::ColorText, true));
 		Texts->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, FText::FromString(Dish.Desc), 12, GRStyle::ColorTextDim));
 		Texts->AddChildToVerticalBox(GRStyle::MakeText(WidgetTree, FText::Format(LOCTEXT("JajanMeta", "{0}  ·  +{1} energi"),
-			Rupiah(Dish.Price), FText::AsNumber(Dish.Energi)), 13, GRStyle::ColorAccent, true));
+			Rupiah(PriceOf(Dish.Price)), FText::AsNumber(Dish.Energi)), 13, GRStyle::ColorAccent, true));
 
 		UHorizontalBox* Stepper = WidgetTree->ConstructWidget<UHorizontalBox>();
 		Line->AddChildToHorizontalBox(Stepper)->SetVerticalAlignment(VAlign_Center);
@@ -327,12 +328,19 @@ void UGRJajanScreen::Change(int32 Row, int32 Delta)
 	Refresh();
 }
 
+int32 UGRJajanScreen::PriceOf(int32 BasePrice) const
+{
+	const UGameInstance* GI = GetGameInstance();
+	const UGRSuaraSubsystem* Suara = GI ? GI->GetSubsystem<UGRSuaraSubsystem>() : nullptr;
+	return Suara ? Suara->PriceFor(BasePrice) : BasePrice;
+}
+
 int32 UGRJajanScreen::Total() const
 {
 	int32 Sum = 0;
 	for (int32 i = 0; i < DishCount; ++i)
 	{
-		Sum += Amounts[i] * Dishes[i].Price;
+		Sum += Amounts[i] * PriceOf(Dishes[i].Price);
 	}
 	return Sum;
 }
@@ -502,6 +510,11 @@ void UGRJajanScreen::Deliver()
 		Story->Run(FString::Join(Actions, TEXT("; ")));
 	}
 	EnergyAfterMeal = FMath::RoundToInt(Story->GetEnergi());
+	if (UGRSuaraSubsystem* Suara = GI->GetSubsystem<UGRSuaraSubsystem>())
+	{
+		// Money spent at a cart stays in the neighbourhood.
+		Suara->Earn(1.f, TEXT("jajan"), 1);
+	}
 }
 
 void UGRJajanScreen::ShowReceipt()
@@ -525,7 +538,7 @@ void UGRJajanScreen::ShowReceipt()
 		if (Amounts[i] > 0)
 		{
 			AddLine(FText::Format(LOCTEXT("JajanReceiptRow", "{0}  x{1}"), FText::FromString(Dishes[i].Name), FText::AsNumber(Amounts[i])),
-				Rupiah(Amounts[i] * Dishes[i].Price), GRStyle::ColorText, 14, false);
+				Rupiah(Amounts[i] * PriceOf(Dishes[i].Price)), GRStyle::ColorText, 14, false);
 		}
 	}
 	USizeBox* Rule = WidgetTree->ConstructWidget<USizeBox>();

@@ -1,4 +1,7 @@
 #include "Core/GRCheatManager.h"
+#include "Core/GRDevBot.h"
+#include "UI/GRTrailerScreen.h"
+#include "UI/GRUISubsystem.h"
 #include "World/GRMusic.h"
 #include "World/GRSfx.h"
 #include "World/GRVfx.h"
@@ -7,6 +10,7 @@
 #include "Player/GRCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRRegulationData.h"
 #include "Systems/GRProgressSubsystem.h"
@@ -18,6 +22,7 @@
 #include "UI/GRSaveLoadScreen.h"
 #include "UI/GRSettingsScreen.h"
 #include "UI/GRMapScreen.h"
+#include "UI/GRStoryScreens.h"
 #include "UI/GRUISubsystem.h"
 #include "UI/GRJajanScreen.h"
 #include "Engine/LocalPlayer.h"
@@ -85,7 +90,7 @@ void UGRCheatManager::GRStatus()
 		Rules += Regulation->Title.ToString() + TEXT("; ");
 	}
 
-	Print(FString::Printf(TEXT("Uang=%d Suara=%.0f Diawasi=%.0f | Kota=%s | Aturan: %s | Flag: %s"),
+	Print(FString::Printf(TEXT("Uang=%d Suara=%.1f Diawasi=%.0f | Kota=%s | Aturan: %s | Flag: %s"),
 		Status->GetUang(), Status->GetSuara(), Status->GetDiawasi(),
 		*Progress->GetCurrentCityId().ToString(),
 		Rules.IsEmpty() ? TEXT("-") : *Rules,
@@ -100,6 +105,37 @@ void UGRCheatManager::GRUang(int32 Delta)
 void UGRCheatManager::GRSuara(float Delta)
 {
 	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRStatusSubsystem>()->AddSuara(Delta); }
+}
+
+void UGRCheatManager::GRBuzzer()
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRSuaraSubsystem>()->StartBuzzer(); }
+}
+
+void UGRCheatManager::GRBeliSuara(int32 Kind)
+{
+	if (UGameInstance* GI = GetGI())
+	{
+		UGRSuaraSubsystem* Suara = GI->GetSubsystem<UGRSuaraSubsystem>();
+		const EGRSuaraSpend Spend = static_cast<EGRSuaraSpend>(FMath::Clamp(Kind, 0, 2));
+		const FString Why = Suara->WhyNot(Spend);
+		Print(Suara->Buy(Spend) ? TEXT("Terbeli.") : Why);
+	}
+}
+
+void UGRCheatManager::GRBantah()
+{
+	if (UGameInstance* GI = GetGI())
+	{
+		UGRSuaraSubsystem* Suara = GI->GetSubsystem<UGRSuaraSubsystem>();
+		const FString Why = Suara->WhyNotRefute();
+		Print(Suara->Refute() ? TEXT("Terbantah.") : Why);
+	}
+}
+
+void UGRCheatManager::GRAduan(int32 Number)
+{
+	if (UGameInstance* GI = GetGI()) { GI->GetSubsystem<UGRSuaraSubsystem>()->ForceAduan(Number); }
 }
 
 void UGRCheatManager::GRDiawasi(float Delta)
@@ -318,6 +354,41 @@ void UGRCheatManager::GROjolLompat()
 	if (UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(GetOuterAPlayerController()))
 	{
 		Ojol->CheatJumpToTarget();
+	}
+}
+
+void UGRCheatManager::GRTrailer(int32 Start)
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	const ULocalPlayer* Local = PC ? PC->GetLocalPlayer() : nullptr;
+	UGRTrailerScreen::Open(Local ? Local->GetSubsystem<UGRUISubsystem>() : nullptr, Start);
+}
+
+void UGRCheatManager::GRBot(const FString& What, int32 Count)
+{
+	UGRDevBot* Bot = UGRDevBot::Get(GetOuterAPlayerController());
+	if (!Bot)
+	{
+		return;
+	}
+	if (What == TEXT("susup"))
+	{
+		Bot->StartStealth();
+	}
+	else if (What == TEXT("ojol"))
+	{
+		Bot->StartOjol(Count);
+	}
+	else if (What == TEXT("duduk"))
+	{
+		if (UGROjolSubsystem* Ojol = UGROjolSubsystem::Get(GetOuterAPlayerController()))
+		{
+			Ojol->CheatSeatPassenger(Count > 0);
+		}
+	}
+	else
+	{
+		Bot->Stop();
 	}
 }
 
@@ -934,5 +1005,64 @@ void UGRCheatManager::GRCek(const FString& Condition)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GRCek %s = %s | objektif: %s | energi %.0f"), *Condition, Story->Check(Condition) ? TEXT("benar") : TEXT("salah"),
 			*Story->GetObjectiveText(), Story->GetEnergi());
+	}
+}
+
+void UGRCheatManager::GRHp(const FString& What, float Speed)
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	UGRUISubsystem* UI = PC && PC->GetLocalPlayer() ? PC->GetLocalPlayer()->GetSubsystem<UGRUISubsystem>() : nullptr;
+	if (!UI)
+	{
+		return;
+	}
+	const FString Name = What.ToLower();
+	if (Name == TEXT("tutup"))
+	{
+		UI->PopAll();
+		return;
+	}
+	// The map opened from the phone sits on top of it: going to another app closes the map first.
+	if (Cast<UGRMapScreen>(UI->GetTopScreen()))
+	{
+		UI->PopScreen(UI->GetTopScreen());
+	}
+	UGRPhoneScreen* Phone = Cast<UGRPhoneScreen>(UI->GetTopScreen());
+	if (!Phone)
+	{
+		Phone = UI->PushScreen<UGRPhoneScreen>();
+	}
+	if (!Phone)
+	{
+		return;
+	}
+	if (Name == TEXT("gulir"))
+	{
+		Phone->DevScroll(Speed);
+	}
+	else
+	{
+		Phone->DevShowApp(Name);
+	}
+}
+
+void UGRCheatManager::GRJalan(float X, float Y, float Speed, float CameraYaw)
+{
+	if (UGRDevBot* Bot = UGRDevBot::Get(GetOuterAPlayerController()))
+	{
+		Bot->StartPath(FVector2D(X, Y), Speed, CameraYaw);
+	}
+}
+
+void UGRCheatManager::GRPindah(float X, float Y, float Yaw)
+{
+	if (UGRDevBot* Bot = UGRDevBot::Get(GetOuterAPlayerController()))
+	{
+		Bot->Stop();
+	}
+	GRPos(X, Y, Yaw);
+	if (APlayerController* PC = GetOuterAPlayerController())
+	{
+		PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 0.6f, FLinearColor::Black, false, false);
 	}
 }

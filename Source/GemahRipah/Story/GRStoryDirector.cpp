@@ -6,6 +6,7 @@
 #include "Interaction/GRInteractableActor.h"
 #include "Systems/GRSaveSubsystem.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "UI/GRStoryScreens.h"
 #include "UI/GRUISubsystem.h"
 #include "World/GRBed.h"
@@ -175,6 +176,10 @@ void AGRStoryDirector::RefreshSpawns()
 			continue;
 		}
 		const bool bActive = Story->Check(Def.If);
+		if (UGRMapMarkerComponent* Marker = Actor->FindComponentByClass<UGRMapMarkerComponent>())
+		{
+			Marker->bOffMap = !bActive;
+		}
 		if (Actor->IsHidden() != !bActive)
 		{
 			if (AGRNpc* Npc = Cast<AGRNpc>(Actor))
@@ -473,8 +478,14 @@ void AGRStoryDirector::ForceSleep()
 
 void AGRStoryDirector::HandleDiawasiMaxed()
 {
+	UGRSuaraSubsystem* Suara = GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>();
+	if (Suara->UseWitness())
+	{
+		return;
+	}
 	if (UGRStorySubsystem* Story = GetStory())
 	{
+		Suara->NoteCaught();
 		Story->CancelOrder();
 		Story->Run(Story->GetData().OnCaught);
 	}

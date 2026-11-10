@@ -38,6 +38,15 @@ public:
 	void Retry();
 	void GiveUp();
 
+	/** For UGRDevBot, which plays the level on the same grid. */
+	const TArray<FString>& GetGrid() const;
+	float GetCell() const { return Cell; }
+	FVector GetExit() const { return ExitPos; }
+	FVector GetCellCenter(int32 Row, int32 Col) const { return CellCenter(Row, Col); }
+	FIntPoint CellOf(const FVector& Location) const;
+	const TArray<TObjectPtr<AGRNpc>>& GetGuards() const { return Guards; }
+	const TArray<TObjectPtr<AGRStoryProp>>& GetLoot() const { return LootProps; }
+
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

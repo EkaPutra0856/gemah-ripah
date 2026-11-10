@@ -20,3 +20,4 @@ Daftar kandidat dan lisensinya ada di `../Referensi Aset Gratis/DAFTAR ASET GRAT
 | - | Crowd shouting/speaking ambience | OpenGameArt | opengameart.org/content/crowd-shoutingspeaking-ambience | CC0 | `S_Amb_Massa` | Ya, loop dihaluskan |
 | - | Sirens and alarm noise | OpenGameArt | opengameart.org/content/sirens-and-alarm-noise | CC0 | `S_Sirene` | Ya, dipotong 9 detik |
 | - | Klakson | Dibuat dengan skrip | `Tools/Python/prepare_sfx.py` | Milik pemilik | `S_Klakson` | - |
+| - | Energetic Action Sport (musik trailer) | AlexGrohl, Pixabay | pixabay.com/music/rock-energetic-action-sport-500409/ | Pixabay Content License, terdaftar Content ID | Hanya trailer (`Saved/Rekaman/Trailer_GemahRipah_Full.mp4`), tidak ada di game | Tidak, dipakai utuh |

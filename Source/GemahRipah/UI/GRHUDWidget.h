@@ -62,6 +62,8 @@ private:
 	UPROPERTY() TObjectPtr<UTextBlock> UangText;
 	UPROPERTY() TObjectPtr<UProgressBar> SuaraBar;
 	UPROPERTY() TObjectPtr<UTextBlock> SuaraValue;
+	/** Bayu's level of Suara, and whether a smear is draining it. */
+	UPROPERTY() TObjectPtr<UTextBlock> SuaraTier;
 	UPROPERTY() TObjectPtr<UProgressBar> DiawasiBar;
 	UPROPERTY() TObjectPtr<UTextBlock> DiawasiValue;
 	UPROPERTY() TObjectPtr<UVerticalBox> RuleList;
@@ -95,6 +97,8 @@ private:
 	/** Money counts up/down to the new value and flashes green or red. */
 	float ShownUang = -1.f;
 	int32 TargetUang = 0;
+	/** Last Suara shown, so a change can pop; negative until the first refresh. */
+	int32 ShownSuara = -1;
 	float UangFlash = 0.f;
 	FLinearColor UangFlashColor = FLinearColor::White;
 

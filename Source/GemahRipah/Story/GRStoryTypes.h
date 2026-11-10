@@ -322,6 +322,8 @@ struct FGRStoryFile
 	UPROPERTY() TArray<FGRCutsceneDef> Cutscenes;
 	UPROPERTY() TArray<FGROrderDef> Orders;
 	UPROPERTY() TArray<FGRPostDef> Kicau;
+	/** Kata Warga app: what the town says about Bayu (Official marks a smear, shown on top). */
+	UPROPERTY() TArray<FGRPostDef> KataWarga;
 	UPROPERTY() TArray<FGRNewsDef> Berita;
 	UPROPERTY() TArray<FGRNeedDef> Needs;
 	UPROPERTY() TArray<FGRBarkDef> Barks;

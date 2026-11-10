@@ -36,6 +36,8 @@ public:
 	int32 GetVar(const FString& Name) const;
 	void SetVar(const FString& Name, int32 Value);
 	bool Check(const FString& Condition) const;
+	/** A variable or built-in value, as a condition would read it. */
+	int32 GetValueOf(const FString& Name) const { return FMath::RoundToInt(GetValue(Name)); }
 	void Run(const FString& Actions);
 
 	const FGRDialogDef* FindDialog(const FString& Id) const;

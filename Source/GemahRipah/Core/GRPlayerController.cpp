@@ -241,6 +241,18 @@ void AGRPlayerController::ExitTopDownRoom(AGRTopDownRoomVolume* Room)
 	}
 }
 
+void AGRPlayerController::ReturnToPlayView()
+{
+	if (AActor* Room = CurrentRoom.Get())
+	{
+		SetViewTargetWithBlend(Room, 0.f);
+	}
+	else if (GetPawn())
+	{
+		SetViewTargetWithBlend(GetPawn(), 0.f);
+	}
+}
+
 void AGRPlayerController::HandleMove(const FInputActionValue& Value)
 {
 	if (AGRCharacter* GRCharacter = GetGRCharacter())

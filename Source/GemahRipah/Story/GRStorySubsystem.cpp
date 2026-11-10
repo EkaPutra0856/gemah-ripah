@@ -5,6 +5,7 @@
 #include "Systems/GRRegulationSubsystem.h"
 #include "Systems/GRSaveGame.h"
 #include "Systems/GRStatusSubsystem.h"
+#include "Systems/GRSuaraSubsystem.h"
 #include "GameplayTagContainer.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogGRStory, Log, All);
@@ -45,6 +46,16 @@ void UGRStorySubsystem::Reload()
 	if (UGRDataSubsystem::LoadJsonFile(TEXT("furniture.json"), Furniture))
 	{
 		Data.Spawns.Append(Furniture.Spawns);
+	}
+	// Citizens' complaints and town talk, also the same in every chapter.
+	FGRStoryFile Town;
+	if (UGRDataSubsystem::LoadJsonFile(TEXT("suara.json"), Town))
+	{
+		Data.Speakers.Append(Town.Speakers);
+		Data.Quests.Append(Town.Quests);
+		Data.Dialogs.Append(Town.Dialogs);
+		Data.Spawns.Append(Town.Spawns);
+		Data.KataWarga.Append(Town.KataWarga);
 	}
 	UE_LOG(LogGRStory, Log, TEXT("%s: %d dialog, %d quest, %d spawn, %d event"), *File, Data.Dialogs.Num(), Data.Quests.Num(), Data.Spawns.Num(), Data.Events.Num());
 }
@@ -132,6 +143,7 @@ float UGRStorySubsystem::GetValue(const FString& Name) const
 	if (Name == TEXT("diawasi")) { return Status->GetDiawasi(); }
 	if (Name == TEXT("energi")) { return Energi; }
 	if (Name == TEXT("order")) { return ActiveOrder.IsEmpty() ? 0.f : 1.f; }
+	if (Name == TEXT("kawasan_kuat")) { return GI->GetSubsystem<UGRSuaraSubsystem>()->GetStrongAreas(); }
 	if (Name == TEXT("bab"))
 	{
 		// Chapter number, for spawns shared by every chapter (furniture.json).
@@ -250,6 +262,17 @@ void UGRStorySubsystem::RunCommand(const FString& Command, const FString& Arg)
 	else if (Command == TEXT("suara")) { Status->AddSuara(FCString::Atof(*First)); }
 	else if (Command == TEXT("diawasi")) { Status->AddDiawasi(FCString::Atof(*First)); }
 	else if (Command == TEXT("energi")) { AddEnergi(FCString::Atof(*First)); }
+	else if (Command == TEXT("bonussuara"))
+	{
+		// "bonussuara <var>": how far Bayu's name carries, added to a story counter (votes at TPS 07).
+		SetVar(First, GetVar(First) + FMath::RoundToInt(Status->GetSuara() * 0.2f));
+	}
+	else if (Command == TEXT("bonuskawasan"))
+	{
+		// "bonuskawasan <var>": one more for each district that stands behind Bayu.
+		SetVar(First, GetVar(First) + GI->GetSubsystem<UGRSuaraSubsystem>()->GetStrongAreas());
+	}
+	else if (Command == TEXT("kesaksian")) { SetVar(TEXT("suara.kesaksian"), GetVar(TEXT("suara.kesaksian")) + 1); }
 	else if (Command == TEXT("item"))
 	{
 		const int32 Delta = Rest.IsEmpty() ? 1 : Number;
@@ -426,7 +449,7 @@ FString UGRStorySubsystem::GetTargetSpawnId() const
 int32 UGRStorySubsystem::GetShopPrice(const FGRShopEntry& Entry) const
 {
 	const int32 Day = GetGameInstance()->GetSubsystem<UGRClockSubsystem>()->GetDay();
-	return Entry.Price + Entry.PriceStepPerDay * FMath::Max(0, Day - 1);
+	return GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>()->PriceFor(Entry.Price + Entry.PriceStepPerDay * FMath::Max(0, Day - 1));
 }
 
 void UGRStorySubsystem::AddEnergi(float Delta)
@@ -511,6 +534,7 @@ void UGRStorySubsystem::CancelOrder()
 	{
 		ActiveOrder.Reset();
 		OrderStage = 0;
+		GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>()->Lose(1.f);
 		Notify(TEXT("Order dibatalkan. Performa akunmu turun."), 2);
 		OnChanged.Broadcast();
 	}
@@ -591,6 +615,7 @@ void UGRStorySubsystem::ResetState()
 
 void UGRStorySubsystem::StartChapter()
 {
+	GetGameInstance()->GetSubsystem<UGRSuaraSubsystem>()->OnChapterStart();
 	Run(Data.Start);
 }
 

@@ -352,18 +352,6 @@ void AGRDressing::Roads(FRandomStream& Rng)
 			}
 			// Counted from the far end, so the pattern is the same on both sides of the roundabout.
 			const int32 Step = FMath::RoundToInt((Along + 48000.f) / 2000.f);
-			// Power poles every 8 m on the side without lamps, wires along the road.
-			if (Step % 4 == 2)
-			{
-				const float Side = -1350.f;
-				for (const float Shift : { 0.f, 500.f, -500.f })
-				{
-					if (Place(TEXT("P01"), At(Side, Along + Shift, 0.f), AlongYaw))
-					{
-						break;
-					}
-				}
-			}
 			// Bins at the outer edge of the pavement, swapping sides.
 			if (Step % 3 == 0)
 			{
