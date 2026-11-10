@@ -115,7 +115,7 @@ Engineering choices:
 
 Requirements: Unreal Engine 5.8, Visual Studio 2022 (MSVC 14.44).
 
-1. Clone the repository (Git LFS required for `.uasset`/`.umap`).
+1. Clone the repository (Git LFS required for the icon PNGs in `Content/Data/Icons`).
 2. Right-click `GemahRipah.uproject` and generate project files, or run `Tools\Build.bat` with the editor closed.
 3. Open `GemahRipah.uproject`.
 
